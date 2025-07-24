@@ -40,6 +40,6 @@
         header.insertBefore(label, header.firstChild);
     }
 
-    navBar.style.borderBottom = `6px solid ${borderColor}`;
+    navBar.style.borderBottom = `4px solid ${borderColor}`;
 
 })();
