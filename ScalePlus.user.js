@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      1.3
+// @version      1.4
 // @description  F5/Enter triggers Stop or Apply; Middle-click copies text from .screenpartcontainer
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
@@ -28,20 +28,33 @@
         return visible;
     };
 
+    let firstTrigger = true;
+
     const triggerAction = () => {
         const stopBtn = document.getElementById('InsightMenuActionStopSearch');
         const applyBtn = document.getElementById('InsightMenuApply');
 
-        if (isVisible(stopBtn)) {
-            console.log('[ScalePlus] Clicking Stop Search');
-            stopBtn.click();
-        } else if (isVisible(applyBtn)) {
-            console.log('[ScalePlus] Clicking Apply');
-            applyBtn.click();
+        if (firstTrigger) {
+            firstTrigger = false;
+            if (isVisible(applyBtn)) {
+                console.log('[ScalePlus] First trigger - Clicking Apply');
+                applyBtn.click();
+            } else {
+                console.log('[ScalePlus] First trigger - Apply button not visible');
+            }
         } else {
-            console.log('[ScalePlus] No visible button to click');
+            if (isVisible(stopBtn)) {
+                console.log('[ScalePlus] Clicking Stop Search');
+                stopBtn.click();
+            } else if (isVisible(applyBtn)) {
+                console.log('[ScalePlus] Clicking Apply');
+                applyBtn.click();
+            } else {
+                console.log('[ScalePlus] No visible button to click');
+            }
         }
     };
+
 
     const copyToClipboard = (text, x, y) => {
         navigator.clipboard.writeText(text).then(() => {
