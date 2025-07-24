@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Environment Label in Navbar
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Adds a small environment label to the top nav bar for different environments
 // @updateURL    https://github.com/ShutterSeeker/scaleplus-userscripts/raw/refs/heads/main/EnviromentLabel.user.js
 // @downloadURL  https://github.com/ShutterSeeker/scaleplus-userscripts/raw/refs/heads/main/EnviromentLabel.user.js
