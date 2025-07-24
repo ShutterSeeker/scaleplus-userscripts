@@ -3,8 +3,8 @@
 // @namespace    http://tampermonkey.net/
 // @version      1.1
 // @description  Adds a small environment label to the top nav bar for different environments
-// @updateURL    https://github.com/ShutterSeeker/scaleplus-userscripts/raw/refs/heads/main/EnviromentLabel.user.js
-// @downloadURL  https://github.com/ShutterSeeker/scaleplus-userscripts/raw/refs/heads/main/EnviromentLabel.user.js
+// @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/EnviromentLabel.user.js
+// @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/EnviromentLabel.user.js
 // @author       Blake
 // @match        *://*.byjasco.com/*
 // @grant        none
