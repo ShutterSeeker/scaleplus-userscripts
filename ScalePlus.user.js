@@ -5,6 +5,7 @@
 // @description  F5/Enter triggers Stop or Apply; Middle-click copies text from .screenpartcontainer
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
+// @author       Blake
 // @match        https://scaleqa.byjasco.com/scale/insights/*
 // @match        https://scale20.byjasco.com/scale/insights/*
 // @grant        none
