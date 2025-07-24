@@ -3,6 +3,8 @@
 // @namespace    http://tampermonkey.net/
 // @version      1.1
 // @description  Duplicates the current tab with Ctrl+D (configurable with Ctrl+Shift+D toggle)
+// @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/TabDuplicator.user.js
+// @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/TabDuplicator.user.js
 // @author       Blake
 // @match        *://*/*
 // @grant        none
