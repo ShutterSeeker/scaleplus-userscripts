@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      1.4
+// @version      1.5
 // @description  F5/Enter triggers Stop or Apply; Middle-click copies text from .screenpartcontainer
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
@@ -13,6 +13,8 @@
 
 (function () {
     'use strict';
+
+    const STORAGE_KEY = 'scaleplus_f5_behavior';
 
     const isVisible = (el) => {
         if (!el) return false;
@@ -55,6 +57,34 @@
         }
     };
 
+    const promptForF5Behavior = () => {
+        const choice = confirm(
+            'Click OK for ScalePlus custom behavior (triggers Play/Stop buttons)\n' +
+            'Click Cancel for normal F5 behavior (page refresh)\n\n' +
+            'This choice will be remembered.\n' +
+            'Press Ctrl+Shift+F5 to clear preference'
+        );
+
+        const behavior = choice ? 'custom' : 'normal';
+        localStorage.setItem(STORAGE_KEY, behavior);
+        console.log(`[ScalePlus] F5 behavior set to: ${behavior}`);
+        return behavior;
+    };
+
+    const getF5Behavior = () => {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            console.log(`[ScalePlus] Using stored F5 behavior: ${stored}`);
+            return stored;
+        }
+        return promptForF5Behavior();
+    };
+
+    const clearF5Preference = () => {
+        localStorage.removeItem(STORAGE_KEY);
+        console.log('[ScalePlus] F5 behavior preference cleared');
+        alert('ScalePlus: F5 behavior preference has been cleared.');
+    };
 
     const copyToClipboard = (text, x, y) => {
         navigator.clipboard.writeText(text).then(() => {
@@ -93,9 +123,26 @@
     };
 
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'F5' || e.keyCode === 116 || e.key === 'Enter' || e.keyCode === 13) {
+        if (e.key === 'F5' || e.keyCode === 116) {
+            // Check for Ctrl+Shift+F5 to reset preference
+            if (e.ctrlKey && e.shiftKey) {
+                e.preventDefault();
+                clearF5Preference();
+                return;
+            }
+
+            const behavior = getF5Behavior();
+            if (behavior === 'custom') {
+                e.preventDefault();
+                console.log('[ScalePlus] F5 custom behavior triggered');
+                triggerAction();
+            } else {
+                console.log('[ScalePlus] F5 normal behavior - allowing page refresh');
+                // Don't prevent default, let normal refresh happen
+            }
+        } else if (e.key === 'Enter' || e.keyCode === 13) {
             e.preventDefault();
-            console.log('[ScalePlus] Key triggered:', e.key);
+            console.log('[ScalePlus] Enter key triggered');
             triggerAction();
         }
     });
@@ -128,7 +175,6 @@
 
         copyToClipboard(value, e.pageX || 0, e.pageY || 0);
     }
-
 
     // Middle-click listener
     document.addEventListener('mousedown', function (e) {
