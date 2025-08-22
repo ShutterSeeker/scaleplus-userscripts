@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Environment Label in Navbar
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.3
 // @description  Adds a small environment label to the top nav bar for different environments
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/EnviromentLabel.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/EnviromentLabel.user.js
@@ -25,13 +25,14 @@
     label.textContent = labelText;
     label.style.cssText = `
         color: white;
-    background-color: ${bgColor};
+        background-color: ${bgColor};
         font-weight: bold;
         font-size: 16px;
         padding: 8px 8px;
         border-radius: 4px;
         margin: 2px 800px;
-    display: inline-block;
+        display: inline-block;
+        white-space: nowrap;
     `;
 
     // Insert it at the beginning of the navbar
