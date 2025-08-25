@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      1.5
-// @description  F5/Enter triggers Stop or Apply; Middle-click copies text from .screenpartcontainer
+// @version      1.6
+// @description  F5/Enter triggers Stop or Apply; Middle-click copies text from .screenpartcontainer; Alt+Shift+Delete clears form cache
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @author       Blake
@@ -13,6 +13,33 @@
 
 (function () {
     'use strict';
+
+    // On page load, click the search button if not already active
+    function clickSearchButtonIfNeeded() {
+        // Wait for DOM to be ready
+        function tryClick() {
+            // Find the anchor inside the navsearch li
+            var searchBtn = document.querySelector('li.navsearch.visible-sm.visible-md.visible-lg a.navimageanchor[data-toggle="search"]');
+            if (searchBtn) {
+                // Only click if it does NOT have class 'visiblepane navimageanchor'
+                if (!searchBtn.classList.contains('visiblepane')) {
+                    searchBtn.click();
+                    console.log('[ScalePlus] Clicked search button to show search pane.');
+                } else {
+                    console.log('[ScalePlus] Search pane already visible, not clicking.');
+                }
+            } else {
+                // Try again in a bit if not found (in case of slow load)
+                setTimeout(tryClick, 200);
+            }
+        }
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', tryClick);
+        } else {
+            tryClick();
+        }
+    }
+    clickSearchButtonIfNeeded();
 
     const STORAGE_KEY = 'scaleplus_f5_behavior';
 
@@ -123,6 +150,45 @@
     };
 
     document.addEventListener('keydown', function (e) {
+        // Alt+Shift+Delete: Clear ListPaneDataGridgridColumnPreference cache for current form
+        if (e.altKey && e.shiftKey && (e.key === 'Delete' || e.keyCode === 46)) {
+            e.preventDefault();
+            try {
+                // Extract form ID from URL (e.g., .../insights/10087?...)
+                const match = window.location.pathname.match(/insights\/(\d+)/);
+                if (match) {
+                    const formId = match[1];
+                    const prefix = formId + 'ListPaneDataGridgridColumnPreference';
+                    let foundKeys = [];
+                    // Find all matching keys (username part is variable)
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith(prefix)) {
+                            foundKeys.push(key);
+                        }
+                    }
+                    if (foundKeys.length > 0) {
+                        if (confirm('Are you sure you want to clear grid column preference cache for form ' + formId + '?')) {
+                            foundKeys.forEach(key => {
+                                localStorage.removeItem(key);
+                                console.log('[ScalePlus] Cleared cache key:', key);
+                            });
+                            alert('ScalePlus: Cleared grid column preference cache for form ' + formId);
+                        } else {
+                            alert('ScalePlus: Cache clear cancelled.');
+                        }
+                    } else {
+                        alert('ScalePlus: No grid column preference cache found for this form.');
+                    }
+                } else {
+                    alert('ScalePlus: Could not determine form ID from URL.');
+                }
+            } catch (err) {
+                alert('ScalePlus: Error clearing cache: ' + err);
+            }
+            return;
+        }
+
         if (e.key === 'F5' || e.keyCode === 116) {
             // Check for Ctrl+Shift+F5 to reset preference
             if (e.ctrlKey && e.shiftKey) {
