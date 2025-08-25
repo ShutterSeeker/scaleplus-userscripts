@@ -42,6 +42,8 @@ Adds a banner at the top of the **Scale** interface to indicate whether you're i
 Enhances the **Scale** interface with keyboard and mouse shortcuts:
 - Press **F5** or **Enter** to toggle **Stop** or **Play**.
 - **Middle-click** anywhere in the results area to **copy text** instantly.
+- **Alt+Shift+Delete** to clear column cache for only **this** form (prevents global cache clear for insight changes).
+- Auto clicks the filter button so search is never hidden by default.
 
 ---
 
