@@ -47,6 +47,12 @@ Enhances the **Scale** interface with keyboard and mouse shortcuts:
 
 ---
 
+### `OnContainerCloseCopy.user.js`
+Automatically copies container ID as you close it through Scale
+- Use Scale like normal
+- Did your container fail to print label? No need to investigate which container that was. It's on your clipboard!
+- To find the container, just go to shipping container insight and paste the container ID.
+
 ### `TabDuplicator.user.js`
 Lets you duplicate the current browser tab with a keyboard shortcut:
 - Press **Ctrl+D** to duplicate the tab.
