@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      1.6
-// @description  F5/Enter triggers Stop or Apply; Middle-click copies text from .screenpartcontainer; Alt+Shift+Delete clears form cache
+// @version      1.8
+// @description  F5/Enter triggers Stop or Apply; Middle-click copies text from .screenpartcontainer with normalized spaces; Alt+Shift+Delete clears form cache
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
-// @author       Blake
+// @author       Blake,Nash
 // @match        https://scaleqa.byjasco.com/scale/insights/*
 // @match        https://scale20.byjasco.com/scale/insights/*
 // @grant        none
@@ -14,14 +14,14 @@
 (function () {
     'use strict';
 
+    // Helper: normalize spaces (convert &nbsp; → space, collapse whitespace)
+    const normalizeSpaces = (text) => text.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
+
     // On page load, click the search button if not already active
     function clickSearchButtonIfNeeded() {
-        // Wait for DOM to be ready
         function tryClick() {
-            // Find the anchor inside the navsearch li
             var searchBtn = document.querySelector('li.navsearch.visible-sm.visible-md.visible-lg a.navimageanchor[data-toggle="search"]');
             if (searchBtn) {
-                // Only click if it does NOT have class 'visiblepane navimageanchor'
                 if (!searchBtn.classList.contains('visiblepane')) {
                     searchBtn.click();
                     console.log('[ScalePlus] Clicked search button to show search pane.');
@@ -29,7 +29,6 @@
                     console.log('[ScalePlus] Search pane already visible, not clicking.');
                 }
             } else {
-                // Try again in a bit if not found (in case of slow load)
                 setTimeout(tryClick, 200);
             }
         }
@@ -150,17 +149,14 @@
     };
 
     document.addEventListener('keydown', function (e) {
-        // Alt+Shift+Delete: Clear ListPaneDataGridgridColumnPreference cache for current form
         if (e.altKey && e.shiftKey && (e.key === 'Delete' || e.keyCode === 46)) {
             e.preventDefault();
             try {
-                // Extract form ID from URL (e.g., .../insights/10087?...)
                 const match = window.location.pathname.match(/insights\/(\d+)/);
                 if (match) {
                     const formId = match[1];
                     const prefix = formId + 'ListPaneDataGridgridColumnPreference';
                     let foundKeys = [];
-                    // Find all matching keys (username part is variable)
                     for (let i = 0; i < localStorage.length; i++) {
                         const key = localStorage.key(i);
                         if (key && key.startsWith(prefix)) {
@@ -190,13 +186,11 @@
         }
 
         if (e.key === 'F5' || e.keyCode === 116) {
-            // Check for Ctrl+Shift+F5 to reset preference
             if (e.ctrlKey && e.shiftKey) {
                 e.preventDefault();
                 clearF5Preference();
                 return;
             }
-
             const behavior = getF5Behavior();
             if (behavior === 'custom') {
                 e.preventDefault();
@@ -204,7 +198,6 @@
                 triggerAction();
             } else {
                 console.log('[ScalePlus] F5 normal behavior - allowing page refresh');
-                // Don't prevent default, let normal refresh happen
             }
         } else if (e.key === 'Enter' || e.keyCode === 13) {
             e.preventDefault();
@@ -215,34 +208,27 @@
 
     function copyInnerText(e) {
         let el = e.target;
-
-        // Walk up the DOM to find the relevant element
         while (el && (!el.getAttribute || !el.getAttribute('aria-describedby') || !el.getAttribute('aria-describedby').startsWith('ListPaneDataGrid'))) {
             el = el.parentElement;
         }
-
         if (!el) {
             console.log('[ScalePlus] Triggered element does not have aria-describedby starting with ListPaneDataGrid');
             return;
         }
-
         e.preventDefault();
-
         let value = '';
         if (el.tagName === 'A') {
-            value = el.textContent.trim();
+            value = normalizeSpaces(el.textContent);
         } else if (el.tagName === 'TD') {
             const link = el.querySelector('a');
-            value = link ? link.textContent.trim() : el.textContent.trim();
+            value = link ? normalizeSpaces(link.textContent) : normalizeSpaces(el.textContent);
         } else {
             const link = el.querySelector('a');
-            value = link ? link.textContent.trim() : el.textContent.trim();
+            value = link ? normalizeSpaces(link.textContent) : normalizeSpaces(el.textContent);
         }
-
         copyToClipboard(value, e.pageX || 0, e.pageY || 0);
     }
 
-    // Middle-click listener
     document.addEventListener('mousedown', function (e) {
         if (e.button === 1) {
             e.preventDefault();
