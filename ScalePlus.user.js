@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      1.8
+// @version      1.9
 // @description  F5/Enter triggers Stop or Apply; Middle-click copies text from .screenpartcontainer with normalized spaces; Alt+Shift+Delete clears form cache
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
-// @author       Blake,Nash
+// @author       Blake, Nash
 // @match        https://scaleqa.byjasco.com/scale/insights/*
 // @match        https://scale20.byjasco.com/scale/insights/*
 // @grant        none
@@ -200,9 +200,22 @@
                 console.log('[ScalePlus] F5 normal behavior - allowing page refresh');
             }
         } else if (e.key === 'Enter' || e.keyCode === 13) {
-            e.preventDefault();
-            console.log('[ScalePlus] Enter key triggered');
-            triggerAction();
+            // Check for any visible modal dialogs (display: block)
+            const modals = document.querySelectorAll('.modal');
+            let modalVisible = false;
+            modals.forEach(modal => {
+                if (getComputedStyle(modal).display === 'block') {
+                    modalVisible = true;
+                }
+            });
+            if (modalVisible) {
+                // Let Enter act as normal if any modal is visible
+                return;
+            } else {
+                e.preventDefault();
+                console.log('[ScalePlus] Enter key triggered');
+                triggerAction();
+            }
         }
     });
 
