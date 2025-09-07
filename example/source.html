@@ -1,0 +1,1201 @@
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Inventory insight</title>
+    
+            <script type='text/javascript'>
+                window.adalConfig = {
+                                instance: 'https://scaadfs.byjasco.com/',
+                                isAngular: false,
+                                popUp: false,
+                                tenant: 'adfs' ,
+                                clientId: 'ee83b9a7-de8c-4eaa-9445-ad904f4da61d' ,
+                                redirectUri: window.location.protocol +
+                                    '//' +
+                                    window.location.hostname +
+                                    '/scale/security/postredirecturi',
+                                postLogoutRedirectUri: window.location.protocol +
+                                    '//' +
+                                    window.location.hostname +
+                                    '/scale/security/postredirecturi',
+                                cacheLocation: 'localStorage' ,
+                                tokenURL : 'https://scaadfs.byjasco.com/adfs/oauth2/authorize/?scope=openid&'
+                            };
+            </script>
+    <link href="/SCALE/CSSBundles/thirdparty?v=xJLgP93FtXUhy7J-V5SsHMQCGDHfnf9p-Z23hnoNDCQ1" rel="stylesheet"/>
+
+    <link href="/SCALE/Content/IG/themes/manh/default/infragistics.theme.css" rel="stylesheet" type="text/css" />
+    <link href="/SCALE/CSSBundles/common?v=ulVzzF1Mlb5z_rpLiI3whqChN4YiB5SoTpfSKY6bz4g1" rel="stylesheet"/>
+
+
+    <script src="/SCALE/JSBundles/loadbeforeinsight?v=R6hctzFg7Oy9sYbugHsUiE0_OD5T9Q6nOK8Y9k4YtS01"></script>
+
+    <script src="/SCALE/Scripts/IG/i18n/infragistics-en.js"></script>
+<script src="/SCALE/Scripts/IG/modules/i18n/regional/infragistics.ui.regional-en.js"></script>
+
+    <script src="/SCALE/JSBundles/infragisticsinsight?v=5jIwCSOlSZ_-fJ78831p0yGdXGZGLaO5jpnfXVGj8RQ1"></script>
+
+    <script src="/SCALE/JSBundles/manh/sharedinsight?v=eMb9M50gaA-G-LRWP5sL4gtMf72lSVvC996rzIp_SyU1"></script>
+
+
+    <script src="/SCALE/Scripts/systemjs/system.js"></script>
+    <script src="/SCALE/Scripts/manh/shared/systemjs.config.js"></script>
+    <script src="/SCALE/JSBundles/igloading?v=YF0NRTMUdZBcQH3E7oX1gL0FVNmoUheZoX_XHuFWITM1"></script>
+
+</head>
+<body>
+    <header></header>
+    <script>
+        $('body').css('opacity', 0);
+
+        $(document).mousedown(function (e) {
+            _webUi.navigationHeader.closeNavDropdown(e);
+        });
+
+        $(window).load(function () {
+            $('body').css('opacity', 1);
+        });
+        $(document).ready(function () {
+            $('#menutoggle').sidr();
+        });
+
+          $.ig.util.changeGlobalLanguage("en");
+        $.ig.util.changeGlobalRegional("en-US");
+
+                function SignOutScale() {
+                    adalHelper.clearCacheAndUser();
+                    document.getElementById('signOutForm').submit();
+                }
+
+    </script>
+
+    <div id="sidr" class="systemmenu">
+        <div>
+            <a id="systemmenuclose" class="systemmenuclose">
+                <i class="fal fa-angle-times"></i>
+            </a>
+            <script>
+                $("#systemmenuclose").click(function (e) {
+                    $.sidr('close', 'sidr');
+                });
+
+            </script>
+        </div>
+        <hr class="systemmenudivider" />
+        <div class="sidebar-name searchcombomenu">
+            <div id="MainMenuSearchCombo"></div>
+<script type="text/javascript">//<!--<![CDATA[
+$(function () {$('#MainMenuSearchCombo').igCombo({ filterExprUrlKey: 'filter', compactData: false, allowCustomValue: false, height: '25px', caseSensitive: false, dropDownOrientation: 'bottom', filteringType: 'local', locale: {placeHolder: 'search'}, highlightMatchesMode: 'multi', autoSelectFirstMatch: false, suppressKeyboard: true, visibleItemsCount: 10, itemTemplate: '<div class=\'comboTemplate\'><div class=\'comboInfo\'><span class=\'emphasizedText\'>{{FormTitle}}</span></div></div>', textKey: 'FormTitle', valueKey: 'FormTitle', dropDownAttachedToBody: false, inputName: 'MainMenuSearchCombo', loadOnDemandSettings: { enabled: false }, dataSource: [{"FormID":4069,"FormTitle":"Appointment calendar","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_APPTSCHEDULETRANSACTION","Path":"/scale/trans/apptschedule","FunctionalArea":"MAINMENU_RECEIVING","FunctionalAreaSequence":10,"FavoriteObjectId":0},{"FormID":3067,"FormTitle":"Audit log insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_AUDITLOGINSIGHT","Path":"/scale/insights/3067","FunctionalArea":"MAINMENU_SYSTEMMANAGEMENT","FunctionalAreaSequence":110,"FavoriteObjectId":0},{"FormID":2795,"FormTitle":"Background job queue insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_BACKJOBINSIGHT","Path":"/scale/insights/2795","FunctionalArea":"MAINMENU_SYSTEMMANAGEMENT","FunctionalAreaSequence":110,"FavoriteObjectId":0},{"FormID":3029,"FormTitle":"Close container","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_CLOSECONTAINERTRANSACTION","Path":"/scale/trans/closecontainer","FunctionalArea":"MAINMENU_SHIPPING","FunctionalAreaSequence":30,"FavoriteObjectId":0},{"FormID":4090,"FormTitle":"Company transfer","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_INVENTORYCOMPANYTRANSFERTRANSACTION","Path":"/scale/trans/inventoryCompanyTransfer","FunctionalArea":"MAINMENU_INVENTORY","FunctionalAreaSequence":50,"FavoriteObjectId":0},{"FormID":3105,"FormTitle":"Cycle count plan insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_CYCLECOUNTPLANINSIGHT","Path":"/scale/insights/3105","FunctionalArea":"MAINMENU_INVENTORY","FunctionalAreaSequence":50,"FavoriteObjectId":0},{"FormID":3101,"FormTitle":"Cycle count request insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_CYCLECOUNTREQUESTINSIGHT","Path":"/scale/insights/3101","FunctionalArea":"MAINMENU_INVENTORY","FunctionalAreaSequence":50,"FavoriteObjectId":0},{"FormID":10069,"FormTitle":"Decant metrics","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_DECANTMETRICS","Path":"/scale/insights/10069","FunctionalArea":"MAINMENU_METRICS","FunctionalAreaSequence":500,"FavoriteObjectId":0},{"FormID":10081,"FormTitle":"Decant metrics details","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_DECANTMETRICSDETAILS","Path":"/scale/insights/10081","FunctionalArea":"MAINMENU_METRICS","FunctionalAreaSequence":500,"FavoriteObjectId":0},{"FormID":10064,"FormTitle":"Decant Wave Insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_DECANTWAVEVIEW","Path":"/scale/insights/10064","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":80019,"FormTitle":"DIF incoming message viewer","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"UI_DIF_INCOMING_MSG_VIEWER","Path":"/scale/insights/80019","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":10080,"FormTitle":"DIF incoming message viewer","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"UI_DIF_INCOMING_MSG_VIEWER","Path":"/scale/insights/10080","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":80020,"FormTitle":"DIF outgoing message viewer","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"UI_DIF_OUTGOING_MSG_VIEWER","Path":"/scale/insights/80020","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":2767,"FormTitle":"Immediate needs insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_IMMEDIATENEEDSINSIGHT","Path":"/scale/insights/2767","FunctionalArea":"MAINMENU_INVENTORY","FunctionalAreaSequence":50,"FavoriteObjectId":0},{"FormID":10072,"FormTitle":"Indirect activity","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_INDIRECTACTIVITYMETRICS","Path":"/scale/insights/10072","FunctionalArea":"MAINMENU_METRICS","FunctionalAreaSequence":500,"FavoriteObjectId":0},{"FormID":3054,"FormTitle":"Interface error insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_INTERFACEERRORINSIGHT","Path":"/scale/insights/3054","FunctionalArea":"MAINMENU_CROSSAPPLICATION","FunctionalAreaSequence":40,"FavoriteObjectId":0},{"FormID":2772,"FormTitle":"Inventory adjustment","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_INVENTORYADJUSTMENTTRANSACTION","Path":"/scale/trans/inventoryAdjustment","FunctionalArea":"MAINMENU_INVENTORY","FunctionalAreaSequence":50,"FavoriteObjectId":0},{"FormID":2723,"FormTitle":"Inventory insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_INVENTORYINSIGHT","Path":"/scale/insights/2723","FunctionalArea":"FAVORITES","FunctionalAreaSequence":0,"FavoriteObjectId":184},{"FormID":2723,"FormTitle":"Inventory insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_INVENTORYINSIGHT","Path":"/scale/insights/2723","FunctionalArea":"MAINMENU_INVENTORY","FunctionalAreaSequence":50,"FavoriteObjectId":0},{"FormID":4012,"FormTitle":"Inventory monitoring","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_INVENTORY_MONITORING","Path":"/scale/monitors/4012","FunctionalArea":"MAINMENU_INVENTORY","FunctionalAreaSequence":50,"FavoriteObjectId":0},{"FormID":10067,"FormTitle":"Inventory review insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_INVREVIEWINSIGHT","Path":"/scale/insights/10067","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":4056,"FormTitle":"Inventory status change","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_INVSTATUSCHANGETRANSACTION","Path":"/scale/trans/invStatusChange","FunctionalArea":"MAINMENU_INVENTORY","FunctionalAreaSequence":50,"FavoriteObjectId":0},{"FormID":2775,"FormTitle":"Inventory transfer","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_INVENTORYTRANSFERTRANSACTION","Path":"/scale/trans/inventoryTransfer","FunctionalArea":"MAINMENU_INVENTORY","FunctionalAreaSequence":50,"FavoriteObjectId":0},{"FormID":80005,"FormTitle":"Item dimension viewer","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"UI_JPCI_ITEM_DIMENSION_VIEW","Path":"/scale/insights/80005","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":10057,"FormTitle":"Item Insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_ITEMINSIGHT","Path":"/scale/insights/10057","FunctionalArea":"FAVORITES","FunctionalAreaSequence":0,"FavoriteObjectId":556},{"FormID":10057,"FormTitle":"Item Insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_ITEMINSIGHT","Path":"/scale/insights/10057","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":80008,"FormTitle":"Item location assignment viewer","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"UI_JPCI_ITEM_LOCATION_ASSIGNMENT_VIEW","Path":"/scale/insights/80008","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":80007,"FormTitle":"Item location capacity viewer","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"UI_JPCI_ITEM_LOCATION_CAPACITY_VIEW","Path":"/scale/insights/80007","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":80009,"FormTitle":"Items With Hot Replenishment by Work Unit","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"UI_JPCI_OVERALLOCATION_BY_WORK_UNIT_VIEWER","Path":"/scale/insights/80009","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":80001,"FormTitle":"Jasco item velocity summary viewer","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"UI_JPCI_ITEM_VELOCITY_SUMMARY_VIEW","Path":"/scale/insights/80001","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":80003,"FormTitle":"Jasco Open Work Summary","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"UI_JPCI_OPEN_WORK_SUMMARY","Path":"/scale/insights/80003","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":80002,"FormTitle":"Jasco physical inventory item summary view","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"UI_JPCI_PHYSICAL_INVENTORY_ITEM_SUMMARY_VIEW","Path":"/scale/insights/80002","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":3050,"FormTitle":"Labor activity insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_LABORINSIGHT","Path":"/scale/insights/3050","FunctionalArea":"MAINMENU_LABORMANAGEMENT","FunctionalAreaSequence":80,"FavoriteObjectId":0},{"FormID":3051,"FormTitle":"Labor monitoring","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_LABOR_MONITORING","Path":"/scale/monitors/3051","FunctionalArea":"MAINMENU_LABORMANAGEMENT","FunctionalAreaSequence":80,"FavoriteObjectId":0},{"FormID":80010,"FormTitle":"Location with hot replens viewer","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"UI_JPCI_LOCATION_OVERALLOCATION_VIEWER","Path":"/scale/insights/80010","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":2768,"FormTitle":"Lot insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_LOTINSIGHT","Path":"/scale/insights/2768","FunctionalArea":"MAINMENU_INVENTORY","FunctionalAreaSequence":50,"FavoriteObjectId":0},{"FormID":2798,"FormTitle":"Manifest insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_MANIFESTINSIGHT","Path":"/scale/insights/2798","FunctionalArea":"MAINMENU_SHIPPING","FunctionalAreaSequence":30,"FavoriteObjectId":0},{"FormID":3053,"FormTitle":"Manual labor entry","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_MANUALLABORENTRYTRANSACTION","Path":"/scale/trans/manuallaborentry","FunctionalArea":"MAINMENU_LABORMANAGEMENT","FunctionalAreaSequence":80,"FavoriteObjectId":0},{"FormID":10085,"FormTitle":"Metric sessions","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_METRICSESSIONS","Path":"/scale/insights/10085","FunctionalArea":"MAINMENU_METRICS","FunctionalAreaSequence":500,"FavoriteObjectId":0},{"FormID":3110,"FormTitle":"Movement class insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_MOVEMENTCLASSINSIGHT","Path":"/scale/insights/3110","FunctionalArea":"MAINMENU_INVENTORY","FunctionalAreaSequence":50,"FavoriteObjectId":0},{"FormID":2785,"FormTitle":"Multiple order pallet insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_MULTIPLEORDERPALLETINSIGHT","Path":"/scale/insights/2785","FunctionalArea":"MAINMENU_SHIPPING","FunctionalAreaSequence":30,"FavoriteObjectId":0},{"FormID":4007,"FormTitle":"Packing","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_PACKINGTRANSACTION","Path":"/scale/trans/packing","FunctionalArea":"FAVORITES","FunctionalAreaSequence":0,"FavoriteObjectId":559},{"FormID":4007,"FormTitle":"Packing","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_PACKINGTRANSACTION","Path":"/scale/trans/packing","FunctionalArea":"MAINMENU_SHIPPING","FunctionalAreaSequence":30,"FavoriteObjectId":0},{"FormID":10082,"FormTitle":"Packing metrics","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_PACKINGMETRICS","Path":"/scale/insights/10082","FunctionalArea":"MAINMENU_METRICS","FunctionalAreaSequence":500,"FavoriteObjectId":0},{"FormID":10084,"FormTitle":"Picking metrics","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_PICKINGMETRICS","Path":"/scale/insights/10084","FunctionalArea":"MAINMENU_METRICS","FunctionalAreaSequence":500,"FavoriteObjectId":0},{"FormID":2774,"FormTitle":"Planned shipment insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_PLANNEDSHIPMENTINSIGHT","Path":"/scale/insights/2774","FunctionalArea":"MAINMENU_ORDERPLANNING","FunctionalAreaSequence":20,"FavoriteObjectId":0},{"FormID":3066,"FormTitle":"Process history insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_PROCESSHISTORYINSIGHT","Path":"/scale/insights/3066","FunctionalArea":"MAINMENU_CROSSAPPLICATION","FunctionalAreaSequence":40,"FavoriteObjectId":0},{"FormID":2599,"FormTitle":"Progistics","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"UI_PROGISTICS","Path":"http://JASSCALE20QA01/Progistics/asp/index.asp","FunctionalArea":"MAINMENU_CROSSAPPLICATION","FunctionalAreaSequence":40,"FavoriteObjectId":0},{"FormID":2796,"FormTitle":"Purchase order insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_PURCHASEORDERINSIGHT","Path":"/scale/insights/2796","FunctionalArea":"MAINMENU_RECEIVING","FunctionalAreaSequence":10,"FavoriteObjectId":0},{"FormID":2797,"FormTitle":"Purchase order line insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_PURCHASEORDERLINEINSIGHT","Path":"/scale/insights/2797","FunctionalArea":"MAINMENU_RECEIVING","FunctionalAreaSequence":10,"FavoriteObjectId":0},{"FormID":2791,"FormTitle":"Putaway group insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_PUTAWAYGROUPINSIGHT","Path":"/scale/insights/2791","FunctionalArea":"MAINMENU_RECEIVING","FunctionalAreaSequence":10,"FavoriteObjectId":0},{"FormID":4005,"FormTitle":"QC workbench","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_QCWORKBENCHTRANSACTION","Path":"/scale/trans/qcworkbench?","FunctionalArea":"MAINMENU_SHIPPING","FunctionalAreaSequence":30,"FavoriteObjectId":0},{"FormID":3062,"FormTitle":"Quality history insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_QUALITYHISTORYINSIGHT","Path":"/scale/insights/3062","FunctionalArea":"MAINMENU_PERFORMANCEMANAGEMENT","FunctionalAreaSequence":70,"FavoriteObjectId":0},{"FormID":2779,"FormTitle":"Receipt container insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_RECEIPTCONTAINERINSIGHT","Path":"/scale/insights/2779","FunctionalArea":"MAINMENU_RECEIVING","FunctionalAreaSequence":10,"FavoriteObjectId":0},{"FormID":2777,"FormTitle":"Receipt insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_RECEIPTINSIGHT","Path":"/scale/insights/2777","FunctionalArea":"MAINMENU_RECEIVING","FunctionalAreaSequence":10,"FavoriteObjectId":0},{"FormID":2780,"FormTitle":"Receipt line insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_RECEIPTLINEINSIGHT","Path":"/scale/insights/2780","FunctionalArea":"MAINMENU_RECEIVING","FunctionalAreaSequence":10,"FavoriteObjectId":0},{"FormID":5055,"FormTitle":"Receipt monitoring","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_RECEIPT_MONITORING","Path":"/scale/monitors/5055","FunctionalArea":"MAINMENU_RECEIVING","FunctionalAreaSequence":10,"FavoriteObjectId":0},{"FormID":2778,"FormTitle":"Receipt quality history insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_RECEIPTQUALITYHISTORYINSIGHT","Path":"/scale/insights/2778","FunctionalArea":"MAINMENU_PERFORMANCEMANAGEMENT","FunctionalAreaSequence":70,"FavoriteObjectId":0},{"FormID":4038,"FormTitle":"Receipt workbench","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_RECEIPTWORKBENCHTRANSACTION","Path":"/scale/trans/receiptWorkBench","FunctionalArea":"MAINMENU_RECEIVING","FunctionalAreaSequence":10,"FavoriteObjectId":0},{"FormID":10086,"FormTitle":"Receiving metrics","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_RECEIVINGMETRICS","Path":"/scale/insights/10086","FunctionalArea":"MAINMENU_METRICS","FunctionalAreaSequence":500,"FavoriteObjectId":0},{"FormID":10063,"FormTitle":"Rejects Details","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_REJECTSDETAILS","Path":"/scale/insights/10063","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":10062,"FormTitle":"Rejects Insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_REJECTSINSIGHT","Path":"/scale/insights/10062","FunctionalArea":"FAVORITES","FunctionalAreaSequence":0,"FavoriteObjectId":557},{"FormID":10062,"FormTitle":"Rejects Insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_REJECTSINSIGHT","Path":"/scale/insights/10062","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":10083,"FormTitle":"Replen metrics","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_REPLENMETRICS","Path":"/scale/insights/10083","FunctionalArea":"MAINMENU_METRICS","FunctionalAreaSequence":500,"FavoriteObjectId":0},{"FormID":3046,"FormTitle":"Replenishment insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_REPLENISHMENTINSIGHT","Path":"/scale/insights/3046","FunctionalArea":"MAINMENU_INVENTORY","FunctionalAreaSequence":50,"FavoriteObjectId":0},{"FormID":2723,"FormTitle":"RF","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_INVENTORYINSIGHT","Path":"/RF/logon.aspx","FunctionalArea":"FAVORITES","FunctionalAreaSequence":0,"FavoriteObjectId":564},{"FormID":2514,"FormTitle":"RF","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_RF","Path":"/RF/logon.aspx","FunctionalArea":"MAINMENU_CROSSAPPLICATION","FunctionalAreaSequence":40,"FavoriteObjectId":0},{"FormID":2735,"FormTitle":"Shipment insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_SHIPMENTINSIGHT","Path":"/scale/insights/2735","FunctionalArea":"MAINMENU_SHIPPING","FunctionalAreaSequence":30,"FavoriteObjectId":0},{"FormID":2776,"FormTitle":"Shipment line insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_SHIPMENTLINEINSIGHT","Path":"/scale/insights/2776","FunctionalArea":"MAINMENU_SHIPPING","FunctionalAreaSequence":30,"FavoriteObjectId":0},{"FormID":4013,"FormTitle":"Shipment monitoring: Customer","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_SHIPMENT_MONITORING_CUST","Path":"/scale/monitors/4013","FunctionalArea":"MAINMENU_SHIPPING","FunctionalAreaSequence":30,"FavoriteObjectId":0},{"FormID":10065,"FormTitle":"Shipment overview","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_SHIPMENTOVERVIEW","Path":"/scale/insights/10065","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":2790,"FormTitle":"Shipped lot insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_SHIPPEDLOTINSIGHT","Path":"/scale/insights/2790","FunctionalArea":"MAINMENU_INVENTORY","FunctionalAreaSequence":50,"FavoriteObjectId":0},{"FormID":4026,"FormTitle":"Shipping container insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_SHIPPINGCONTAINERINSIGHT","Path":"/scale/insights/4026","FunctionalArea":"FAVORITES","FunctionalAreaSequence":0,"FavoriteObjectId":565},{"FormID":4026,"FormTitle":"Shipping container insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_SHIPPINGCONTAINERINSIGHT","Path":"/scale/insights/4026","FunctionalArea":"MAINMENU_SHIPPING","FunctionalAreaSequence":30,"FavoriteObjectId":0},{"FormID":3041,"FormTitle":"Shipping load insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_LOADINSIGHT","Path":"/scale/insights/3041","FunctionalArea":"MAINMENU_SHIPPING","FunctionalAreaSequence":30,"FavoriteObjectId":0},{"FormID":10071,"FormTitle":"Slotstax metrics","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_SLOTSTAXMETRICS","Path":"/scale/insights/10071","FunctionalArea":"MAINMENU_METRICS","FunctionalAreaSequence":500,"FavoriteObjectId":0},{"FormID":10068,"FormTitle":"Staging lane viewer","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"UI_JPCI_STAGING_LANE_VIEW","Path":"/scale/insights/10068","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":80004,"FormTitle":"Staging shipping container viewer","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"UI_JPCI_STAGING_SHIPPING_CONTAINER_VIEW","Path":"/scale/insights/80004","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":2669,"FormTitle":"Supply chain intelligence","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MAINMENU_SCI","Path":"http://WMS-SCI/SCI","FunctionalArea":"MAINMENU_PERFORMANCEMANAGEMENT","FunctionalAreaSequence":70,"FavoriteObjectId":0},{"FormID":2783,"FormTitle":"Transaction history insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_TRANSACTIONHISTORYINSIGHT","Path":"/scale/insights/2783","FunctionalArea":"FAVORITES","FunctionalAreaSequence":0,"FavoriteObjectId":335},{"FormID":2783,"FormTitle":"Transaction history insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_TRANSACTIONHISTORYINSIGHT","Path":"/scale/insights/2783","FunctionalArea":"MAINMENU_CROSSAPPLICATION","FunctionalAreaSequence":40,"FavoriteObjectId":0},{"FormID":80011,"FormTitle":"UI_PICK_TO_LIGHT_WORK_UNITS_VIEWER","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"UI_PICK_TO_LIGHT_WORK_UNITS_VIEWER","Path":"/scale/insights/80011","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":3070,"FormTitle":"User activity insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_USERACTIVITYINSIGHT","Path":"/scale/insights/3070","FunctionalArea":"MAINMENU_SYSTEMMANAGEMENT","FunctionalAreaSequence":110,"FavoriteObjectId":0},{"FormID":3043,"FormTitle":"Vas insight: Container","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_VASWORKBENCHINSIGHT","Path":"/scale/insights/3043","FunctionalArea":"MAINMENU_SHIPPING","FunctionalAreaSequence":30,"FavoriteObjectId":0},{"FormID":4046,"FormTitle":"Warehouse dashboard","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_DASHBOARDTRANSACTION","Path":"/scale/trans/dashboard","FunctionalArea":"MAINMENU_PERFORMANCEMANAGEMENT","FunctionalAreaSequence":70,"FavoriteObjectId":0},{"FormID":60011,"FormTitle":"Warehouse mobile","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_WAREHOUSEMOBILE","Path":"/WarehouseMobile","FunctionalArea":"MAINMENU_CROSSAPPLICATION","FunctionalAreaSequence":40,"FavoriteObjectId":0},{"FormID":2773,"FormTitle":"Wave insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_WAVEINSIGHT","Path":"/scale/insights/2773","FunctionalArea":"MAINMENU_ORDERPLANNING","FunctionalAreaSequence":20,"FavoriteObjectId":0},{"FormID":10087,"FormTitle":"Wave release prep insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_WAVERELEASEPREPINSIGHT","Path":"/scale/insights/10087?filters=DEPTH█Wave","FunctionalArea":"MAINMENU_ORDERPLANNING","FunctionalAreaSequence":20,"FavoriteObjectId":0},{"FormID":2757,"FormTitle":"Work insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_WORKINSIGHT","Path":"/scale/insights/2757","FunctionalArea":"FAVORITES","FunctionalAreaSequence":0,"FavoriteObjectId":343},{"FormID":2757,"FormTitle":"Work insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_WORKINSIGHT","Path":"/scale/insights/2757","FunctionalArea":"MAINMENU_WORK","FunctionalAreaSequence":60,"FavoriteObjectId":0},{"FormID":2771,"FormTitle":"Work monitoring: Customer","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_WORK_MONITORING_CUSTOMER","Path":"/scale/monitors/2771","FunctionalArea":"MAINMENU_WORK","FunctionalAreaSequence":60,"FavoriteObjectId":0},{"FormID":2769,"FormTitle":"Work monitoring: Group","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_WORK_MONITORING_GROUP","Path":"/scale/monitors/2769","FunctionalArea":"MAINMENU_WORK","FunctionalAreaSequence":60,"FavoriteObjectId":0},{"FormID":80006,"FormTitle":"Work open for pallets","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"UI_JASCO_OPEN_WORK_FOR_PALLET_VIEW","Path":"/scale/insights/80006","FunctionalArea":"MAINMENU_VIEWERS","FunctionalAreaSequence":400,"FavoriteObjectId":0},{"FormID":2787,"FormTitle":"Work order insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_WORKORDERINSIGHT","Path":"/scale/insights/2787","FunctionalArea":"MAINMENU_INVENTORY","FunctionalAreaSequence":50,"FavoriteObjectId":0},{"FormID":3075,"FormTitle":"Work order license plate insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_WORKORDERLPINSIGHT","Path":"/scale/insights/3075","FunctionalArea":"MAINMENU_INVENTORY","FunctionalAreaSequence":50,"FavoriteObjectId":0},{"FormID":2789,"FormTitle":"Work order line insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_WOLINEINSIGHT","Path":"/scale/insights/2789","FunctionalArea":"MAINMENU_INVENTORY","FunctionalAreaSequence":50,"FavoriteObjectId":0},{"FormID":4088,"FormTitle":"World Ease insight","IsMainUiScreenAuthorizedByLicense":true,"IsUserAuthorized":true,"ShowInMenu":true,"MenuResourceKey":"MNU_WORLDEASEINSIGHT","Path":"/scale/insights/4088","FunctionalArea":"MAINMENU_SHIPPING","FunctionalAreaSequence":30,"FavoriteObjectId":0}], dropDownClosed: function(evt,ui){_webUi.systemMenu.searchComboDropdownClosed(evt, ui)} });});
+//]]>--></script>
+        </div>
+        <hr class="systemsearchcombomenudivider" />
+        <div>
+            <!-- Your content -->
+            <ul class="sidebar-name systemmenulist">
+                <div class="">
+<script type="text/javascript">$(function(){_webUi.getAccordion('ScreenGroupAccordion50000',{"active":2147483647,"collapsible":true,"heightStyle":"content","isKoDelayedBinding":false})})</script><div id="ScreenGroupAccordion50000" class="ScreenGroupAccordion" data-name="MenuAccordion" data-internalid="50000"><div id="ScreenGroupSubAccordion51000" class="ScreenGroupSubAccordion" data-name="FAVORITES" data-internalid="51000">
+<script type="text/javascript">
+$(function(){
+	 _webUi.getSubAccordion('ScreenGroupSubAccordion51000','Favorites','ScreenGroupAccordion50000','','FAVORITES' );
+});
+</script><div class="row menuFavoriteRow"><span class="faiconwithTextbelow"><span onclick="_webUi.systemMenu.showSaveFavoritesDialog();" class="fa-stack favoriteStack"  ><i class="fal fa-circle fa-stack-2x"></i><i class="far fa-plus fa-stack-1x"></i></span></span><span class="faiconwithTextbelow"><span onclick="_webUi.systemMenu.toggleDeleteButtons();" class="fastack favoriteEditButton  "><span class="fa-stack favoriteStack"><i class="fal fa-circle fa-stack-2x"></i><i class="far fa-pencil fa-stack-1x"></i></span></span></span><ul id="menuFavoriteLinks"><li><a  href="/scale/insights/2723"  data-resourcevalue="Inventory insight" class="navmenuchild favwidth">Inventory insight</a><span onclick="_webUi.systemMenu.deleteFavorite('184');" class="fal fa-times-circle deleteFavoriteButton hiddenButton" ></span></li><li><a  href="/scale/insights/2783"  data-resourcevalue="Transaction history insight" class="navmenuchild favwidth">Transaction history insight</a><span onclick="_webUi.systemMenu.deleteFavorite('335');" class="fal fa-times-circle deleteFavoriteButton hiddenButton" ></span></li><li><a  href="/scale/insights/2757"  data-resourcevalue="Work insight" class="navmenuchild favwidth">Work insight</a><span onclick="_webUi.systemMenu.deleteFavorite('343');" class="fal fa-times-circle deleteFavoriteButton hiddenButton" ></span></li><li><a  href="/scale/insights/10057"  data-resourcevalue="Item Insight" class="navmenuchild favwidth">Item Insight</a><span onclick="_webUi.systemMenu.deleteFavorite('556');" class="fal fa-times-circle deleteFavoriteButton hiddenButton" ></span></li><li><a  href="/scale/insights/10062"  data-resourcevalue="Rejects Insight" class="navmenuchild favwidth">Rejects Insight</a><span onclick="_webUi.systemMenu.deleteFavorite('557');" class="fal fa-times-circle deleteFavoriteButton hiddenButton" ></span></li><li><a  href="/scale/trans/packing"  data-resourcevalue="Packing" class="navmenuchild favwidth">Packing</a><span onclick="_webUi.systemMenu.deleteFavorite('559');" class="fal fa-times-circle deleteFavoriteButton hiddenButton" ></span></li><li><a  href="/RF/logon.aspx"  data-resourcevalue="RF" class="navmenuchild favwidth">RF</a><span onclick="_webUi.systemMenu.deleteFavorite('564');" class="fal fa-times-circle deleteFavoriteButton hiddenButton" ></span></li><li><a  href="/scale/insights/4026"  data-resourcevalue="Shipping container insight" class="navmenuchild favwidth">Shipping container insight</a><span onclick="_webUi.systemMenu.deleteFavorite('565');" class="fal fa-times-circle deleteFavoriteButton hiddenButton" ></span></li></ul></div></div><div id="ScreenGroupSubAccordion51001" class="ScreenGroupSubAccordion" data-name="MAINMENU_RECEIVING" data-internalid="51001">
+<script type="text/javascript">
+$(function(){
+	 _webUi.getSubAccordion('ScreenGroupSubAccordion51001','Receiving','ScreenGroupAccordion50000','','MAINMENU_RECEIVING' );
+});
+</script><div class="row"><ul><li><a  href="/scale/trans/apptschedule"  data-resourcevalue="Appointment calendar" class="navmenuchild ">Appointment calendar</a></li><li><a  href="/scale/insights/2796"  data-resourcevalue="Purchase order insight" class="navmenuchild ">Purchase order insight</a></li><li><a  href="/scale/insights/2797"  data-resourcevalue="Purchase order line insight" class="navmenuchild ">Purchase order line insight</a></li><li><a  href="/scale/insights/2791"  data-resourcevalue="Putaway group insight" class="navmenuchild ">Putaway group insight</a></li><li><a  href="/scale/insights/2779"  data-resourcevalue="Receipt container insight" class="navmenuchild ">Receipt container insight</a></li><li><a  href="/scale/insights/2777"  data-resourcevalue="Receipt insight" class="navmenuchild ">Receipt insight</a></li><li><a  href="/scale/insights/2780"  data-resourcevalue="Receipt line insight" class="navmenuchild ">Receipt line insight</a></li><li><a  href="/scale/monitors/5055"  data-resourcevalue="Receipt monitoring" class="navmenuchild ">Receipt monitoring</a></li><li><a  href="/scale/trans/receiptWorkBench"  data-resourcevalue="Receipt workbench" class="navmenuchild ">Receipt workbench</a></li></ul></div></div><div id="ScreenGroupSubAccordion51002" class="ScreenGroupSubAccordion" data-name="MAINMENU_ORDERPLANNING" data-internalid="51002">
+<script type="text/javascript">
+$(function(){
+	 _webUi.getSubAccordion('ScreenGroupSubAccordion51002','Order planning','ScreenGroupAccordion50000','','MAINMENU_ORDERPLANNING' );
+});
+</script><div class="row"><ul><li><a  href="/scale/insights/2774"  data-resourcevalue="Planned shipment insight" class="navmenuchild ">Planned shipment insight</a></li><li><a  href="/scale/insights/2773"  data-resourcevalue="Wave insight" class="navmenuchild ">Wave insight</a></li><li><a  href="/scale/insights/10087?filters=DEPTH█Wave"  data-resourcevalue="Wave release prep insight" class="navmenuchild ">Wave release prep insight</a></li></ul></div></div><div id="ScreenGroupSubAccordion51003" class="ScreenGroupSubAccordion" data-name="MAINMENU_SHIPPING" data-internalid="51003">
+<script type="text/javascript">
+$(function(){
+	 _webUi.getSubAccordion('ScreenGroupSubAccordion51003','Shipping','ScreenGroupAccordion50000','','MAINMENU_SHIPPING' );
+});
+</script><div class="row"><ul><li><a  href="/scale/trans/closecontainer"  data-resourcevalue="Close container" class="navmenuchild ">Close container</a></li><li><a  href="/scale/insights/2798"  data-resourcevalue="Manifest insight" class="navmenuchild ">Manifest insight</a></li><li><a  href="/scale/insights/2785"  data-resourcevalue="Multiple order pallet insight" class="navmenuchild ">Multiple order pallet insight</a></li><li><a  href="/scale/trans/packing"  data-resourcevalue="Packing" class="navmenuchild ">Packing</a></li><li><a  href="/scale/trans/qcworkbench?"  data-resourcevalue="QC workbench" class="navmenuchild ">QC workbench</a></li><li><a  href="/scale/insights/2735"  data-resourcevalue="Shipment insight" class="navmenuchild ">Shipment insight</a></li><li><a  href="/scale/insights/2776"  data-resourcevalue="Shipment line insight" class="navmenuchild ">Shipment line insight</a></li><li><a  href="/scale/monitors/4013"  data-resourcevalue="Shipment monitoring: Customer" class="navmenuchild ">Shipment monitoring: Customer</a></li><li><a  href="/scale/insights/4026"  data-resourcevalue="Shipping container insight" class="navmenuchild ">Shipping container insight</a></li><li><a  href="/scale/insights/3041"  data-resourcevalue="Shipping load insight" class="navmenuchild ">Shipping load insight</a></li><li><a  href="/scale/insights/3043"  data-resourcevalue="Vas insight: Container" class="navmenuchild ">Vas insight: Container</a></li><li><a  href="/scale/insights/4088"  data-resourcevalue="World Ease insight" class="navmenuchild ">World Ease insight</a></li></ul></div></div><div id="ScreenGroupSubAccordion51004" class="ScreenGroupSubAccordion" data-name="MAINMENU_CROSSAPPLICATION" data-internalid="51004">
+<script type="text/javascript">
+$(function(){
+	 _webUi.getSubAccordion('ScreenGroupSubAccordion51004','Cross application','ScreenGroupAccordion50000','','MAINMENU_CROSSAPPLICATION' );
+});
+</script><div class="row"><ul><li><a  href="/scale/insights/3054"  data-resourcevalue="Interface error insight" class="navmenuchild ">Interface error insight</a></li><li><a  href="/scale/insights/3066"  data-resourcevalue="Process history insight" class="navmenuchild ">Process history insight</a></li><li><a  href="http://JASSCALE20QA01/Progistics/asp/index.asp"  data-resourcevalue="Progistics" class="navmenuchild ">Progistics</a></li><li><a  href="/RF/logon.aspx"  data-resourcevalue="RF" class="navmenuchild ">RF</a></li><li><a  href="/scale/insights/2783"  data-resourcevalue="Transaction history insight" class="navmenuchild ">Transaction history insight</a></li><li><a  href="/WarehouseMobile"  data-resourcevalue="Warehouse mobile" class="navmenuchild ">Warehouse mobile</a></li></ul></div></div><div id="ScreenGroupSubAccordion51005" class="ScreenGroupSubAccordion" data-name="MAINMENU_INVENTORY" data-internalid="51005">
+<script type="text/javascript">
+$(function(){
+	 _webUi.getSubAccordion('ScreenGroupSubAccordion51005','Inventory','ScreenGroupAccordion50000','','MAINMENU_INVENTORY' );
+});
+</script><div class="row"><ul><li><a  href="/scale/trans/inventoryCompanyTransfer"  data-resourcevalue="Company transfer" class="navmenuchild ">Company transfer</a></li><li><a  href="/scale/insights/3105"  data-resourcevalue="Cycle count plan insight" class="navmenuchild ">Cycle count plan insight</a></li><li><a  href="/scale/insights/3101"  data-resourcevalue="Cycle count request insight" class="navmenuchild ">Cycle count request insight</a></li><li><a  href="/scale/insights/2767"  data-resourcevalue="Immediate needs insight" class="navmenuchild ">Immediate needs insight</a></li><li><a  href="/scale/trans/inventoryAdjustment"  data-resourcevalue="Inventory adjustment" class="navmenuchild ">Inventory adjustment</a></li><li><a  href="/scale/insights/2723"  data-resourcevalue="Inventory insight" class="navmenuchild ">Inventory insight</a></li><li><a  href="/scale/monitors/4012"  data-resourcevalue="Inventory monitoring" class="navmenuchild ">Inventory monitoring</a></li><li><a  href="/scale/trans/invStatusChange"  data-resourcevalue="Inventory status change" class="navmenuchild ">Inventory status change</a></li><li><a  href="/scale/trans/inventoryTransfer"  data-resourcevalue="Inventory transfer" class="navmenuchild ">Inventory transfer</a></li><li><a  href="/scale/insights/2768"  data-resourcevalue="Lot insight" class="navmenuchild ">Lot insight</a></li><li><a  href="/scale/insights/3110"  data-resourcevalue="Movement class insight" class="navmenuchild ">Movement class insight</a></li><li><a  href="/scale/insights/3046"  data-resourcevalue="Replenishment insight" class="navmenuchild ">Replenishment insight</a></li><li><a  href="/scale/insights/2790"  data-resourcevalue="Shipped lot insight" class="navmenuchild ">Shipped lot insight</a></li><li><a  href="/scale/insights/2787"  data-resourcevalue="Work order insight" class="navmenuchild ">Work order insight</a></li><li><a  href="/scale/insights/3075"  data-resourcevalue="Work order license plate insight" class="navmenuchild ">Work order license plate insight</a></li><li><a  href="/scale/insights/2789"  data-resourcevalue="Work order line insight" class="navmenuchild ">Work order line insight</a></li></ul></div></div><div id="ScreenGroupSubAccordion51006" class="ScreenGroupSubAccordion" data-name="MAINMENU_WORK" data-internalid="51006">
+<script type="text/javascript">
+$(function(){
+	 _webUi.getSubAccordion('ScreenGroupSubAccordion51006','Work','ScreenGroupAccordion50000','','MAINMENU_WORK' );
+});
+</script><div class="row"><ul><li><a  href="/scale/insights/2757"  data-resourcevalue="Work insight" class="navmenuchild ">Work insight</a></li><li><a  href="/scale/monitors/2771"  data-resourcevalue="Work monitoring: Customer" class="navmenuchild ">Work monitoring: Customer</a></li><li><a  href="/scale/monitors/2769"  data-resourcevalue="Work monitoring: Group" class="navmenuchild ">Work monitoring: Group</a></li></ul></div></div><div id="ScreenGroupSubAccordion51007" class="ScreenGroupSubAccordion" data-name="MAINMENU_PERFORMANCEMANAGEMENT" data-internalid="51007">
+<script type="text/javascript">
+$(function(){
+	 _webUi.getSubAccordion('ScreenGroupSubAccordion51007','Performance management','ScreenGroupAccordion50000','','MAINMENU_PERFORMANCEMANAGEMENT' );
+});
+</script><div class="row"><ul><li><a  href="/scale/insights/3062"  data-resourcevalue="Quality history insight" class="navmenuchild ">Quality history insight</a></li><li><a  href="/scale/insights/2778"  data-resourcevalue="Receipt quality history insight" class="navmenuchild ">Receipt quality history insight</a></li><li><a  href="http://WMS-SCI/SCI"  data-resourcevalue="Supply chain intelligence" class="navmenuchild ">Supply chain intelligence</a></li><li><a  href="/scale/trans/dashboard"  data-resourcevalue="Warehouse dashboard" class="navmenuchild ">Warehouse dashboard</a></li></ul></div></div><div id="ScreenGroupSubAccordion51008" class="ScreenGroupSubAccordion" data-name="MAINMENU_LABORMANAGEMENT" data-internalid="51008">
+<script type="text/javascript">
+$(function(){
+	 _webUi.getSubAccordion('ScreenGroupSubAccordion51008','Labor management','ScreenGroupAccordion50000','','MAINMENU_LABORMANAGEMENT' );
+});
+</script><div class="row"><ul><li><a  href="/scale/insights/3050"  data-resourcevalue="Labor activity insight" class="navmenuchild ">Labor activity insight</a></li><li><a  href="/scale/monitors/3051"  data-resourcevalue="Labor monitoring" class="navmenuchild ">Labor monitoring</a></li><li><a  href="/scale/trans/manuallaborentry"  data-resourcevalue="Manual labor entry" class="navmenuchild ">Manual labor entry</a></li></ul></div></div><div id="ScreenGroupSubAccordion51009" class="ScreenGroupSubAccordion" data-name="MAINMENU_SYSTEMMANAGEMENT" data-internalid="51009">
+<script type="text/javascript">
+$(function(){
+	 _webUi.getSubAccordion('ScreenGroupSubAccordion51009','System management','ScreenGroupAccordion50000','','MAINMENU_SYSTEMMANAGEMENT' );
+});
+</script><div class="row"><ul><li><a  href="/scale/insights/3067"  data-resourcevalue="Audit log insight" class="navmenuchild ">Audit log insight</a></li><li><a  href="/scale/insights/2795"  data-resourcevalue="Background job queue insight" class="navmenuchild ">Background job queue insight</a></li><li><a  href="/scale/insights/3070"  data-resourcevalue="User activity insight" class="navmenuchild ">User activity insight</a></li></ul></div></div><div id="ScreenGroupSubAccordion51010" class="ScreenGroupSubAccordion" data-name="MAINMENU_VIEWERS" data-internalid="51010">
+<script type="text/javascript">
+$(function(){
+	 _webUi.getSubAccordion('ScreenGroupSubAccordion51010','Viewers','ScreenGroupAccordion50000','','MAINMENU_VIEWERS' );
+});
+</script><div class="row"><ul><li><a  href="/scale/insights/10064"  data-resourcevalue="Decant Wave Insight" class="navmenuchild ">Decant Wave Insight</a></li><li><a  href="/scale/insights/80019"  data-resourcevalue="DIF incoming message viewer" class="navmenuchild ">DIF incoming message viewer</a></li><li><a  href="/scale/insights/10080"  data-resourcevalue="DIF incoming message viewer" class="navmenuchild ">DIF incoming message viewer</a></li><li><a  href="/scale/insights/80020"  data-resourcevalue="DIF outgoing message viewer" class="navmenuchild ">DIF outgoing message viewer</a></li><li><a  href="/scale/insights/10067"  data-resourcevalue="Inventory review insight" class="navmenuchild ">Inventory review insight</a></li><li><a  href="/scale/insights/80005"  data-resourcevalue="Item dimension viewer" class="navmenuchild ">Item dimension viewer</a></li><li><a  href="/scale/insights/10057"  data-resourcevalue="Item Insight" class="navmenuchild ">Item Insight</a></li><li><a  href="/scale/insights/80008"  data-resourcevalue="Item location assignment viewer" class="navmenuchild ">Item location assignment viewer</a></li><li><a  href="/scale/insights/80007"  data-resourcevalue="Item location capacity viewer" class="navmenuchild ">Item location capacity viewer</a></li><li><a  href="/scale/insights/80009"  data-resourcevalue="Items With Hot Replenishment by Work Unit" class="navmenuchild ">Items With Hot Replenishment by Work Unit</a></li><li><a  href="/scale/insights/80001"  data-resourcevalue="Jasco item velocity summary viewer" class="navmenuchild ">Jasco item velocity summary viewer</a></li><li><a  href="/scale/insights/80003"  data-resourcevalue="Jasco Open Work Summary" class="navmenuchild ">Jasco Open Work Summary</a></li><li><a  href="/scale/insights/80002"  data-resourcevalue="Jasco physical inventory item summary view" class="navmenuchild ">Jasco physical inventory item summary view</a></li><li><a  href="/scale/insights/80010"  data-resourcevalue="Location with hot replens viewer" class="navmenuchild ">Location with hot replens viewer</a></li><li><a  href="/scale/insights/10063"  data-resourcevalue="Rejects Details" class="navmenuchild ">Rejects Details</a></li><li><a  href="/scale/insights/10062"  data-resourcevalue="Rejects Insight" class="navmenuchild ">Rejects Insight</a></li><li><a  href="/scale/insights/10065"  data-resourcevalue="Shipment overview" class="navmenuchild ">Shipment overview</a></li><li><a  href="/scale/insights/10068"  data-resourcevalue="Staging lane viewer" class="navmenuchild ">Staging lane viewer</a></li><li><a  href="/scale/insights/80004"  data-resourcevalue="Staging shipping container viewer" class="navmenuchild ">Staging shipping container viewer</a></li><li><a  href="/scale/insights/80011"  data-resourcevalue="UI_PICK_TO_LIGHT_WORK_UNITS_VIEWER" class="navmenuchild ">UI_PICK_TO_LIGHT_WORK_UNITS_VIEWER</a></li><li><a  href="/scale/insights/80006"  data-resourcevalue="Work open for pallets" class="navmenuchild ">Work open for pallets</a></li></ul></div></div><div id="ScreenGroupSubAccordion51011" class="ScreenGroupSubAccordion" data-name="MAINMENU_METRICS" data-internalid="51011">
+<script type="text/javascript">
+$(function(){
+	 _webUi.getSubAccordion('ScreenGroupSubAccordion51011','Metrics','ScreenGroupAccordion50000','','MAINMENU_METRICS' );
+});
+</script><div class="row"><ul><li><a  href="/scale/insights/10069"  data-resourcevalue="Decant metrics" class="navmenuchild ">Decant metrics</a></li><li><a  href="/scale/insights/10081"  data-resourcevalue="Decant metrics details" class="navmenuchild ">Decant metrics details</a></li><li><a  href="/scale/insights/10072"  data-resourcevalue="Indirect activity" class="navmenuchild ">Indirect activity</a></li><li><a  href="/scale/insights/10085"  data-resourcevalue="Metric sessions" class="navmenuchild ">Metric sessions</a></li><li><a  href="/scale/insights/10082"  data-resourcevalue="Packing metrics" class="navmenuchild ">Packing metrics</a></li><li><a  href="/scale/insights/10084"  data-resourcevalue="Picking metrics" class="navmenuchild ">Picking metrics</a></li><li><a  href="/scale/insights/10086"  data-resourcevalue="Receiving metrics" class="navmenuchild ">Receiving metrics</a></li><li><a  href="/scale/insights/10083"  data-resourcevalue="Replen metrics" class="navmenuchild ">Replen metrics</a></li><li><a  href="/scale/insights/10071"  data-resourcevalue="Slotstax metrics" class="navmenuchild ">Slotstax metrics</a></li></ul></div></div></div></div>
+            </ul>
+        </div>
+    </div>
+    <div id="topNavigationBar" class="navbar navbar-small navbar-fixed-top navbar-inverse  headernavbar" role="navigation">
+
+        <div class="navbar-header">
+            <div id="offlineMobileNotification" class="visible-xs-block pull-right offlinenotificationcollapsed">
+                <i class="fa fa-circle"></i>
+            </div>
+            <div class="visible-xs">
+                <a href="#" class="navbar-text navbar-toggle collapsedrightmenu" type="button" data-target=".navbar-collapse" data-toggle="collapse" style="text-decoration: none">
+                    <i class="far fa-user"></i>
+                </a>
+            </div>
+            <div class="visible-xs portraitmenu">
+                <a id="portraitmenu-toggle" class="navbar-text navbaraction navbarmenu" style="text-decoration: none" data-resourcekey="MENU" data-resourcevalue="Menu">
+                    <i class="fal fa-bars menuhamburger"></i>
+                </a>
+                <script>
+                    $("#portraitmenu-toggle").click(function (e) {
+                        $.sidr('open', 'sidr');
+                    });
+
+                </script>
+            </div>
+
+            <div class="visible-xs navbarposition">
+						<a class="navbar-brand navbar-left navbartitle" data-formid=2723 data-resourcekey=MNU_INVENTORYINSIGHT data-resourcevalue="Inventory insight">Inventory insight</a>
+            </div>
+        </div>
+        <div id="wrapper" style="padding-top: 38px;"> </div>
+        <nav class="collapse navbar-collapse" role="navigation">
+            <ul class="nav navbar-nav navbar-left visible-sm visible-md visible-lg navbarposition">
+                <li>
+                    <div>
+                        <a href="#sidr" id="menutoggle" class="navbar-text navbaraction navbarmenu" style="text-decoration: none" data-resourcekey="MENU" data-resourcevalue="Menu">
+                            <i class="fal fa-bars menuhamburger"></i>
+                        </a>
+                    </div>
+                </li>
+                <li>
+						<a class="navbar-brand navbar-left navbartitle visible-sm visible-md visible-lg" data-formid=2723 data-resourcekey=MNU_INVENTORYINSIGHT data-resourcevalue="Inventory insight">Inventory insight</a>
+                </li>
+            </ul>
+            <ul class="collapsepane nav navbar-nav">
+                <!-- temporary search, list and detail pane button on header until collapsing panels can be added -->
+                <li class="navsearch visible-sm visible-md visible-lg">
+                    <a href="#search" data-toggle="search" class="visiblepane navimageanchor">
+                        <i class="fa fa-filter navimage"><span id="filterBadge" class="badge"></span></i>
+                    </a>
+                </li>
+                <li class="navdetailpane visible-sm visible-md visible-lg">
+                    <a href="#" data-toggle="detailpane" class="visiblepane navimageanchor">
+                        <i class="far fa-file navimage"></i>
+                    </a>
+                </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right navbarposition navbarmargin insight">
+
+                <li>
+                    <div id="goToHomePage" class="nav dropdown">
+                        <a href="javascript:_webUi.navigationHeader.goToHomePage()" class="navbar-text dropdown-toggle navbaraction" style="text-decoration: none" aria-expanded="false">
+                            <i class="fas fa-home"></i>
+                        </a>
+                    </div>
+                </li>
+                    <li>
+                    </li>
+                    <li class="navbarWhs">
+                        <a href="#" class="navbar-text dropdown-toggle navbaraction" data-toggle="dropdown" style="text-decoration: none ; padding: 9px 0px ; background: none"><span id="currentWhsVal">02</span> <b class="caret"></b></a>
+                        <ul class="dropdown-menu" style="overflow: auto;max-height: 85vh">
+                                <li><a id="btnWhs" onclick="_webSession.setCurrentWhs(this, false)" href="#">02</a></li>
+                                <li><a id="btnWhs" onclick="_webSession.setCurrentWhs(this, false)" href="#">06</a></li>
+                        </ul>
+
+                    </li>
+                <li>
+                    <div id="navHistory" class="nav dropdown">
+                        <a href="#" class="navbar-text dropdown-toggle navbaraction" data-toggle="dropdown" style="text-decoration: none"><i class="far fa-history"></i><b class="caret"></b></a>
+                        <ul class="dropdown-menu" id="navTrail"></ul>
+                    </div>
+                </li>
+                <li>
+                    <div id="navHelp" class="nav dropdown navbarhelp">
+                        <a href="#" class="navbar-text dropdown-toggle navbaraction" data-toggle="dropdown" style="text-decoration: none"><i class="far fa-question-circle"></i></a>
+                        <ul class="dropdown-menu">
+
+                            <li><a href="/Scale/Help/WebHelp/OnlineHelp.htm" data-resourcekey="MNU_CNTIND" data-resourcevalue="Contents and index" target="_blank">Contents and index</a></li>
+                            <li>
+                                <a href="/Scale/Help/WebHelp/Content/InventoryViewer.htm" data-resourcekey="MNU_ON" data-resourcevalue="On Inventory insight" target="_blank">
+                                    On Inventory insight
+                                </a>
+                            </li>
+                            <li>
+                                    <a id="btnHelpAbout" data-resourcekey="UI_ABOUT" onclick="HelpAbout()" data-resourcevalue="About Manhattan SCALE" href="#">About Manhattan SCALE</a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+                <li>
+                    <div id="navUser" class="nav dropdown navbaruser">
+                        <a href="#" class="navbar-text dropdown-toggle navbaraction" data-toggle="dropdown" style="text-decoration: none">
+
+                                <i class="far fa-user"></i>
+                        </a>
+                        <ul class="dropdown-menu userMenu">
+                            <li class="userMenuNameArea">
+                                <div class="userMenuName">
+                                    Blake Becker
+                                </div>
+                            </li>
+                                <li><a id="ConfigureWorkStation" data-resourcekey="CONFIGUREWORKSTATION" data-confirmationmsg="CONFIGUREWORKSTATION" data-resourcevalue="Configure workstation" href="#">Configure workstation</a></li>
+
+                                <li><a id="MenuRestoreDefaultSettings" data-resourcekey="RESTOREDEFAULTSETTINGS" data-confirmationmsg="You have chosen to restore your default settings. This will reset any customizations made to the grids such as sorting, grouping, column order, and column sizing. Do you wish to continue?" data-resourcevalue="Restore default settings" href="#">Restore default settings</a></li>
+                                                            <li><a id="MenuSetAsHomePage" data-resourcekey="SETASHOMEPAGE" data-resourcevalue="Set as home page" href="javascript:_webUi.navigationHeader.setCurrentAsHomePage()">Set as home page</a></li>
+                            <li><a href="javascript:SignOutScale()" data-resourcekey="SIGNOUT" data-resourcevalue="Sign out">Sign out</a></li>
+<form action="/SCALE/Security/SignOut?message=MSG_SIGNOUT01" id="signOutForm" method="post"><input name="__RequestVerificationToken" type="hidden" value="KKF72BGbfD9evSKnab5hOpyW_oJsxXU4X3EqU_g3KFCkmovLkERyBiU4w3wS4OrktKZ6RQIthogMGsDXv7oqW8GRYXYpm4H8IYE44e-SUazW_gcpFZCdZ2P32sT6_xMfzhp8CM2sWhDtVGBLlDyOPQ2" /></form>                        </ul>
+                    </div>
+                </li>
+                <li>
+                    <div id="offlineTabletNotification" class="hidden-xs navbar-text">
+                        <i class="fa fa-circle"></i>
+                    </div>
+
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div id="ResetSettingsModalDialog" class="modal fade" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form class="form-horizontal" id="ResetSettingsModalDialogForm" novalidate="novalidate" data-controltype="form">
+
+
+
+              
+<div class="modal-header" data-controltype="modalDialogHeader" data-resourcekey="RESTOREDEFAULTSETTINGS" data-resourcevalue="Restore default settings">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h4 class="modal-title">Restore default settings</h4>
+</div>
+
+<div class="modal-body" data-controltype="modalDialogBody">
+    <div>
+        <label class="modal-informationtext" data-resourcekey="SELECTSETTINGSRESTORE" data-resourcevalue="Select the settings you wish to restore below.">Select the settings you wish to restore below.</label>
+    </div>
+    <div >
+        <input checked="checked" class="restoreDefaultSettingDialog-checkbox" id="chkListPaneDataGridgridGroupColumnsPreference" name="chkListPaneDataGridgridGroupColumnsPreference" type="checkbox" value="true" /><input name="chkListPaneDataGridgridGroupColumnsPreference" type="hidden" value="false" />
+        <label class="modal-checkboxlabel" data-resourcekey="COLUMNGROUPING" data-resourcevalue="Column grouping">Column grouping</label>
+    </div>
+    <div class="modal-text">
+        <input checked="checked" class="restoreDefaultSettingDialog-checkbox" id="chkListPaneDataGridgridColumnPreference" name="chkListPaneDataGridgridColumnPreference" type="checkbox" value="true" /><input name="chkListPaneDataGridgridColumnPreference" type="hidden" value="false" />
+        <label class="modal-checkboxlabel" data-resourcekey="COLUMNPREFERENCES" data-resourcevalue="Column preferences (sequence, visibility, width)">Column preferences (sequence, visibility, width)</label>
+    </div>
+    <div class="modal-text">
+        <input checked="checked" class="restoreDefaultSettingDialog-checkbox" id="chkListPaneDataGridgridSortPreference" name="chkListPaneDataGridgridSortPreference" type="checkbox" value="true" /><input name="chkListPaneDataGridgridSortPreference" type="hidden" value="false" />
+        <label class="modal-checkboxlabel" data-resourcekey="COLUMN SORTING" data-resourcevalue="Column sorting">Column sorting</label>
+    </div>
+</div>
+
+<div class="modal-footer" data-controltype="modalDialogFooter">
+    <button id="buttonReset" class="btn btn-default" data-resourcekey="BTN_RESET" data-resourcevalue="Reset" data-dismiss="modal" onclick="_webUi.resetdefaultsettings.resetSettings('ResetSettingsModalDialog', 'You have chosen to restore your default settings. This will reset any customizations made to the grids such as sorting, grouping, column order, and column sizing. Do you wish to continue?', 'MSG_RESTOREDEFSET')">Reset</button>
+    <button id="buttonCancel" class="btn btn-default" data-resourcekey="BTN_CANCEL" data-resourcevalue="Cancel" data-dismiss="modal">Cancel</button>
+</div>
+
+
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+<!-- div placeholder for generic modal to open other URLs -->
+<div id="UrlInModalDiv"></div>
+
+<!-- div placeholder for advanced criteria modal -->
+<div id="AdvancedCriteriaModalDiv"></div>
+
+<!-- div placeholder for help about modal -->
+<div id="HelpAboutInModalDiv"></div>
+<input id="isExternalTpmUser" type="hidden" value=False />
+
+
+
+
+
+
+
+
+
+
+
+        <div id="ScreenPartDivContainer1201" class="col-md-12 col-lg-12" data-name="InsightMenuPane" data-internalid="1201">
+
+            <div id="screenpartcontainer">
+
+
+
+<div id="fixedTopWrapper" class="fixedtotop">                    <div class="row rowmenupanel">
+
+
+                        
+
+                        <div id="ScreenGroupMenu4785" class="ScreenGroupMenu" data-name="InsightMenu" data-internalid="4785">
+
+                            
+<ul class="nav nav-pills " id="InsightMenu">
+
+                                    <div id="ScreenGroupPanel4786" class="pull-right menubuttonpanel" data-name="InsightMenuPanel" data-internalid="4786">
+                                        
+
+                                                <div id="ScreenControlMenuButton12942" class="ScreenControlMenuButton pull-left menubutton " data-name="InsightMenuApply" data-internalid="12942">
+            <li class="pull-left menubutton "><a id="InsightMenuApply" data-ResourceKey="" data-ResourceValue="" class="far fa-play menuicon" href="javascript:;  "></a></li>
+            <script type="text/javascript">$( window ).load(function () {
+if (typeof _webUi.insightSearchPaneActions.searchButtonClicked === 'function') {  $(document).delegate("#InsightMenuApply", "click",_webUi.insightSearchPaneActions.searchButtonClicked)} })</script>
+            
+        </div>
+        <div id="ScreenControlMenuButton12943" class="ScreenControlMenuButton pull-left menubutton " data-name="InsightMenuActionClearFilters" data-internalid="12943">
+            <li class="pull-left menubutton "><a id="InsightMenuActionClearFilters" data-ResourceKey="" data-ResourceValue="" class="far fa-times-circle menuicon" href="javascript:;  "></a></li>
+            <script type="text/javascript">$( window ).load(function () {
+if (typeof _webUi.insightSearchPaneActions.clearButtonClicked === 'function') {  $(document).delegate("#InsightMenuActionClearFilters", "click",_webUi.insightSearchPaneActions.clearButtonClicked)} })</script>
+            
+        </div>
+        <div id="ScreenControlMenuButton12944" class="ScreenControlMenuButton pull-left menubutton " data-name="InsightMenuActionStopSearch" data-internalid="12944">
+            <li class="pull-left menubutton "><a id="InsightMenuActionStopSearch" data-ResourceKey="" data-ResourceValue="" class="far fa-stop menuicon" href="javascript:;  "></a></li>
+            <script type="text/javascript">$( window ).load(function () {
+if (typeof _webUi.insightSearchPaneActions.stopSearchButtonClicked === 'function') {  $(document).delegate("#InsightMenuActionStopSearch", "click",_webUi.insightSearchPaneActions.stopSearchButtonClicked)} })</script>
+            
+        </div>
+        <div id="ScreenControlMenuButton12945" class="ScreenControlMenuButton pull-left menubutton " data-name="InsightMenuActionSaveSearch" data-internalid="12945">
+            <li class="pull-left menubutton "><a id="InsightMenuActionSaveSearch" data-ResourceKey="" data-ResourceValue="" class="far fa-save menuicon" href="javascript:;  "></a></li>
+            <script type="text/javascript">$( window ).load(function () {
+if (typeof _webUi.dialog.showModalDialogByEvent === 'function') {  $(document).delegate("#InsightMenuActionSaveSearch", "click",{'ModalDialogName' : 'SaveSearchModalDialog'} ,_webUi.dialog.showModalDialogByEvent)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#InsightMenuActionSaveSearch').attr({
+	'data-securityCheckpoint': "24"
+});})</script>
+        </div>
+
+
+                                    </div>
+                                    <div id="ScreenGroupSavedSearchesMenu4787" class="dropdown pull-left pullleftfavourite" data-name="InsightMenuFavoritesDropdown" data-internalid="4787">
+                                        <li class="dropdown pull-left pullleftfavourite" ><a class="dropdown-toggle" data-toggle="dropdown" id="InsightMenuFavoritesDropdown" href=""><span class="fas fa-star starIcon"></span></a><ul class="dropdown-menu" data-bind="foreach:savedSearches"><li class="dropdownaction" data-controlType="SavedSearchesMenu"><a id="SearchPaneMenuFavoritesChooseSearch" href="javascript:;"><span class="deletesavedsearchtext col-xs-6 col-md-6 col-lg-2 vcenter" data-bind="text:$data"></span><span class="deletesavedsearchbutton navbar-right glyphicon glyphicon-remove-circle"></span> </a></li></ul>
+
+<script ">
+$(function () {$(document).on('click', "[data-controlType='SavedSearchesMenu']", function(e) { _webUi.insightSearchPaneActions.applySavedSearchClicked(e);})})
+
+var savedSearches = ko.observableArray(["500 and AMHE","AMHE EMPTY","Decant ASRS","Decant.WS","Empty ASRS","Empty Reserves","Fake LPs","Inner Pack Area","PD.RCAL.01","ReplenRedo"]);
+ko.applyBindings(savedSearches);
+
+function setSavedSearchesList(newSearchName) {
+	if (newSearchName.length > 0 && (savedSearches.peek().length === 0 || savedSearches.peek().filter(function(element){return element.toLowerCase() === newSearchName.toLowerCase()}).length <= 0)) {
+		savedSearches.push(newSearchName);
+		savedSearches.sort(function(a, b) { if (a.toLowerCase() < b.toLowerCase()) return -1; if (a.toLowerCase() > b.toLowerCase()) return 1; return 0; });
+	}
+}
+
+function deleteSavedSearch(searchName) {
+	if (searchName.length > 0 && savedSearches.peek().length > 0 && savedSearches.peek().toString().toLowerCase().indexOf(searchName.toLowerCase()) >= 0) {
+		savedSearches.remove(searchName);
+	}
+}
+
+</script>
+
+
+                                        
+
+                                    </div>
+                                    <div id="ScreenGroupPanel4788" class="pull-right menubuttonpanel" data-name="InsightListPaneMenuPanel" data-internalid="4788">
+                                        
+
+                                                <div id="ScreenControlMenuButton12946" class="ScreenControlMenuButton pull-left menubutton " data-name="InsightMenuActionToggleSummary" data-internalid="12946">
+            <li class="pull-left menubutton summaryToggle visiblepane"><a id="InsightMenuActionToggleSummary" data-ResourceKey="SIGMA" data-ResourceValue="Σ" href="javascript:;  ">Σ</a></li>
+            <script type="text/javascript">$( window ).load(function () {
+if (typeof _webUi.insightListPaneActions.toggleSummaryButtonClicked === 'function') {  $(document).delegate("#InsightMenuActionToggleSummary", "click",_webUi.insightListPaneActions.toggleSummaryButtonClicked)} })</script>
+            
+        </div>
+        <div id="ScreenControlMenuButton12947" class="ScreenControlMenuButton pull-left menubutton " data-name="InsightMenuActionToggleGroupBy" data-internalid="12947">
+            <li class="pull-left menubutton "><a id="InsightMenuActionToggleGroupBy" data-ResourceKey="" data-ResourceValue="" class="far fa-th menuicon groupByToggle visiblepane" href="javascript:;  "></a></li>
+            <script type="text/javascript">$( window ).load(function () {
+if (typeof _webUi.insightListPaneActions.toggleGroupByButtonClicked === 'function') {  $(document).delegate("#InsightMenuActionToggleGroupBy", "click",_webUi.insightListPaneActions.toggleGroupByButtonClicked)} })</script>
+            
+        </div>
+        <div id="ScreenControlMenuButton12948" class="ScreenControlMenuButton pull-left menubutton " data-name="InsightMenuActionCollapse" data-internalid="12948">
+            <li class="pull-left menubutton "><a id="InsightMenuActionCollapse" data-ResourceKey="" data-ResourceValue="" class="far fa-th-list menuicon groupByCollapse" href="javascript:;  "></a></li>
+            <script type="text/javascript">$( window ).load(function () {
+if (typeof _webUi.insightListPaneActions.groupByCollapseClicked === 'function') {  $(document).delegate("#InsightMenuActionCollapse", "click",_webUi.insightListPaneActions.groupByCollapseClicked)} })</script>
+            
+        </div>
+
+
+                                    </div>
+                                    <div id="ScreenGroupPanel4789" class="pull-right menubuttonpanel" data-name="MenuExportToExcelPanel" data-internalid="4789">
+                                        
+
+                                                <div id="ScreenControlMenuButton12949" class="ScreenControlMenuButton pull-right menubutton " data-name="MenuExportToExcel" data-internalid="12949">
+            <li class="pull-right menubutton "><a id="MenuExportToExcel" data-ResourceKey="" data-ResourceValue="" class="far fa-file-excel menuicon" href="javascript:;  "></a></li>
+            <script type="text/javascript">$( window ).load(function () {
+if (typeof _webUi.insightListPaneActions.exportButtonClicked === 'function') {  $(document).delegate("#MenuExportToExcel", "click",_webUi.insightListPaneActions.exportButtonClicked)} })</script>
+            
+        </div>
+
+
+                                    </div>
+                                    <div id="ScreenGroupMenuDropdown4791" class="dropdown pull-right" data-name="InsightMenuActionsDropdown" data-internalid="4791">
+                                        <li class="dropdown pull-right" ><a class="dropdown-toggle" data-toggle="dropdown" id="InsightMenuActionsDropdown" data-ResourceKey="ACTIONS" data-ResourceValue="Actions" href="">Actions<span class="caret"></span></a><ul class="dropdown-menu">
+
+                                                <div id="ScreenControlMenuButton12953" class="ScreenControlMenuButton" data-name="ListPaneMenuActionEdit" data-internalid="12953">
+            <li class="dropdownaction"><a id="ListPaneMenuActionEdit" data-ResourceKey="EDIT" data-ResourceValue="Edit" href="javascript:;  ">Edit</a></li><li class="divider"></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab === 'function') {  $(document).delegate("#ListPaneMenuActionEdit", "click",{'URL' : '/scale/trans/inventory?InternalLocationInv={{InternalLocationInv}}','queryParameter_InternalLocationInv' : 'InternalLocationInv'} ,_webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneMenuActionEdit').attr({
+	'data-formId': "3033",
+	'data-securityCheckpoint': "3",
+	'data-divider': "true"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12954" class="ScreenControlMenuButton" data-name="ListPaneMenuActionView" data-internalid="12954">
+            
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab === 'function') {  $(document).delegate("#ListPaneMenuActionView", "click",{'URL' : '/scale/trans/inventory?InternalLocationInv={{InternalLocationInv}}','queryParameter_InternalLocationInv' : 'InternalLocationInv'} ,_webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneMenuActionView').attr({
+	'data-formId': "3033",
+	'data-divider': "true"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12955" class="ScreenControlMenuButton" data-name="ListPaneMenuActionAdjust" data-internalid="12955">
+            <li class="dropdownaction"><a id="ListPaneMenuActionAdjust" data-ResourceKey="ADJUST" data-ResourceValue="Adjust" href="javascript:;  ">Adjust</a></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab === 'function') {  $(document).delegate("#ListPaneMenuActionAdjust", "click",{'URL' : '/scale/trans/inventoryadjustment?Item={{Item}}&Company={{Company}}&Location={{Location}}&LicensePlate={{LicensePlate}}&Lot={{Lot}}&InventoryStatus={{Status}}&InventoryAttributesId={{LocInvAttributesId}}&NavToPrev=Y','queryParameter_Location' : 'Location','queryParameter_Item' : 'Item','queryParameter_Company' : 'Company','queryParameter_Warehouse' : 'Warehouse','queryParameter_Lot' : 'Lot','queryParameter_Status' : 'Status','queryParameter_Grid_ListPaneDataGrid_LicensePlate' : 'LOGISTICS_UNIT','queryParameter_Grid_ListPaneDataGrid_LocInvAttributesId' : 'LOC_INV_ATTRIBUTES_ID'} ,_webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneMenuActionAdjust').attr({
+	'data-allowOnMultiSelect': "false",
+	'data-formId': "2772",
+	'data-securityCheckpoint': "9"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12957" class="ScreenControlMenuButton" data-name="ListPaneMenuActionCompanyTransfer" data-internalid="12957">
+            <li class="dropdownaction"><a id="ListPaneMenuActionCompanyTransfer" data-allowOnMultiSelect="true"  data-ResourceKey="COMPANYTRANSFER" data-ResourceValue="Company transfer" href="javascript:;  ">Company transfer</a></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionOpenUrlInCurrentTabWithPost === 'function') {  $(document).delegate("#ListPaneMenuActionCompanyTransfer", "click",{'POSTServiceURL' : '/scale/trans/inventoryCompanyTransfer?NavToPrev=Y','PostData_Grid_ListPaneDataGrid_InternalLocationInv' : 'INTERNAL_LOCATION_INV'} ,_webUi.insightListPaneActions.menuActionOpenUrlInCurrentTabWithPost)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneMenuActionCompanyTransfer').attr({
+	'data-allowOnMultiSelect': "true",
+	'data-formId': "4090",
+	'data-securityCheckpoint': "9"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12956" class="ScreenControlMenuButton" data-name="ListPaneMenuActionCountLocation" data-internalid="12956">
+            <li class="dropdownaction"><a id="ListPaneMenuActionCountLocation" data-allowOnMultiSelect="true"  data-ResourceKey="CREATECOUNT" data-ResourceValue="Create count" href="javascript:;  ">Create count</a></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionPerformPostForSelection === 'function') {  $(document).delegate("#ListPaneMenuActionCountLocation", "click",{'ConfirmationMessageCode' : 'MSG_CREATECOUNT01','POSTServiceURL' : '/ILSIntegrationServices/CycleCountQuickPlans','PostData_Grid_ListPaneDataGrid_Location' : 'LOCATION','PostData_Grid_ListPaneDataGrid_Item' : 'ITEM','PostData_Grid_ListPaneDataGrid_Company' : 'COMPANY','PostData_Grid_ListPaneDataGrid_Description' : 'LOCATION','PostData_Grid_ListPaneDataGrid_Warehouse' : 'WAREHOUSE'} ,_webUi.insightListPaneActions.menuActionPerformPostForSelection)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneMenuActionCountLocation').attr({
+	'data-allowOnMultiSelect': "true",
+	'data-securityCheckpoint': "21"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12958" class="ScreenControlMenuButton" data-name="ListPaneMenuActionEditInventoryAttributes" data-internalid="12958">
+            <li class="dropdownaction"><a id="ListPaneMenuActionEditInventoryAttributes" data-ResourceKey="EDITATTRIBUTES" data-ResourceValue="Edit attributes" href="javascript:;  ">Edit attributes</a></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab === 'function') {  $(document).delegate("#ListPaneMenuActionEditInventoryAttributes", "click",{'URL' : '/scale/details/inventoryattributes/{{InternalLocationInv}}','queryParameter_InternalLocationInv' : 'InternalLocationInv'} ,_webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneMenuActionEditInventoryAttributes').attr({
+	'data-formId': "4015",
+	'data-securityCheckpoint': "3"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12959" class="ScreenControlMenuButton" data-name="ListPaneMenuActionViewAttribute" data-internalid="12959">
+            
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab === 'function') {  $(document).delegate("#ListPaneMenuActionViewAttribute", "click",{'URL' : '/scale/details/inventoryattributes/{{InternalLocationInv}}','queryParameter_InternalLocationInv' : 'InternalLocationInv'} ,_webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneMenuActionViewAttribute').attr({
+	'data-formId': "4015"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12960" class="ScreenControlMenuButton" data-name="ListPaneMenuActionDeleteInventoryAttributes" data-internalid="12960">
+            <li class="dropdownaction"><a id="ListPaneMenuActionDeleteInventoryAttributes" data-ResourceKey="DELETEATTRIBUTES" data-ResourceValue="Delete attributes" href="javascript:;  ">Delete attributes</a></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionPerformDelete === 'function') {  $(document).delegate("#ListPaneMenuActionDeleteInventoryAttributes", "click",{'ConfirmationMessageCode' : 'MSG_VERIFYDELINVATTRIBUTES01','DELETEServiceURL' : '/Inventory/scaleapi/LocationInventoryAttributesApi/{{LocInvAttributesId}}','queryParameter_Grid_ListPaneDataGrid_LocInvAttributesId' : 'LOC_INV_ATTRIBUTES_ID','Delete_SuccessCallback' : '_webUi.insightListPaneActions.refreshGridAndCallDefaultSuccessCallback'} ,_webUi.insightListPaneActions.menuActionPerformDelete)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneMenuActionDeleteInventoryAttributes').attr({
+	'data-formId': "2706",
+	'data-securityCheckpoint': "4"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12962" class="ScreenControlMenuButton" data-name="ListPaneMenuActionEditOverrides" data-internalid="12962">
+            <li class="dropdownaction"><a id="ListPaneMenuActionEditOverrides" data-ResourceKey="EDITOVERRIDES" data-ResourceValue="Edit overrides" href="javascript:;  ">Edit overrides</a></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.inventoryInsight.editOverrides === 'function') {  $(document).delegate("#ListPaneMenuActionEditOverrides", "click",_webUi.inventoryInsight.editOverrides)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneMenuActionEditOverrides').attr({
+	'data-formId': "4045",
+	'data-securityCheckpoint': "1"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12961" class="ScreenControlMenuButton" data-name="ListPaneMenuActionDeleteOverrides" data-internalid="12961">
+            <li class="dropdownaction"><a id="ListPaneMenuActionDeleteOverrides" data-allowOnMultiSelect="true"  data-ResourceKey="DELETEOVERRIDES" data-ResourceValue="Delete overrides" href="javascript:;  ">Delete overrides</a></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionPerformPostForSelection === 'function') {  $(document).delegate("#ListPaneMenuActionDeleteOverrides", "click",{'ConfirmationMessageCode' : 'MSG_OVERRIDELOC01','POSTServiceURL' : '/Inventory/scaleapi/LocationInventoryApi/UMOverrides-Deleted','PostData_Grid_ListPaneDataGrid_InternalLocationInv' : 'INTERNAL_LOCATION_INV','Post_SuccessCallback' : '_webUi.insightListPaneActions.refreshGridAndCallDefaultSuccessCallback','Post_ErrorCallback' : '_webUi.insightListPaneActions.refreshGridAndCallDefaultErrorCallback'} ,_webUi.insightListPaneActions.menuActionPerformPostForSelection)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneMenuActionDeleteOverrides').attr({
+	'data-formId': "4045",
+	'data-securityCheckpoint': "5",
+	'data-allowOnMultiSelect': "true"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12963" class="ScreenControlMenuButton" data-name="ListPaneMenuActionFinishedItemBreakdown" data-internalid="12963">
+            <li class="dropdownaction"><a id="ListPaneMenuActionFinishedItemBreakdown" data-ResourceKey="FINISHEDITEMBREAKDOWN" data-ResourceValue="Finished item breakdown" href="javascript:;  ">Finished item breakdown</a></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab === 'function') {  $(document).delegate("#ListPaneMenuActionFinishedItemBreakdown", "click",{'URL' : '/scale/trans/finisheditembreakdown?Item={{Item}}&Company={{Company}}&Location={{Location}}&LicensePlate={{LicensePlate}}&Lot={{Lot}}&Warehouse={{Warehouse}}','queryParameter_Location' : 'Location','queryParameter_Item' : 'Item','queryParameter_Company' : 'Company','queryParameter_Lot' : 'Lot','queryParameter_LicensePlate' : 'LicensePlate','queryParameter_Warehouse' : 'Warehouse'} ,_webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneMenuActionFinishedItemBreakdown').attr({
+	'data-formId': "3064",
+	'data-securityCheckpoint': "1"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12964" class="ScreenControlMenuButton" data-name="ListPaneMenuActionStatusChange" data-internalid="12964">
+            <li class="dropdownaction"><a id="ListPaneMenuActionStatusChange" data-ResourceKey="STATUSCHANGE" data-ResourceValue="Status change" href="javascript:;  ">Status change</a></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab === 'function') {  $(document).delegate("#ListPaneMenuActionStatusChange", "click",{'URL' : '/scale/trans/invStatusChange?Item={{Item}}&Company={{Company}}&Location={{Location}}&LicensePlate={{LicensePlate}}&Lot={{Lot}}&InventoryStatus={{Status}}&InventoryAttributesId={{LocInvAttributesId}}&NavToPrev=Y','queryParameter_Location' : 'Location','queryParameter_Item' : 'Item','queryParameter_Company' : 'Company','queryParameter_Lot' : 'Lot','queryParameter_Status' : 'Status','queryParameter_LicensePlate' : 'LicensePlate','queryParameter_Grid_ListPaneDataGrid_InternalLocationInv' : 'INTERNAL_LOCATION_INV','queryParameter_Grid_ListPaneDataGrid_LocInvAttributesId' : 'LOC_INV_ATTRIBUTES_ID','queryParameter_Warehouse' : 'Warehouse'} ,_webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneMenuActionStatusChange').attr({
+	'data-allowOnMultiSelect': "false",
+	'data-formId': "4056",
+	'data-securityCheckpoint': "9"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12965" class="ScreenControlMenuButton" data-name="ListPaneMenuActionTransfer" data-internalid="12965">
+            <li class="dropdownaction"><a id="ListPaneMenuActionTransfer" data-ResourceKey="TRANSFER" data-ResourceValue="Transfer" href="javascript:;  ">Transfer</a></li><li class="divider"></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab === 'function') {  $(document).delegate("#ListPaneMenuActionTransfer", "click",{'URL' : '/scale/trans/inventorytransfer?Item={{Item}}&Company={{Company}}&Location={{Location}}&LicensePlate={{LicensePlate}}&Lot={{Lot}}&InventoryStatus={{Status}}&InventoryAttributesId={{LocInvAttributesId}}&NavToPrev=Y','queryParameter_Location' : 'Location','queryParameter_Item' : 'Item','queryParameter_Company' : 'Company','queryParameter_Warehouse' : 'Warehouse','queryParameter_Lot' : 'Lot','queryParameter_Status' : 'Status','queryParameter_LicensePlate' : 'LicensePlate','queryParameter_Grid_ListPaneDataGrid_LocInvAttributesId' : 'LOC_INV_ATTRIBUTES_ID'} ,_webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneMenuActionTransfer').attr({
+	'data-allowOnMultiSelect': "false",
+	'data-formId': "2775",
+	'data-securityCheckpoint': "9",
+	'data-divider': "true"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12966" class="ScreenControlMenuButton" data-name="ListPaneMenuActionRecallInventory" data-internalid="12966">
+            <li class="dropdownaction"><a id="ListPaneMenuActionRecallInventory" data-ResourceKey="EX09_INV_RECALL" data-ResourceValue="RECALL from ASRS" href="javascript:;  ">RECALL from ASRS</a></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionPerformPost === 'function') {  $(document).delegate("#ListPaneMenuActionRecallInventory", "click",{'POSTServiceURL' : '/outbound/scaleapi/GenericDataBindApi','PostData_Grid_ListPaneDataGrid_internalLocationInv' : 'INTERNAL_LOCATION_INV','PostData_storedProcedure' : 'JPCI_EX09_RECALL_INVENTORY','Post_SuccessCallback' : '_webUi.insightListPaneActions.refreshGridAndCallDefaultSuccessCallback','Post_ErrorCallback' : '_webUi.insightListPaneActions.postMethodErrorCallbackHandler'} ,_webUi.insightListPaneActions.menuActionPerformPost)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneMenuActionRecallInventory').attr({
+	'data-allowOnMultiSelect': "false",
+	'data-securityCheckpoint': "24"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12967" class="ScreenControlMenuButton" data-name="ListPaneMenuActionManualReplenish" data-internalid="12967">
+            <li class="dropdownaction"><a id="ListPaneMenuActionManualReplenish" data-allowOnMultiSelect="true"  data-ResourceKey="MANUALREPLENISHMENT" data-ResourceValue="Manual replenishment" href="javascript:;  ">Manual replenishment</a></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionOpenUrlInModalDialog === 'function') {  $(document).delegate("#ListPaneMenuActionManualReplenish", "click",{'URL' : '/scale/trans/manualreplenishment?internalNum=0'} ,_webUi.insightListPaneActions.menuActionOpenUrlInModalDialog)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneMenuActionManualReplenish').attr({
+	'data-allowOnMultiSelect': "true",
+	'data-formId': "3010",
+	'data-securityCheckpoint': "1"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12968" class="ScreenControlMenuButton" data-name="ListPaneMenuActionReplenish" data-internalid="12968">
+            <li class="dropdownaction"><a id="ListPaneMenuActionReplenish" data-allowOnMultiSelect="true"  data-ResourceKey="MARKFORREPLENISHMENT" data-ResourceValue="Mark for replenishment" href="javascript:;  ">Mark for replenishment</a></li><li class="divider"></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionPerformPostForSelection === 'function') {  $(document).delegate("#ListPaneMenuActionReplenish", "click",{'ConfirmationMessageCode' : 'MSG_MARKREPLENISH04','POSTServiceURL' : '/general/scaleapi/locationApi/locations-MarkedForReplenishment','PostData_Grid_ListPaneDataGrid_Location' : 'LOCATION','PostData_Grid_ListPaneDataGrid_Warehouse' : 'WAREHOUSE','Post_SuccessCallback' : '_webUi.insightListPaneActions.refreshGridAndCallDefaultSuccessCallback'} ,_webUi.insightListPaneActions.menuActionPerformPostForSelection)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneMenuActionReplenish').attr({
+	'data-allowOnMultiSelect': "true",
+	'data-securityCheckpoint': "23",
+	'data-divider': "true"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12969" class="ScreenControlMenuButton" data-name="ListPaneMenuActionFreezeLot" data-internalid="12969">
+            <li class="dropdownaction"><a id="ListPaneMenuActionFreezeLot" data-allowOnMultiSelect="true"  data-ResourceKey="FREEZELOT" data-ResourceValue="Freeze lot" href="javascript:;  ">Freeze lot</a></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionPerformPostForSelection === 'function') {  $(document).delegate("#ListPaneMenuActionFreezeLot", "click",{'ConfirmationMessageCode' : 'MSG_FREEZELOT02','POSTServiceURL' : '/general/scaleapi/LotApi/UpdateStatus','PostData_Grid_ListPaneDataGrid_Lot' : 'LOT','PostData_Grid_ListPaneDataGrid_Warehouse' : 'WAREHOUSE','PostData_Grid_ListPaneDataGrid_Company' : 'COMPANY','PostData_Grid_ListPaneDataGrid_Item' : 'ITEM','Post_SuccessCallback' : '_webUi.insightListPaneActions.refreshGridAndCallDefaultSuccessCallback'} ,_webUi.insightListPaneActions.menuActionPerformPostForSelection)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneMenuActionFreezeLot').attr({
+	'data-allowOnMultiSelect': "true",
+	'data-securityCheckpoint': "22"
+});})</script>
+        </div>
+
+
+                                    </div>
+                                    <div id="ScreenGroupMenuDropdown4790" class="dropdown pull-right" data-name="InsightMenuConfigActionsDropdown" data-internalid="4790">
+                                        <li class="dropdown pull-right" ><a class="dropdown-toggle" data-toggle="dropdown" id="InsightMenuConfigActionsDropdown" data-ResourceKey="CONFIGMENU" data-ResourceValue="Configs" href="">Configs<span class="caret"></span></a><ul class="dropdown-menu">
+
+                                                <div id="ScreenControlMenuButton12950" class="ScreenControlMenuButton" data-name="MenuActionItemLocationAssignment" data-internalid="12950">
+            <li class="dropdownaction"><a id="MenuActionItemLocationAssignment" data-ResourceKey="ITEMLOCATIONASSIGNMENT" data-ResourceValue="Item location assignment" href="javascript:;  ">Item location assignment</a></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab === 'function') {  $(document).delegate("#MenuActionItemLocationAssignment", "click",{'URL' : '/scale/details/itemLocationAssignment?Item={{Item}}&Company={{Company}}&Location={{Location}}&Warehouse={{Warehouse}}','queryParameter_InternalLocationInv' : 'InternalLocationInv'} ,_webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#MenuActionItemLocationAssignment').attr({
+	'data-allowOnMultiSelect': "false",
+	'data-formId': "40000",
+	'data-securityCheckpoint': "1"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12951" class="ScreenControlMenuButton" data-name="MenuActionItemLocationCapacity" data-internalid="12951">
+            <li class="dropdownaction"><a id="MenuActionItemLocationCapacity" data-ResourceKey="ITEMLOCATIONCAPACITY" data-ResourceValue="Item location capacity" href="javascript:;  ">Item location capacity</a></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab === 'function') {  $(document).delegate("#MenuActionItemLocationCapacity", "click",{'URL' : '/scale/details/itemLocationCapacity?Item={{Item}}&Company={{Company}}&Location={{Location}}&Warehouse={{Warehouse}}'} ,_webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#MenuActionItemLocationCapacity').attr({
+	'data-allowOnMultiSelect': "false",
+	'data-formId': "40005",
+	'data-securityCheckpoint': "1"
+});})</script>
+        </div>
+        <div id="ScreenControlMenuButton12952" class="ScreenControlMenuButton" data-name="MenuActionItemUOM" data-internalid="12952">
+            <li class="dropdownaction"><a id="MenuActionItemUOM" data-ResourceKey="ITEMUNITOFMEASURE" data-ResourceValue="Item unit of measure" href="javascript:;  ">Item unit of measure</a></li>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab === 'function') {  $(document).delegate("#MenuActionItemUOM", "click",{'URL' : '/scale/trans/itemUOM?Item={{Item}}&Company={{Company}}'} ,_webUi.insightListPaneActions.menuActionOpenUrlInCurrentTab)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#MenuActionItemUOM').attr({
+	'data-allowOnMultiSelect': "false",
+	'data-formId': "40010",
+	'data-securityCheckpoint': "1"
+});})</script>
+        </div>
+
+
+                                    </div>
+                        </div>
+                    </div>
+
+</div>
+
+            </div>
+        </div>
+</div><div id="scrollableContentWrapper" class="scrollablecontent"><div class="container-fluid"><div class="row containercontent"><script type="text/javascript">$(function () {
+ $(document).on('keypress', "[data-defaultAction='InsightMenuApply']", function(e) { return _webUi.onKeyPress(e, "InsightMenuApply");})})</script>        <div id="ScreenPartDivContainer1202" class="col-md-3 col-lg-3 searchpanepart" data-name="SearchPane" data-internalid="1202">
+
+            <div id="screenpartcontainer">
+
+
+
+                    <div class="row searchpanecriteria">
+
+
+                        
+
+<script type="text/javascript">$(function(){_webUi.getAccordion('ScreenGroupAccordion4792',{"active":0,"collapsible":true,"heightStyle":"content","isKoDelayedBinding":false})})</script>
+                        <div id="ScreenGroupAccordion4792" class="ScreenGroupAccordion" data-name="SearchPaneCriteria" data-internalid="4792">
+
+                            
+
+
+                                    <div id="ScreenGroupSubAccordion4793" class="ScreenGroupSubAccordion" data-name="SearchPaneBasicCriteria" data-internalid="4793">
+                                        
+<script type="text/javascript">
+$(function(){
+	 _webUi.getSubAccordion('ScreenGroupSubAccordion4793','Basic criteria','ScreenGroupAccordion4792','','BASICCRITERIA' );
+});
+$(function () {
+ $('#ScreenGroupSubAccordion4793').attr({
+	'data-defaultOpen': "true"
+})
+});
+</script>
+
+                                                <div id="ScreenControlTextEditor12970" class="ScreenControlTextEditorInline basiccriteriarow  " data-name="BasicCriteriaLocation" data-internalid="12970">
+            <label class="LabelInline" data-ResourceKey="LOCATION" data-ResourceValue=" " for="BasicCriteriaLocation"> </label><input class="ignore " data-ResourceKey="LOCATION" data-ResourceValue="Location" data-controlId="12970" data-controlType="igTextEditor" data-dataType="A" data-dbcolumn="Location" data-defaultAction="InsightMenuApply" id="BasicCriteriaLocation"></input>
+<script type="text/javascript">$(function () {$('#BasicCriteriaLocation').igTextEditor({ buttonType: 'clear', disabled: false, height: '25', width: '100%', placeHolder: 'Location', selectionOnFocus: 'selectAll', suppressNotifications: true, textMode: 'text', toLower: false, toUpper: false, maxLength: 25, inputName: 'BasicCriteriaLocation' });});</script><div class="BasicCriteriaLocationError"></div><script type="text/javascript"> $(document).delegate("#BasicCriteriaLocation", "igtexteditorrendered", function (evt, ui) {var validationInput = $("[name=BasicCriteriaLocation]");  validationInput.attr("data-rule-maxlength","25"); validationInput.attr("data-msg-maxlength","Maximum length exceeded."); validationInput.attr("data-valType","igTextEditor");});</script>
+            
+            <script type="text/javascript">$(function () {
+ $('#BasicCriteriaLocation').attr({
+	'data-dbcolumn': "Location"
+});})</script>
+        </div>
+        <div id="ScreenControlTextEditor12971" class="ScreenControlTextEditorInline basiccriteriarow  " data-name="BasicCriteriaItem" data-internalid="12971">
+            <label class="LabelInline" data-ResourceKey="ITEM" data-ResourceValue=" " for="BasicCriteriaItem"> </label><input class="ignore " data-ResourceKey="ITEM" data-ResourceValue="Item" data-controlId="12971" data-controlType="igTextEditor" data-dataType="A" data-dbcolumn="Item" data-defaultAction="InsightMenuApply" id="BasicCriteriaItem"></input>
+<script type="text/javascript">$(function () {$('#BasicCriteriaItem').igTextEditor({ buttonType: 'clear', disabled: false, height: '25', width: '100%', placeHolder: 'Item', selectionOnFocus: 'selectAll', suppressNotifications: true, textMode: 'text', toLower: false, toUpper: false, maxLength: 50, inputName: 'BasicCriteriaItem' });});</script><div class="BasicCriteriaItemError"></div><script type="text/javascript"> $(document).delegate("#BasicCriteriaItem", "igtexteditorrendered", function (evt, ui) {var validationInput = $("[name=BasicCriteriaItem]");  validationInput.attr("data-rule-maxlength","50"); validationInput.attr("data-msg-maxlength","Maximum length exceeded."); validationInput.attr("data-valType","igTextEditor");});</script>
+            
+            <script type="text/javascript">$(function () {
+ $('#BasicCriteriaItem').attr({
+	'data-dbcolumn': "Item"
+});})</script>
+        </div>
+        <div id="ScreenControlMultiSelectionComboBox12980" class="ScreenControlMultiSelectionComboBoxInline basiccriteriarow " data-name="SearchPaneComp" data-internalid="12980">
+            <label class="LabelInline" data-ResourceKey="COMPANY" data-ResourceValue=" " for="SearchPaneComp"> </label><div data-ResourceKey="COMPANY" data-ResourceValue="Company" data-caseInsensitiveBinding="False" data-controlId="12980" data-controlType="igComboMultiSelectWithCheckBox" data-dataType="A" id="SearchPaneComp"></div>
+<script type="text/javascript">//<!--<![CDATA[
+$(function () {$('#SearchPaneComp').igCombo({ filterExprUrlKey: 'filter', compactData: false, allowCustomValue: false, width: '100%', height: '25px', dropDownOrientation: 'bottom', caseSensitive: false, disabled: false, filteringType: 'local', locale: {placeHolder: 'Company'}, highlightMatchesMode: 'multi', suppressKeyboard: true, visibleItemsCount: 10, multiSelection: { enabled: true, showCheckboxes: true }, itemTemplate: '<div class=\'comboTemplate\'><div class=\'comboInfo\'><span class=\'emphasizedText\'>{{DisplayText}}</span><div><span class=\'deEmphasizedText\'>{{Description}}</span></div></div></div>', initialSelectedItems: null, textKey: 'DisplayText', valueKey: 'Identifier', mode: 'editable', inputName: 'SearchPaneComp', loadOnDemandSettings: { enabled: false }, dataSource: [{"Identifier":"Amazon","IdentifierAndDescription":"","Description":"Amazon Fulfilment Services","DisplayText":"Amazon","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false},{"Identifier":"Best Buy","IdentifierAndDescription":"","Description":"Best Buy.com Returns","DisplayText":"Best Buy","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false},{"Identifier":"COSTCO","IdentifierAndDescription":"","Description":"COSTCO","DisplayText":"COSTCO","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false},{"Identifier":"Grainger","IdentifierAndDescription":"","Description":"Grainger","DisplayText":"Grainger","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false},{"Identifier":"Groupon","IdentifierAndDescription":"","Description":"Groupon","DisplayText":"Groupon","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false},{"Identifier":"Home Depot","IdentifierAndDescription":"","Description":"Home Depot","DisplayText":"Home Depot","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false},{"Identifier":"Houzz","IdentifierAndDescription":"","Description":"Houzz","DisplayText":"Houzz","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false},{"Identifier":"HSN","IdentifierAndDescription":"","Description":"HSN","DisplayText":"HSN","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false},{"Identifier":"Jasco Products Company","IdentifierAndDescription":"","Description":"Jasco Products Company","DisplayText":"Jasco Products Company","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false},{"Identifier":"Office Depot .COM","IdentifierAndDescription":"","Description":"Office Depot","DisplayText":"Office Depot .COM","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false},{"Identifier":"QVC","IdentifierAndDescription":"","Description":"QVC, inc.","DisplayText":"QVC","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false},{"Identifier":"RadioShack","IdentifierAndDescription":"","Description":"RadioShack","DisplayText":"RadioShack","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false},{"Identifier":"Target","IdentifierAndDescription":"","Description":"Target.com","DisplayText":"Target","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false},{"Identifier":"WalMart","IdentifierAndDescription":"","Description":"Walmart.com","DisplayText":"WalMart","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false},{"Identifier":"Williams-Sonoma","IdentifierAndDescription":"","Description":"Williams-Sonoma","DisplayText":"Williams-Sonoma","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false},{"Identifier":"Zoro","IdentifierAndDescription":"","Description":"Zoro","DisplayText":"Zoro","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false}] });});
+//]]>--></script><div class="SearchPaneCompError"></div><script type="text/javascript">$(document).delegate("#SearchPaneComp", "igcomborendered", function (evt, ui) { var comboObj = $("#SearchPaneComp").data("igCombo"); var comboInput = comboObj.element; comboInput.off(comboObj._handlers); comboInput.on("keyup", function (e) {return _webUi.onKeyPress(e, "InsightMenuApply"); }); comboInput.on(comboObj._handlers); });</script>
+            
+            <script type="text/javascript">$(function () {
+ $('#SearchPaneComp').attr({
+	'data-dbcolumn': "Company"
+});})</script>
+        </div>
+        <div id="ScreenControlTextEditor12972" class="ScreenControlTextEditorInline basiccriteriarow  " data-name="BasicCriteriaItemDesc" data-internalid="12972">
+            <label class="LabelInline" data-ResourceKey="ITEMDESCRIPTION" data-ResourceValue=" " for="BasicCriteriaItemDesc"> </label><input class="ignore " data-ResourceKey="ITEMDESCRIPTION" data-ResourceValue="Description" data-controlId="12972" data-controlType="igTextEditor" data-dataType="A" data-dbcolumn="Item_Desc" data-defaultAction="InsightMenuApply" id="BasicCriteriaItemDesc"></input>
+<script type="text/javascript">$(function () {$('#BasicCriteriaItemDesc').igTextEditor({ buttonType: 'clear', disabled: false, height: '25', width: '100%', placeHolder: 'Description', selectionOnFocus: 'selectAll', suppressNotifications: true, textMode: 'text', toLower: false, toUpper: false, maxLength: 100, inputName: 'BasicCriteriaItemDesc' });});</script><div class="BasicCriteriaItemDescError"></div><script type="text/javascript"> $(document).delegate("#BasicCriteriaItemDesc", "igtexteditorrendered", function (evt, ui) {var validationInput = $("[name=BasicCriteriaItemDesc]");  validationInput.attr("data-rule-maxlength","100"); validationInput.attr("data-msg-maxlength","Maximum length exceeded."); validationInput.attr("data-valType","igTextEditor");});</script>
+            
+            <script type="text/javascript">$(function () {
+ $('#BasicCriteriaItemDesc').attr({
+	'data-dbcolumn': "Item_Desc"
+});})</script>
+        </div>
+        <div id="ScreenControlTextEditor12973" class="ScreenControlTextEditorInline basiccriteriarow  " data-name="BasicCriteriaLicensePlate" data-internalid="12973">
+            <label class="LabelInline" data-ResourceKey="LICENSEPLATE" data-ResourceValue=" " for="BasicCriteriaLicensePlate"> </label><input class="ignore " data-ResourceKey="LICENSEPLATE" data-ResourceValue="License plate" data-controlId="12973" data-controlType="igTextEditor" data-dataType="A" data-dbcolumn="Logistics_unit" data-defaultAction="InsightMenuApply" id="BasicCriteriaLicensePlate"></input>
+<script type="text/javascript">$(function () {$('#BasicCriteriaLicensePlate').igTextEditor({ buttonType: 'clear', disabled: false, height: '25', width: '100%', placeHolder: 'License plate', selectionOnFocus: 'selectAll', suppressNotifications: true, textMode: 'text', toLower: false, toUpper: false, maxLength: 50, inputName: 'BasicCriteriaLicensePlate' });});</script><div class="BasicCriteriaLicensePlateError"></div><script type="text/javascript"> $(document).delegate("#BasicCriteriaLicensePlate", "igtexteditorrendered", function (evt, ui) {var validationInput = $("[name=BasicCriteriaLicensePlate]");  validationInput.attr("data-rule-maxlength","50"); validationInput.attr("data-msg-maxlength","Maximum length exceeded."); validationInput.attr("data-valType","igTextEditor");});</script>
+            
+            <script type="text/javascript">$(function () {
+ $('#BasicCriteriaLicensePlate').attr({
+	'data-dbcolumn': "Logistics_unit"
+});})</script>
+        </div>
+        <div id="ScreenControlDateRange12981" class="ScreenControlDateRangeInline basiccriteriarow " data-name="BasicCriteriaReceivedDate" data-internalid="12981">
+            <div id="ScreenControlDatePicker-1" class="daterange"><label class="LabelInline" data-ResourceKey="FROMRECEIVEDDATE" data-ResourceValue=" " for="BasicCriteriaReceivedDate_FROM"> </label><input class="daterangecontrol" data-controlId="-1" data-controlType="igDatePicker" data-dataType="D" data-dateOnly="False" data-dateTimeRange="False" data-defaultAction="InsightMenuApply" id="BasicCriteriaReceivedDate_FROM"></input>
+<script type="text/javascript">$(function () {$('#BasicCriteriaReceivedDate_FROM').igDatePicker({ disabled: false, dateDisplayFormat: 'M/d/yyyy h:mm:ss tt', dateInputFormat: 'M/d/yyyy h:mm:ss tt', displayTimeOffset: null, enableUTCDates: true, height: '25', width: '100%', maxValue: '1/1/9999', minValue: '1/1/1753', placeHolder: 'From Received Date', regional: 'en-US', selectionOnFocus: 'selectAll', revertIfNotValid: true, suppressNotifications: true, suppressKeyboard: true, buttonType: 'clear', inputName: 'BasicCriteriaReceivedDate_FROM' });});</script><div class="BasicCriteriaReceivedDate_FROMError"></div><script type="text/javascript">$(function () {
+if (typeof _webUi.dateRanges.dateRangeValueChangingFROM === 'function') {  $(document).delegate("#BasicCriteriaReceivedDate_FROM", "igdatepickervaluechanging",_webUi.dateRanges.dateRangeValueChangingFROM)} })</script><script type="text/javascript">$(function () {
+ $('#BasicCriteriaReceivedDate_FROM').attr({
+	'data-rangePosition': "FROM",
+	'data-dbcolumn': "RECEIVED_DATE"
+});})</script></div><div id="ScreenControlDatePicker-2" class="daterange"><label class="LabelInline" data-ResourceKey="TORECEIVEDDATE" data-ResourceValue=" " for="BasicCriteriaReceivedDate_TO"> </label><input class="daterangecontrol" data-controlId="-2" data-controlType="igDatePicker" data-dataType="D" data-dateOnly="False" data-dateTimeRange="False" data-defaultAction="InsightMenuApply" id="BasicCriteriaReceivedDate_TO"></input>
+<script type="text/javascript">$(function () {$('#BasicCriteriaReceivedDate_TO').igDatePicker({ disabled: false, dateDisplayFormat: 'M/d/yyyy h:mm:ss tt', dateInputFormat: 'M/d/yyyy h:mm:ss tt', displayTimeOffset: null, enableUTCDates: true, height: '25', width: '100%', maxValue: '1/1/9999', minValue: '1/1/1753', placeHolder: 'To Received Date', regional: 'en-US', selectionOnFocus: 'selectAll', revertIfNotValid: true, suppressNotifications: true, suppressKeyboard: true, buttonType: 'clear', inputName: 'BasicCriteriaReceivedDate_TO' });});</script><div class="BasicCriteriaReceivedDate_TOError"></div><script type="text/javascript">$(function () {
+if (typeof _webUi.dateRanges.dateRangeValueChangingTO === 'function') {  $(document).delegate("#BasicCriteriaReceivedDate_TO", "igdatepickervaluechanging",_webUi.dateRanges.dateRangeValueChangingTO)} })</script><script type="text/javascript">$(function () {
+ $('#BasicCriteriaReceivedDate_TO').attr({
+	'data-rangePosition': "TO",
+	'data-dbcolumn': "RECEIVED_DATE"
+});})</script></div>
+            
+            <script type="text/javascript">$(function () {
+ $('#BasicCriteriaReceivedDate').attr({
+	'data-dbcolumn': "RECEIVED_DATE"
+});})</script>
+        </div>
+        <div id="ScreenControlMultiSelectionComboBox12979" class="ScreenControlMultiSelectionComboBoxInline basiccriteriarow " data-name="SearchPaneWhs" data-internalid="12979">
+            <label class="LabelInline" data-ResourceKey="WAREHOUSE" data-ResourceValue=" " for="SearchPaneWhs"> </label><div data-ResourceKey="WAREHOUSE" data-ResourceValue="Warehouse" data-caseInsensitiveBinding="False" data-controlId="12979" data-controlType="igComboMultiSelectWithCheckBox" data-dataType="A" data-defaultTopLabel="True" id="SearchPaneWhs"></div>
+<script type="text/javascript">//<!--<![CDATA[
+$(function () {$('#SearchPaneWhs').igCombo({ filterExprUrlKey: 'filter', compactData: false, allowCustomValue: false, width: '100%', height: '25px', dropDownOrientation: 'bottom', caseSensitive: false, disabled: false, filteringType: 'local', locale: {placeHolder: 'Warehouse'}, highlightMatchesMode: 'multi', suppressKeyboard: true, visibleItemsCount: 10, multiSelection: { enabled: true, showCheckboxes: true }, itemTemplate: '<div class=\'comboTemplate\'><div class=\'comboInfo\'><span class=\'emphasizedText\'>{{DisplayText}}</span><div><span class=\'deEmphasizedText\'>{{Description}}</span></div></div></div>', initialSelectedItems: [{value:'02'}], textKey: 'DisplayText', valueKey: 'Identifier', mode: 'editable', inputName: 'SearchPaneWhs', loadOnDemandSettings: { enabled: false }, dataSource: [{"Identifier":"02","IdentifierAndDescription":null,"Description":"02","DisplayText":"02","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false},{"Identifier":"06","IdentifierAndDescription":null,"Description":"06","DisplayText":"06","IsDescUsedForDisplay":false,"ParentComboKey":null,"Default":false}] });});
+//]]>--></script><div class="SearchPaneWhsError"></div><script type="text/javascript">$(document).delegate("#SearchPaneWhs", "igcomborendered", function (evt, ui) { var comboObj = $("#SearchPaneWhs").data("igCombo"); var comboInput = comboObj.element; comboInput.off(comboObj._handlers); comboInput.on("keyup", function (e) {return _webUi.onKeyPress(e, "InsightMenuApply"); }); comboInput.on(comboObj._handlers); });</script>
+            
+            <script type="text/javascript">$(function () {
+ $('#SearchPaneWhs').attr({
+	'data-dbcolumn': "Warehouse"
+});})</script>
+        </div>
+        <div id="ScreenControlToggleSwitch12975" class="ScreenControlToggleSwitchInline basiccriteriarow " data-name="BasicCriteriaEmptyLocs" data-internalid="12975">
+            <label class="LabelTop" data-ResourceKey="INCLUDEEMPTYLOCATIONS" data-ResourceValue="Include empty locations" for="BasicCriteriaEmptyLocs">Include empty locations</label><div tabindex="0" class="toggle-focus"><input type="checkbox"  name="BasicCriteriaEmptyLocs" id="BasicCriteriaEmptyLocs" data-on=" On" data-off=" Off" data-toggle="toggle" data-width="100" data-controlType="ToggleSwitch" data-initialState="off" data-bindingdatasource="" data-defaultAction="InsightMenuApply"></input></div><script> $(function() {$('#BasicCriteriaEmptyLocs').bootstrapToggle();})</script>
+            
+            <script type="text/javascript">$(function () {
+ $('#BasicCriteriaEmptyLocs').attr({
+	'data-dbcolumn': "Location_Sts",
+	'data-positiveCondition': "",
+	'data-negativeCondition': "<> 'Empty'"
+});})</script>
+        </div>
+        <div id="ScreenControlToggleSwitch12976" class="ScreenControlToggleSwitchInline basiccriteriarow " data-name="BasicCriteria-PermanentLocs" data-internalid="12976">
+            <label class="LabelTop" data-ResourceKey="ONLYPERMANENTLOCATIONS" data-ResourceValue="Only permanent locations" for="BasicCriteria-PermanentLocs">Only permanent locations</label><div tabindex="0" class="toggle-focus"><input type="checkbox"  name="BasicCriteria-PermanentLocs" id="BasicCriteria-PermanentLocs" data-on=" On" data-off=" Off" data-toggle="toggle" data-width="100" data-controlType="ToggleSwitch" data-initialState="off" data-bindingdatasource="" data-defaultAction="InsightMenuApply"></input></div><script> $(function() {$('#BasicCriteria-PermanentLocs').bootstrapToggle();})</script>
+            
+            <script type="text/javascript">$(function () {
+ $('#BasicCriteria-PermanentLocs').attr({
+	'data-dbcolumn': "Permanent",
+	'data-positiveCondition': "= 'Y'",
+	'data-negativeCondition': ""
+});})</script>
+        </div>
+        <div id="ScreenControlToggleSwitch12977" class="ScreenControlToggleSwitchInline basiccriteriarow " data-name="BasicCriteria-Aggregate" data-internalid="12977">
+            <label class="LabelTop" data-ResourceKey="SHOWALLLPATTRIBUTE" data-ResourceValue="Show all LPs and attributes" for="BasicCriteria-Aggregate">Show all LPs and attributes</label><div tabindex="0" class="toggle-focus"><input type="checkbox"  name="BasicCriteria-Aggregate" id="BasicCriteria-Aggregate" data-on=" On" data-off=" Off" data-toggle="toggle" data-width="100" data-controlType="ToggleSwitch" data-initialState="off" data-bindingdatasource="" data-defaultAction="InsightMenuApply"></input></div><script> $(function() {$('#BasicCriteria-Aggregate').bootstrapToggle();})</script>
+            
+            <script type="text/javascript">$(function () {
+ $('#BasicCriteria-Aggregate').attr({
+	'data-dbcolumn': "TableOrView",
+	'data-positiveCondition': "",
+	'data-negativeCondition': "METADATA_INSIGHT_INVENTORY_AGGREGATE_VIEW"
+});})</script>
+        </div>
+        <div id="ScreenControlToggleSwitch12982" class="ScreenControlToggleSwitchInline basiccriteriarow " data-name="BasicCriteria-FloorLocs" data-internalid="12982">
+            <label class="LabelTop" data-ResourceKey="ONLYFLOOR" data-ResourceValue="Only floor locations" for="BasicCriteria-FloorLocs">Only floor locations</label><div tabindex="0" class="toggle-focus"><input type="checkbox"  name="BasicCriteria-FloorLocs" id="BasicCriteria-FloorLocs" data-on=" On" data-off=" Off" data-toggle="toggle" data-width="100" data-controlType="ToggleSwitch" data-initialState="off" data-bindingdatasource="" data-defaultAction="InsightMenuApply"></input></div><script> $(function() {$('#BasicCriteria-FloorLocs').bootstrapToggle();})</script>
+            
+            <script type="text/javascript">$(function () {
+ $('#BasicCriteria-FloorLocs').attr({
+	'data-dbcolumn': "TEMPLATE_FIELD4",
+	'data-positiveCondition': "=01",
+	'data-negativeCondition': ""
+});})</script>
+        </div>
+
+
+                                    </div>
+                                    <div id="ScreenGroupSubAccordion4794" class="ScreenGroupSubAccordion" data-name="SearchPaneAdvancedCriteria" data-internalid="4794">
+                                        
+<script type="text/javascript">
+$(function(){
+	 _webUi.getSubAccordion('ScreenGroupSubAccordion4794','Advanced criteria','ScreenGroupAccordion4792','','ADVANCEDCRITERIA' );
+});
+</script>
+
+                                                <div id="ScreenControlAdvancedCriteria12983" class="ScreenControlAdvancedCriteriaInline advancedCriteriaInline " data-name="SearchPaneAdvCrit" data-internalid="12983">
+            <div class"subaccordionmenu"><div class="ScreenGroupMenu" data-name="GroupMenu"><ul class="nav nav-pills"><div class="divtoremove"><li class="pull-right menubutton"><a id="SearchPaneAdvCrit_AddButton" data-ResourceKey="BTN_ADD" data-ResourceValue="Add" href="javascript:;  ">Add</a></li></div></ul></div></div><script type="text/javascript">$(function () {
+if (typeof _webUi.advancedCriteria.callAdvancedCriteriaModal === 'function') {  $(document).delegate("#SearchPaneAdvCrit_AddButton", "click",{'advCritName' : 'SearchPaneAdvCrit','screenControlObjectId' : '12983'} ,_webUi.advancedCriteria.callAdvancedCriteriaModal)} })</script><script type="text/javascript">$(function () {
+ $(document).on('keypress', "[data-defaultAction='SearchPaneAdvCrit_SaveButton']", function(e) { return _webUi.onKeyPress(e, "SearchPaneAdvCrit_SaveButton");})})</script><div id="ScreenControlAdvancedCriteria12983" class="advancedcriteriagrid"><table id="SearchPaneAdvCritAdvCritGrid"></table>
+<script type="text/javascript">$(function () {$('#SearchPaneAdvCritAdvCritGrid').igGrid({ dataSource: {"Records":[],"TotalRecordsCount":0,"Metadata":{"timezoneOffset":-18000000.0}},dataSourceType: 'json',autoGenerateLayouts: false,autoGenerateColumns: true, mergeUnboundColumns: false, responseDataKey: 'Records', generateCompactJSONResponse: false, columns: [ { key: 'PrimaryKey', dataType: 'string', headerText: 'PrimaryKey', hidden: true }, { key: 'ConditionIdentifier', dataType: 'string', headerText: 'ConditionIdentifier', hidden: true }, { key: 'Condition', dataType: 'string', headerText: 'Condition', hidden: true }, { key: 'FieldIdentifier', dataType: 'string', headerText: 'FieldIdentifier', hidden: true }, { key: 'Field', dataType: 'string', headerText: 'Field', width: '40%' }, { key: 'OperandIdentifier', dataType: 'string', headerText: 'OperandIdentifier', hidden: true }, { key: 'Operand', dataType: 'string', headerText: 'Operand', width: '20%' }, { key: 'ValueIdentifier', dataType: 'string', headerText: 'ValueIdentifier', hidden: true }, { key: 'Value', dataType: 'string', headerText: 'Value', width: '40%' }, { key: 'DataType', dataType: 'string', headerText: 'DataType', hidden: true } ], features: [ { name: 'Updating', editMode: 'none', enableAddRow: false, enableDeleteRow: true } ], autoCommit: true, autoFormat: 'dateandnumber', primaryKey: 'PrimaryKey', virtualization: false, virtualizationMode: 'continuous', height: '100%', width: '100%', renderCheckboxes: true, localSchemaTransform: false, rendered: function(evt) {
+	$("#SearchPaneAdvCritAdvCritGrid").on("mouseleave", function(evt) {
+		if (window.navigator.msPointerEnabled || window.navigator.pointerEnabled) {
+			evt.stopPropagation();
+		}
+	});
+} });});</script></div>
+            
+            
+        </div>
+
+
+                                    </div>
+                        </div>
+                    </div>
+
+
+
+            </div>
+        </div>
+        <div id="ScreenPartDivContainer1203" class="col-md-7 col-lg-8 listpanepart" data-name="ListPane" data-internalid="1203">
+
+            <div id="screenpartcontainer">
+
+
+
+                    <div class="row listpanesummarypanel">
+
+
+                        
+
+                        <div id="ScreenGroupPanel4795" class="listpanesummarypanelgroup equalize" data-name="ListPaneSummary" data-internalid="4795">
+
+                            
+
+
+        <div id="ScreenControlSummaryTile12984" class="ScreenControlSummaryTile panesummarytile col-xs-3 col-sm-3 col-md-3 col-lg-3 " data-name="ListPaneSummaryItems" data-internalid="12984">
+            <label class="TileLabel" data-ResourceKey="ITEMS" data-ResourceValue="Items" for="ListPaneSummaryItems" id="ListPaneSummaryItems">Items</label><label aggregateClause="" class="TileData" data-bind="text: ITEM" data-controlType="SummaryTile" for="ListPaneSummaryItems" id="ListPaneSummaryItems" percentage="False">  </label>
+            
+            
+        </div>
+        <div id="ScreenControlSummaryTile12985" class="ScreenControlSummaryTile panesummarytile col-xs-3 col-sm-3 col-md-3 col-lg-3 " data-name="ListPaneSummaryLocations" data-internalid="12985">
+            <label class="TileLabel" data-ResourceKey="LOCATIONS" data-ResourceValue="Locations" for="ListPaneSummaryLocations" id="ListPaneSummaryLocations">Locations</label><label aggregateClause="" class="TileData" data-bind="text: LOCATION" data-controlType="SummaryTile" for="ListPaneSummaryLocations" id="ListPaneSummaryLocations" percentage="False">  </label>
+            
+            
+        </div>
+        <div id="ScreenControlSummaryTile12986" class="ScreenControlSummaryTile panesummarytile col-xs-3 col-sm-3 col-md-3 col-lg-3 " data-name="ListPaneSummaryLicensePlates" data-internalid="12986">
+            <label class="TileLabel" data-ResourceKey="LICENSEPLATES" data-ResourceValue="License plates" for="ListPaneSummaryLicensePlates" id="ListPaneSummaryLicensePlates">License plates</label><label aggregateClause="sum(LP_COUNT)" class="TileData" data-bind="text: LP_COUNT" data-controlType="SummaryTile" for="ListPaneSummaryLicensePlates" id="ListPaneSummaryLicensePlates" percentage="False">  </label>
+            
+            
+        </div>
+        <div id="ScreenControlSummaryTile12987" class="ScreenControlSummaryTile panesummarytile col-xs-3 col-sm-3 col-md-3 col-lg-3 " data-name="ListPaneSummaryLots" data-internalid="12987">
+            <label class="TileLabel" data-ResourceKey="LOTS" data-ResourceValue="Lots" for="ListPaneSummaryLots" id="ListPaneSummaryLots">Lots</label><label aggregateClause="" class="TileData" data-bind="text: LOT" data-controlType="SummaryTile" for="ListPaneSummaryLots" id="ListPaneSummaryLots" percentage="False">  </label>
+            
+            
+        </div>
+                        </div>
+                    </div>
+                    <div class="row listpanepanel">
+
+
+                        
+
+                        <div id="ScreenGroupPanel4796" class="ScreenGroupPanel" data-name="ListPanePanel" data-internalid="4796">
+
+                            
+
+
+        <div id="GridPlaceHolder" class="ScreenControlDataGrid listpanedatagrid " data-name="ListPaneDataGrid" data-internalid="12988">
+            <table data-controlId="12988" data-controlType="igGrid" data-editValueRequired="" data-editable="False" data-noResultsMsg="Search produced no results." data-screenId="2723" data-showNoResultsMsg="True" data-widget="Grid" id="ListPaneDataGrid"></table>
+<script type="text/javascript">$(function () {$('#ListPaneDataGrid').igGrid({ dataSource: '/SCALE/Insight/ListPaneGridDataSourceBind?frmId=2723&tbl=Metadata_Insight_Inventory_View&grdId=12988&fltrs=filterToken',autoGenerateLayouts: false,autoGenerateColumns: false, mergeUnboundColumns: false, responseDataKey: 'Records', generateCompactJSONResponse: false, columns: [ { headerText: 'Icon', key: 'ICON', dataType: 'string', width: '*', hidden: false, template: '{{#ifCond PERMANENT \'>\' 0}}<i class="far fa-thumbtack listpaneicon" style="color: #8E9300"></i>{{/ifCond}}{{#ifCond TRACK_CONTAINERS \'>\' 0}}<i class="far fa-th listpaneicon" style="color: #FED83E;"></i>{{/ifCond}}{{#ifCond OVERRIDES \'>\' 0}}<i class="far fa-pencil listpaneicon" style="color: #E4007C;"></i>{{/ifCond}}', format: null, formatter: _webUi.Grid.replaceWhiteSpacesFormatter }, { headerText: 'Location type', key: 'LOCATION_TYPE', dataType: 'string', width: '*', hidden: false, template: null, format: null, formatter: _webUi.Grid.replaceWhiteSpacesFormatter }, { headerText: 'Location', key: 'LOCATION', dataType: 'string', width: '*', hidden: false, template: null, format: null, formatter: _webUi.Grid.replaceWhiteSpacesFormatter }, { headerText: 'Item', key: 'ITEM', dataType: 'string', width: '*', hidden: false, template: null, format: null, formatter: _webUi.Grid.replaceWhiteSpacesFormatter }, { headerText: 'AV', key: 'AVAILABLEQTY_AV', dataType: 'number', width: '*', format: '##,###,###,###,##', hidden: false, template: null }, { headerText: 'OH', key: 'ON_HAND_QTY', dataType: 'number', width: '*', format: '##,###,###,###,##', hidden: false, template: '{{#ifCond INTERNAL_LOCATION_INV \'>\' 0}}<a href="/scale/trans/inventory?InternalLocationInv={{INTERNAL_LOCATION_INV}}">{{ON_HAND_QTY}}</a>{{else}}{{ON_HAND_QTY}}{{/ifCond}}' }, { headerText: 'AL', key: 'ALLOCATED_QTY', dataType: 'number', width: '*', format: '##,###,###,###,##', hidden: false, template: null }, { headerText: 'IT', key: 'IN_TRANSIT_QTY', dataType: 'number', width: '*', format: '##,###,###,###,##', hidden: false, template: null }, { headerText: 'SU', key: 'SUSPENSE_QTY', dataType: 'number', width: '*', format: '##,###,###,###,##', hidden: false, template: null }, { headerText: 'License plate', key: 'LOGISTICS_UNIT', dataType: 'string', width: '*', hidden: false, template: null, format: null, formatter: _webUi.Grid.replaceWhiteSpacesFormatter }, { headerText: 'User Def 1', key: 'LOCATION_INVENTORY_USER_DEF1', dataType: 'string', width: '200px', hidden: false, template: null, format: null, formatter: _webUi.Grid.replaceWhiteSpacesFormatter }, { headerText: 'User Def 2', key: 'LOCATION_INVENTORY_USER_DEF2', dataType: 'string', width: '200px', hidden: false, template: null, format: null, formatter: _webUi.Grid.replaceWhiteSpacesFormatter }, { headerText: 'Received date', key: 'RECEIVED_DATE', dataType: 'date', width: '220px', hidden: false, template: null, format: 'M/d/yyyy h:mm:ss tt' }, { headerText: 'Aging date', key: 'AGING_DATE', dataType: 'date', width: '220px', hidden: false, template: null, format: 'M/d/yyyy h:mm:ss tt' }, { headerText: 'Description', key: 'ITEM_DESC', dataType: 'string', width: '125px', hidden: false, template: null, format: null, formatter: _webUi.Grid.replaceWhiteSpacesFormatter }, { headerText: 'Inventory status', key: 'INVENTORY_STS', dataType: 'string', width: '*', hidden: false, template: null, format: null, formatter: _webUi.Grid.replaceWhiteSpacesFormatter }, { headerText: 'Company', key: 'COMPANY', dataType: 'string', width: '*', hidden: true, template: null, format: null, formatter: _webUi.Grid.replaceWhiteSpacesFormatter }, { headerText: 'Frozen', key: 'FROZEN', dataType: 'bool', width: '*', hidden: false, template: null, format: null }, { headerText: 'Lot', key: 'LOT', dataType: 'string', width: '*', hidden: true, template: '<a href="/scale/insights/2768?filters=BasicCriteriaLot?{{LOT}},SearchPaneWhs?{{WAREHOUSE}}">{{LOT}}</a>', format: null, formatter: _webUi.Grid.replaceWhiteSpacesFormatter }, { headerText: 'Parent license plate', key: 'PARENT_LOGISTICS_UNIT', dataType: 'string', width: '*', hidden: true, template: null, format: null, formatter: _webUi.Grid.replaceWhiteSpacesFormatter }, { headerText: 'Inventory attributes', key: 'LOC_INV_ATTRIBUTES', dataType: 'bool', width: '*', hidden: true, template: null, format: null }, { headerText: 'Overrides', key: 'OVERRIDES', dataType: 'bool', width: '*', hidden: true, template: null, format: null }, { headerText: 'Inventory attribute id', key: 'LOC_INV_ATTRIBUTES_ID', dataType: 'number', width: '*', format: '##,###,###,###,##', hidden: true, template: null }, { headerText: 'Track containers', key: 'TRACK_CONTAINERS', dataType: 'bool', width: '*', hidden: true, template: null, format: null }, { headerText: 'Internal location inv', key: 'INTERNAL_LOCATION_INV', dataType: 'string', width: '*', hidden: true, template: null, format: null, formatter: _webUi.Grid.replaceWhiteSpacesFormatter }, { headerText: 'Warehouse', key: 'WAREHOUSE', dataType: 'string', width: '*', hidden: true, template: null, format: null, formatter: _webUi.Grid.replaceWhiteSpacesFormatter }, { headerText: 'Real time replenishment', key: 'REAL_TIME_RPLN', dataType: 'string', width: '*', hidden: true, template: null, format: null, formatter: _webUi.Grid.replaceWhiteSpacesFormatter }, { headerText: 'Last cycle count date', key: 'LAST_CYCLE_COUNT_DATE', dataType: 'date', width: '220px', dateDisplayType: 'utc', hidden: true, template: null, format: 'M/d/yyyy' }, { headerText: 'Permanent', key: 'PERMANENT', dataType: 'bool', width: '*', hidden: true, template: null, format: null }, { headerText: 'Location class overrides eligible', key: 'LOCATION_CLASS_OVERRIDES_ELIGIBLE', dataType: 'bool', width: '*', hidden: true, template: null, format: null } ], features: [ { filterExprUrlKey: 'filter', filterLogicUrlKey: 'filterLogic', name: 'Filtering', type: 'remote', mode: 'advanced', filterDialogColumnDropDownDefaultWidth: '150', caseSensitive: false }, { name: 'GroupBy', resultResponseKey: 'GroupBy', columnSettings: [ { columnIndex: -1, columnKey: 'RECEIVED_DATE', compareFunc: _webUi.Grid.gridCompareDateFunc }, { columnIndex: -1, columnKey: 'AGING_DATE', compareFunc: _webUi.Grid.gridCompareDateFunc }, { columnIndex: -1, columnKey: 'LAST_CYCLE_COUNT_DATE', compareFunc: _webUi.Grid.gridCompareDateFunc } ], groupByUrlKey: 'sort', groupByUrlKeyAscValue: 'asc', groupByUrlKeyDescValue: 'desc', type: 'remote', groupByDialogContainment: 'window', locale: {emptyGroupByAreaContent: '{0}'}, pagingMode: 'dataRecordsOnly', groupedColumnsChanged: function(evt,ui){_webUi.Grid.gridGroupedColumnsChanged(evt, ui)} }, { name: 'Hiding', columnChooserContainment: 'window', columnHidden: function(evt,ui){_webUi.Grid.gridColumnHidden(evt, ui)}, columnShown: function(evt,ui){_webUi.Grid.gridColumnShown(evt, ui)} }, { name: 'ColumnMoving', mode: 'deferred', moveType: 'dom', columnMoved: function(evt,ui){_webUi.Grid.gridColumnMoved(evt, ui)} }, { name: 'Resizing', allowDoubleClickToResize: true, columnResized: function(evt,ui){_webUi.Grid.gridColumnSizeChanged(evt, ui)} }, { name: 'Selection', mode: 'row', multipleSelection: true, rowSelectionChanging: function(evt,ui){_webUi.Grid.gridRowSelectionChanging(evt, ui)} }, { sortUrlKey: 'sort', sortUrlKeyAscValue: 'asc', sortUrlKeyDescValue: 'desc', columnSettings: [ { columnIndex: -1, allowSorting: false, columnKey: 'ICON' }, { columnIndex: -1, allowSorting: false, columnKey: 'LAST_CYCLE_COUNT_DATE' } ], name: 'Sorting', type: 'remote', mode: 'multiple', sortingDialogContainment: 'window', applySortedColumnCss: false }, { summaryExprUrlKey: 'Summaries', summariesResponseKey: 'Metadata.Summaries', name: 'Summaries', type: 'local', summariesToggled: function(evt,ui){_webUi.Grid.gridSummariesToggled(evt,ui)} }, { name: 'RowSelectors', enableCheckBoxes: true, enableRowNumbering: false }, { recordCountKey: 'TotalRecordsCount', pageIndexUrlKey: 'page', pageSizeUrlKey: 'pageSize', name: 'Paging', pageSize: 100, showPageSizeDropDown: false, type: 'remote', defaultDropDownWidth: '80px', showFirstLastPages: false, locale: { currentPageDropDownLeadingLabel: '' }, pageCountLimit: 1, pageIndexChanged: function(evt,ui){_webUi.Grid.pageIndexChanged(evt, ui)} } ], alternateRowStyles: false, autofitLastColumn: false, autoCommit: false, aggregateTransactions: true, enableUTCDates: true, height: '100%', width: '100%', autoFormat: 'dateandnumber', regional: 'en-US', fixedHeaders: true, renderCheckboxes: true, localSchemaTransform: true, rendering: function(evt,ui){_webUi.Grid.gridrendering(evt, ui)}, dataBound: function(evt,ui){_webUi.Grid.gridDataBound(evt, ui)}, rowsRendered: function(evt,ui){_webUi.Grid.gridRowsRendered(evt, ui)}, rendered: function(evt,ui){_webUi.Grid.modalDialogOpened(evt,ui);}, headerRendered: function(evt,ui){_webUi.Grid.gridHeaderRendered(evt, ui)} });});</script>
+            <script type="text/javascript">$(function () {
+if (typeof _webUi.insightSearchPaneActions.insightGridRequestError === 'function') {  $(document).delegate("#ListPaneDataGrid", "iggridrequesterror",_webUi.insightSearchPaneActions.insightGridRequestError)} })</script><script type="text/javascript">$(function () {
+if (typeof _webUi.insightSearchPaneActions.insightGridDataBound === 'function') {  $(document).delegate("#ListPaneDataGrid", "iggriddatabound",_webUi.insightSearchPaneActions.insightGridDataBound)} })</script><script type="text/javascript">$(function () {
+if (typeof _webUi.Grid.gridRowSelectionChanged === 'function') {  $(document).delegate("#ListPaneDataGrid", "iggridselectionrowselectionchanged",_webUi.Grid.gridRowSelectionChanged)} })</script><script type="text/javascript">$(function () {
+if (typeof _webUi.Grid.gridActiveRowChanged === 'function') {  $(document).delegate("#ListPaneDataGrid", "iggridselectionactiverowchanged",{'POSTServiceURL' : '/outbound/scaleapi/GenericDataBindApi','PostData_INTERNALLOCATIONINV' : 'INTERNAL_LOCATION_INV','PostData_ITEM' : 'ITEM','PostData_LOCATION' : 'LOCATION','PostData_COMPANY' : 'COMPANY','PostData_WAREHOUSE' : 'WAREHOUSE','PostData_LOT' : 'LOT','PostData_LOGISTICSUNIT' : 'LOGISTICS_UNIT','PostData_storedProcedure' : 'INV_InsightDetailPaneData','EnableAction_ListPaneMenuActionEdit' : 'INTERNAL_LOCATION_INV !== NULL && INTERNAL_LOCATION_INV > 0','EnableAction_ListPaneMenuActionDeleteOverrides' : 'INTERNAL_LOCATION_INV !== NULL && INTERNAL_LOCATION_INV > 0 && OVERRIDES !== NULL','EnableAction_ListPaneMenuActionEditOverrides' : 'INTERNAL_LOCATION_INV !== NULL && INTERNAL_LOCATION_INV > 0 && (AVAILABLEQTY_AV > 0 || ON_HAND_QTY > 0) && LOCATION_CLASS_OVERRIDES_ELIGIBLE === 1','EnableAction_ListPaneMenuActionView' : 'INTERNAL_LOCATION_INV !== NULL && INTERNAL_LOCATION_INV > 0','EnableAction_ListPaneMenuActionAdjust' : 'INTERNAL_LOCATION_INV !== -1','EnableAction_ListPaneMenuActionRecallInventory' : 'INTERNAL_LOCATION_INV !== NULL && INTERNAL_LOCATION_INV > 0','EnableAction_ListPaneMenuActionManualReplenish' : 'true','EnableAction_ListPaneMenuActionCountLocation' : 'LOCATION !== NULL','EnableAction_ListPaneMenuActionReplenish' : 'REAL_TIME_RPLN === Y','EnableAction_ListPaneMenuActionEditInventoryAttributes' : 'LOCATION !== NULL && LOC_INV_ATTRIBUTES_ID > -1 && INTERNAL_LOCATION_INV > 0 && (INVENTORY_STS !== NULL || PERMANENT === 1)','EnableAction_ListPaneMenuActionFreezeLot' : 'LOT !== NULL && FROZEN === 0','EnableAction_ListPaneMenuActionTransfer' : 'ITEM !== NULL && INTERNAL_LOCATION_INV > 0','EnableAction_ListPaneMenuActionCompanyTransfer' : 'ALLOCATED_QTY < 1 && IN_TRANSIT_QTY < 1 && INTERNAL_LOCATION_INV !== -1 && OVERRIDES !== 1','EnableAction_ListPaneMenuActionFinishedItemBreakdown_BomCount_DetailPane' : 'BomCount > 0','EnableAction_ListPaneMenuActionViewAttribute' : 'LOC_INV_ATTRIBUTES === TRUE && LOC_INV_ATTRIBUTES_ID > -1 && INTERNAL_LOCATION_INV > 0','EnableAction_ListPaneMenuActionDeleteInventoryAttributes' : 'LOC_INV_ATTRIBUTES !== FALSE && LOC_INV_ATTRIBUTES_ID > -1 && INTERNAL_LOCATION_INV > 0','EnableAction_ListPaneMenuActionStatusChange' : '((AVAILABLEQTY_AV > 0 ) ||(ALLOCATED_QTY > 0) || (IN_TRANSIT_QTY > 0) || (SUSPENSE_QTY > 0)) && INTERNAL_LOCATION_INV !== -1','EnableAction_MenuActionItemLocationAssignment' : 'true','EnableAction_MenuActionItemLocationCapacity' : 'true','EnableAction_MenuActionItemUOM' : 'ITEM != NULL'} ,_webUi.Grid.gridActiveRowChanged)} })</script>
+            <script type="text/javascript">$(function () {
+ $('#ListPaneDataGrid').attr({
+	'data-dbtable': "Metadata_Insight_Inventory_View"
+});})</script>
+        </div>
+                        </div>
+                    </div>
+
+
+
+            </div>
+        </div>
+        <div id="ScreenPartDivContainer1204" class="col-md-2 col-lg-1 detailpanepart" data-name="DetailPane" data-internalid="1204">
+
+            <div id="screenpartcontainer">
+
+
+
+                    <div class="row detailpaneheadertoppanel">
+
+
+                        
+
+                        <div id="ScreenGroupPanel4797" class="ScreenGroupPanel" data-name="DetailPaneHeader" data-internalid="4797">
+
+                            
+
+
+            <div id="ScreenGroupColumnDetailPanelHeaderRow1Column171" class="col-lg-12 col-md-12 col-sm-12 col-xs-12 detailpaneheaderrowcolumn">
+
+        <div id="ScreenControlLabel12989" class="ScreenControlLabel row summarypaneheadermediumlabel hideemptydiv " data-name="DetailPaneHeaderLocation" data-internalid="12989">
+            <label class="detailpaneheaderlabel" data-bind="text: model.Location" for="DetailPaneHeaderLocation" id="DetailPaneHeaderLocation"> </label>
+            
+            
+        </div>
+        <div id="ScreenControlLabel12990" class="ScreenControlLabel summarypaneheadermediumlabel hideemptydiv row " data-name="DetailPaneHeaderItem" data-internalid="12990">
+            <label class="detailpaneheaderlabel" data-bind="text: model.Item" for="DetailPaneHeaderItem" id="DetailPaneHeaderItem"> </label>
+            
+            
+        </div>
+        <div id="ScreenControlLabel12991" class="ScreenControlLabel summarypaneheadermediumlabel hideemptydiv row " data-name="DetailPaneHeaderItemDesc" data-internalid="12991">
+            <label class="detailpaneheaderlabel" data-bind="text: model.ItemDesc" for="DetailPaneHeaderItemDesc" id="DetailPaneHeaderItemDesc"> </label>
+            
+            
+        </div>
+        <div id="ScreenControlLabel12992" class="ScreenControlLabel summarypaneheadermediumlabel hideemptydiv row " data-name="DetailPaneHeaderCompany" data-internalid="12992">
+            <label class="detailpaneheaderlabel" data-bind="text: model.Company" for="DetailPaneHeaderCompany" id="DetailPaneHeaderCompany"> </label>
+            
+            
+        </div>
+        <div id="ScreenControlImage12993" class="ScreenControlImage" data-name="DetailPaneHeaderWebImage" data-internalid="12993">
+             <img id='DetailPaneHeaderWebImage' data-controlType='img' data-controlId='12993' data-defaultAction='' class='img-responsive' data-bind = 'image: WebThumbnailImage'/>
+            
+            
+        </div>
+        <div id="ScreenControlLabel12994" class="ScreenControlLabel row summarypaneheadermediumlabel hideemptydiv " data-name="DetailPaneHeaderLicensePlate" data-internalid="12994">
+            <label class="detailpaneheaderlabel" data-bind="text: model.LicensePlate" for="DetailPaneHeaderLicensePlate" id="DetailPaneHeaderLicensePlate"> </label>
+            
+            
+        </div>
+            </div>
+                        </div>
+                    </div>
+                    <div class="row indicatortilepanel">
+
+
+                        
+
+                        <div id="ScreenGroupPanel4798" class="listpanesummarypanelgroup equalize" data-name="indicatorpane" data-internalid="4798">
+
+                            
+
+
+        <div id="ScreenControlInsightIndicatorTile12995" class="ScreenControlInsightIndicatorTile col-xs-3 col-sm-3 col-md-12 col-lg-12 " data-name="InventoryInsightIndicatorTileOpenWork" data-internalid="12995">
+            <div id="InventoryInsightIndicatorTileOpenWork"  class="insightindicatortile1" onclick=""  ><label aggregateClause="" class="TileData" data-bind="text: OPEN_WORK_INST" data-controlType="LiveTile" for="" id="DataLabelInventoryInsightIndicatorTileOpenWork">0</label><label class="TileLabel" data-ResourceKey="OPEN_WORK" data-ResourceValue="Open work" for="" id="PlainLabelInventoryInsightIndicatorTileOpenWork">Open work</label></div>
+<script type="text/javascript">$(function(){_webUi.indicatortile.getIndicatorTile({"url":null,"indicatorTileName":"InventoryInsightIndicatorTileOpenWork","cssClass":"insightindicatortile1","parentDivId":"InventoryInsightIndicatorTileOpenWork","source":"insight"},false)})
+$(function(){$('#InventoryInsightIndicatorTileOpenWork').click(function(){_webUi.detailPane.clickedIndicatorTile({'url':'/scale/insights/2757?advancedFilters=FROM_LOC██10██{{Location}}█{{Location}}█A█20█,TO_LOC██10██{{Location}}█{{Location}}█A█20█,OUTGOING_PD_LOC██10██{{Location}}█{{Location}}█A█20█,INCOMING_PD_LOC██10██{{Location}}█{{Location}}█A█20█&filters=SearchPaneWhs█{{{Warehouse}}},BasicCriteriaItem█{{{Item}}},SearchPaneComp█{{{Company}}},BasicCriteriaLot█{{Lot}},BasicCriteriaLicensePlate█{{LicensePlate}},SearchPaneInstType█{{{InstructionType}}}'} )});})</script>
+            
+            
+        </div>
+        <div id="ScreenControlInsightIndicatorTile12996" class="ScreenControlInsightIndicatorTile col-xs-3 col-sm-3 col-md-12 col-lg-12 " data-name="InventoryInsightIndicatorTileImmNeeds" data-internalid="12996">
+            <div id="InventoryInsightIndicatorTileImmNeeds"  class="insightindicatortile2" onclick=""  ><label aggregateClause="" class="TileData" data-bind="text: IMM_NEEDS" data-controlType="LiveTile" for="" id="DataLabelInventoryInsightIndicatorTileImmNeeds">0</label><label class="TileLabel" data-ResourceKey="IMMEDIATENEEDS" data-ResourceValue="Immediate needs" for="" id="PlainLabelInventoryInsightIndicatorTileImmNeeds">Immediate needs</label></div>
+<script type="text/javascript">$(function(){_webUi.indicatortile.getIndicatorTile({"url":null,"indicatorTileName":"InventoryInsightIndicatorTileImmNeeds","cssClass":"insightindicatortile2","parentDivId":"InventoryInsightIndicatorTileImmNeeds","source":"insight"},false)})
+$(function(){$('#InventoryInsightIndicatorTileImmNeeds').click(function(){_webUi.detailPane.clickedIndicatorTile({'url':'/scale/insights/2767?filters=BasicCriteriaItem█{{{Item}}},SearchPaneWhs█{{{Warehouse}}},SearchPaneComp█{{{Company}}}'} )});})</script>
+            
+            
+        </div>
+                        </div>
+                    </div>
+
+
+
+            </div>
+        </div>
+</div></div></div>
+
+
+
+
+
+
+
+<div id="SaveSearchModalDialog" class="modal fade" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true"  data-controlType="modalDialog" data-controlId="1200" >
+	<div class="modal-dialog">
+	<div class="modal-content">
+<script type="text/javascript">$(function () {
+ $(document).on('keypress', "[data-defaultAction='SaveSearchSaveButton']", function(e) { return _webUi.onKeyPress(e, "SaveSearchSaveButton");})})</script>		<form id="SaveSearchModalDialogForm" class="form-horizontal"  data-controlType="form" data-controlId="4781" >
+			<div class="modal-header"  data-controlType="modalDialogHeader" data-controlId="4782" data-ResourceKey="SAVESEARCHCRITERIA" data-ResourceValue="Save search criteria" >
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<h4 class="modal-title" id="modalLabel">Save search criteria</h4>
+			</div>
+			<div class="modal-body"  data-controlType="modalDialogBody" data-controlId="4783" >
+<label class="LabelTop" data-ResourceKey="ENTERSEARCHNAME" data-ResourceValue="Enter a name for the search" for="SaveSearchNameEditor">Enter a name for the search</label><input class="ignore " data-ResourceKey="ENTERSEARCHNAME" data-ResourceValue="Enter a name for the search" data-controlId="12939" data-controlType="igTextEditor" data-dataType="A" data-defaultAction="SaveSearchSaveButton" id="SaveSearchNameEditor"></input>
+<script type="text/javascript">$(function () {$('#SaveSearchNameEditor').igTextEditor({ buttonType: 'clear', disabled: false, height: '25', width: '100%', placeHolder: '', selectionOnFocus: 'selectAll', suppressNotifications: true, textMode: 'text', toLower: false, toUpper: false, maxLength: 100, inputName: 'SaveSearchNameEditor' });});</script><div class="SaveSearchNameEditorError"></div><script type="text/javascript"> $(document).delegate("#SaveSearchNameEditor", "igtexteditorrendered", function (evt, ui) {var validationInput = $("[name=SaveSearchNameEditor]");  validationInput.attr("data-rule-required","true"); validationInput.attr("data-msg-required","You forgot to enter a search name."); validationInput.attr("data-rule-maxlength","100"); validationInput.attr("data-msg-maxlength","Maximum length exceeded."); validationInput.attr("data-valType","igTextEditor");});</script></div>			<div class="modal-footer"  data-controlType="modalDialogFooter" data-controlId="4784" >
+<button id="SaveSearchSaveButton" data-ResourceKey="BTN_SAVE" data-ResourceValue="Save" class=" btn btn-default"><span ></span>Save</button><script type="text/javascript">$(function () {
+if (typeof _webUi.insightListPaneActions.modalDialogPerformGetWithConfirmation === 'function') {  $(document).delegate("#SaveSearchSaveButton", "click",{'GETServiceURL' : '/general/scaleapi/ScreenPartSearchApi?','queryParameter_Function_ScreenPartId' : '_webUi.insightSearchPaneActions.getSearchPartId()','queryParameter_Function_UserName' : '_webSession.UserName()','queryParameter_Input_SaveSearchNameEditor_SearchName' : 'value','POSTServiceURL' : '/general/scaleapi/ScreenPartSearchApi','PostData_Function_ScreenPartId' : '_webUi.insightSearchPaneActions.getSearchPartId()','PostData_Function_UserName' : '_webSession.UserName()','PostData_Input_SaveSearchNameEditor_SearchName' : 'value','PostData_Function_SearchValue' : '_webUi.insightSearchPaneActions.getSearchToSave()','Post_SuccessCallback' : '_webUi.insightSearchPaneActions.saveSearchSuccessCallback','ModalDialogName' : 'SaveSearchModalDialog'} ,_webUi.insightListPaneActions.modalDialogPerformGetWithConfirmation)} })</script><button id="SaveSearchCancelButton" data-ResourceKey="BTN_CANCEL" data-ResourceValue="Cancel" class=" btn btn-default"><span ></span>Cancel</button><script type="text/javascript">$(function () {
+if (typeof _webUi.dialog.hideModalDialogByEvent === 'function') {  $(document).delegate("#SaveSearchCancelButton", "click",{'ModalDialogName' : 'SaveSearchModalDialog'} ,_webUi.dialog.hideModalDialogByEvent)} })</script></div></form></div></div></div>
+
+
+<div id="yesNoConfirmationArea"></div>
+
+<input id="deleteSavedSerachMessage" type="hidden" value="Do you wish to delete this favorite?" />
+<script>
+    var yesNoConfirmationMessageTemplate =
+        '<div class="modal fade" data-backdrop="static" id="YesNoConfirmationDialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">'
+            + '<div class="modal-dialog">'
+                + '<div class="modal-content">'
+                + '<div class="modal-header" data-controltype="modalDialogHeader" data-resourcekey="{{TitleKey}}" data-resourcevalue="{{Title}}">'
+                    + '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>'
+                    + '<h4 class="modal-title">{{Title}}</h4>'
+                + '</div>'
+                + '<div class="modal-body" id ="modalBody" data-ResourceKey="{{Token}}" data-ResourceValue="{{Message}}">{{Token}}'
+                + '</div>'
+                + '<div class="modal-footer">'
+                    + '<button id="confirmPositive" class=" btn btn-default" data-dismiss="modal" type="button"  data-ResourceKey="BTN_YES" data-ResourceValue= "Yes">BTN_YES</button>'
+                    + '<button id="confirmNegative" class=" btn btn-default" data-dismiss="modal" type="button"  data-ResourceKey="BTN_NO" data-ResourceValue= "No">BTN_NO</button>'
+                + '</div>'
+            + '</div>'
+        + '</div>'
+     + '</div>';
+</script>
+
+
+<div id="saveFavoriteArea"></div>
+
+
+<script>
+
+    var saveFavoriteTemplate =
+        '<div class="modal fade" data-backdrop="static" id="saveMenuFavoriteDialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">'
+            + '<div class="modal-dialog">'
+                + '<div class="modal-content">'
+                + '<div class="modal-header" data-controltype="modalDialogHeader" data-resourcekey="{{TitleKey}}" data-resourcevalue="{{Title}}">'
+                    + '<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>'
+                    + '<h4 class="modal-title">{{Title}}</h4>'
+                + '</div>'
+                + '<div class="modal-body" id ="modalBody" data-ResourceKey="{{Token}}" data-ResourceValue="{{Message}}">{{Message}}'                
+                + '<br/>'
+                + '<div class="ui-igedit ui-igedit-container ui-widget ui-corner-all ui-state-default" style="width: 100%; height: 25px;">'
+                + '<div role="button" id="addFav_clearButton" tabindex="-1" aria-label="Clear" class="ui-igedit-button-common ui-unselectable ui-igedit-button-ltr ui-state-default ui-igedit-cleararea" title="Clear value" style="display: none;"><div class="ui-igedit-buttonimage ui-icon-circle-close ui-icon ui-igedit-buttondefault"></div></div>'
+                + '<div class="ui-igeditor-input-container ui-corner-all">' 
+                + '<input class="ignore  ui-igedit-input" data-controltype="igTextEditor" data-datatype="A" type="text" role="textbox" aria-label="Text Editor" name="enter" maxlength="100" value="{{ScreenTitle}}" id="favoriteName">'
+                + '</div>'
+                + '</div>'
+                + '<label id="favoriteNameError" style="display: none" class="error favoriteModalError">You forgot to enter a name.</label>'
+                + '<label id="favoriteDuplicateError" style="display: none" class="error favoriteModalError">Name already exists.</label>'
+                + '</div>'
+                + '<div class="modal-footer">'
+                    + '<button onclick=\"_webUi.systemMenu.saveFavorite();\" id="confirmPositive" class=" btn btn-default" type="button"  data-ResourceKey="BTN_ADD" data-ResourceValue= "Add">Add</button>'
+                    + '<button id="confirmNegative" class=" btn btn-default" data-dismiss="modal" type="button"  data-ResourceKey="BTN_CANCEL" data-ResourceValue= "Cancel">Cancel</button>'
+                + '</div>'
+            + '</div>'
+        + '</div>'
+     + '</div>';
+
+   
+</script>        <input id="formId" type="hidden" value="2723" />
+  
+
+
+
+
+
+
+
+    <footer>
+        <form id="exportToExcelForm">
+            <input name="__RequestVerificationToken" type="hidden" value="YB4py6XDKI2_EfiKrOzoDhP4kmSKFmYOaa95t1f6L27kZzcafWh13yKqxRNxSx9x4E5hAtEv03VWIDEOuYYd34wiBe3AWKl2XdhC77yIUTAMlrqMZWLwjSnPnotGaP0J8dF1w2HlSrdNTFrcPgrdRw2" />
+        </form>
+    </footer>
+
+    <script type="text/javascript">
+        var firstTouch = true;
+        $(document).ready(function () {
+            DisplayResourceKey();
+            $.fn.modal.Constructor.prototype.enforceFocus = function () { };
+            //Prevent touch device keypad popup issue on page load
+            $(document).on('touchstart', function () {
+                //Reset focus on first touch
+                if (firstTouch && document.activeElement) {
+                    firstTouch = false;
+                    document.activeElement.blur();
+                    document.activeElement.focus();
+                }
+
+            });
+        });
+
+        $(function () {
+            if (typeof _webUi.dialog.showModalDialogByEvent === 'function') {
+                $(document).delegate('#MenuRestoreDefaultSettings', 'click', { 'ModalDialogName': 'ResetSettingsModalDialog' }, _webUi.dialog.showModalDialogByEvent)
+                $(document).on('click', '#ConfigureWorkStation', function () {
+
+                    _webUi.WebUi.processWorkStationAssignment();
+                });
+            }
+            var actionsMenu = $('a#InsightMenuActionsDropdown[data-toggle="dropdown"]').parent();
+            var printMenu = $('a#InsightMenuPrintActionsDropdown[data-toggle="dropdown"]').parent();
+            var configMenu = $('a#InsightMenuConfigActionsDropdown[data-toggle="dropdown"]').parent();
+            if (actionsMenu)
+                actionsMenu.on("show.bs.dropdown", _webUi.navigationHeader.onActionsMenuPopup);
+            if (printMenu)
+                printMenu.on("show.bs.dropdown", _webUi.navigationHeader.onActionsMenuPopup);
+            if (configMenu)
+                configMenu.on("show.bs.dropdown", _webUi.navigationHeader.onActionsMenuPopup);
+        });
+
+    </script>
+    <div id="ajaxloadingfade" class="modal fade"></div>
+    <div id="ajaxloadingmodal">
+        <img id="loader" src="/SCALE/Content/manh/images/loading.gif" />
+    </div>
+
+    <script src="/SCALE/JSBundles/loadafterinsight?v=WxhX2IOKL6I_SQ7Ci6krpYtB1TujsYykSU2kVyUfEgs1"></script>
+
+
+    
+    <script src="/SCALE/Scripts/manh/Insight/screen/manh.ui.INVENTORYINSIGHT.js"></script>
+
+    <script src="/SCALE/JSBundles/custom?v="></script>
+
+    
+<script type="text/javascript">
+        //_webUi.label.hideAllEmptyLabels();
+</script>
+
+
+</body>
+
+</html>

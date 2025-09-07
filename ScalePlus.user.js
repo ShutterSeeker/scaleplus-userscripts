@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      2.0
+// @version      2.1
 // @description  Custom enhancements for Scale application with toggleable features
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
@@ -198,12 +198,12 @@
                             <span class="scaleplus-setting-desc">Middle click on grid items to copy text</span>
                         </div>
                     </div>
-                    
+
                     <div class="scaleplus-divider">
                         <div class="scaleplus-advanced-label">Advanced Settings</div>
                         <div class="scaleplus-divider-line"></div>
                     </div>
-                    
+
                     <div class="scaleplus-advanced-settings">
                         <div class="scaleplus-setting">
                             <label for="f5-toggle">Custom F5 Behavior:</label>
@@ -254,7 +254,7 @@
                             <span class="scaleplus-setting-desc">Show environment label in navbar</span>
                             </div>
                     </div>
-                    
+
                     <div class="scaleplus-env-names">
                         <div class="scaleplus-env-setting">
                             <label for="qa-name">QA Name:</label>
@@ -660,43 +660,6 @@
                 e.preventDefault();
                 window.open(window.location.href, '_blank');
             }
-        } else if (e.key.toLowerCase() === 'g' && e.altKey) {
-            e.preventDefault();
-            const formId = getFormIdFromUrl();
-            const defaultFilter = getDefaultFilter(formId);
-
-            if (defaultFilter) {
-                // Try to find and click the default filter
-                const savedSearchItems = document.querySelectorAll('a[id="SearchPaneMenuFavoritesChooseSearch"]');
-                let found = false;
-
-                for (const item of savedSearchItems) {
-                    const filterText = item.querySelector('.deletesavedsearchtext')?.textContent?.trim();
-                    if (filterText === defaultFilter) {
-                        item.click();
-                        console.log(`[ScalePlus] Alt+G pressed - clicking default filter: ${defaultFilter}`);
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found) {
-                    console.log(`[ScalePlus] Alt+G pressed - default filter "${defaultFilter}" not found, clearing it`);
-                    clearDefaultFilter(formId);
-                }
-            } else {
-                // No default set, click first available
-                const savedSearchBtn = document.querySelector('a[id="SearchPaneMenuFavoritesChooseSearch"]');
-                if (savedSearchBtn) {
-                    savedSearchBtn.click();
-                    console.log('[ScalePlus] Alt+G pressed - clicking first available saved search (no default set)');
-                } else {
-                    console.log('[ScalePlus] Alt+G pressed - no saved search buttons found');
-                }
-            }
-
-            // Refresh icons after action
-            setTimeout(addDefaultFilterIcons, 500);
         }
     });
 
@@ -798,14 +761,29 @@
         return localStorage.getItem('scaleplus_default_filter') !== 'false';
     }
 
+    // Helper to get username from UserInformation cookie
+    function getUsernameFromCookie() {
+        const allCookies = document.cookie;
+        const cookie = allCookies.split('; ').find(row => row.startsWith('UserInformation='));
+        if (!cookie) {
+            return '';
+        }
+        const value = decodeURIComponent(cookie.substring(cookie.indexOf('=') + 1));
+        // Match UserName (case-sensitive, as in the cookie)
+        const match = value.match(/(?:^|&)UserName=([^&]*)/);
+        return match ? match[1] : '';
+    }
+
     function getDefaultFilterKey(formId) {
-        return `${formId}DefaultFilter`;
+        const username = getUsernameFromCookie();
+        return `${formId}DefaultFilter${username}`;
     }
 
     function setDefaultFilter(formId, filterText) {
-        const key = getDefaultFilterKey(formId);
-        localStorage.setItem(key, filterText);
-        console.log(`[ScalePlus] Set default filter for form ${formId}: ${filterText}`);
+    const key = getDefaultFilterKey(formId);
+    const username = getUsernameFromCookie();
+    localStorage.setItem(key, filterText);
+    console.log(`[ScalePlus] Set default filter for form ${formId} and user ${username}: ${filterText}`);
     }
 
     function getDefaultFilter(formId) {
@@ -814,9 +792,34 @@
     }
 
     function clearDefaultFilter(formId) {
-        const key = getDefaultFilterKey(formId);
-        localStorage.removeItem(key);
-        console.log(`[ScalePlus] Cleared default filter for form ${formId}`);
+    const key = getDefaultFilterKey(formId);
+    const username = getUsernameFromCookie();
+    localStorage.removeItem(key);
+    console.log(`[ScalePlus] Cleared default filter for form ${formId} and user ${username}`);
+    }
+
+    function fetchSavedFilter(defaultFilterName) {
+        return new Promise((resolve, reject) => {
+            const screenPartId = _webUi.insightSearchPaneActions.getSearchPartId();
+            const username     = _webSession.UserName();
+            $.ajax({
+                url: '/general/scaleapi/ScreenPartSearchApi',
+                method: 'GET',
+                data: {
+                    ScreenPartId: screenPartId,
+                    UserName: username,
+                    searchName: defaultFilterName
+                },
+                success: data => {
+                    if (data && data.SearchValue) {
+                        resolve(JSON.parse(data.SearchValue));
+                    } else {
+                        reject('No SearchValue in response');
+                    }
+                },
+                error: err => reject(err)
+            });
+        });
     }
 
     function addDefaultFilterIcons() {
@@ -892,13 +895,14 @@
                 // Get current default dynamically (not from closure)
                 const currentDefaultNow = getDefaultFilter(formId);
 
+                const username = getUsernameFromCookie();
                 if (currentDefaultNow === filterText) {
                     // Unset as default
                     clearDefaultFilter(formId);
                     defaultIcon.className = 'scaleplus-default-icon navbar-right glyphicon glyphicon-star-empty';
                     defaultIcon.style.color = '#ccc';
                     defaultIcon.style.verticalAlign = 'middle';
-                    console.log(`[ScalePlus] Unset ${filterText} as default for form ${formId}`);
+                    console.log(`[ScalePlus] Unset ${filterText} as default for form ${formId} and user ${username}`);
                 } else {
                     // Set as default
                     setDefaultFilter(formId, filterText);
@@ -915,7 +919,7 @@
                         }
                     });
 
-                    console.log(`[ScalePlus] Set ${filterText} as default for form ${formId}`);
+                    console.log(`[ScalePlus] Set ${filterText} as default for form ${formId} and user ${username}`);
                 }
             });
 
@@ -924,7 +928,7 @@
             if (deleteBtn) {
                 deleteBtn.title = 'Click to delete this favorite'; // Add tooltip
                 deleteBtn.parentNode.insertBefore(defaultIcon, deleteBtn);
-                
+
                 // Add flex-shrink to delete button too
                 deleteBtn.style.flexShrink = '0';
                 deleteBtn.style.marginLeft = '5px';
@@ -942,8 +946,8 @@
     // Run initially and then periodically to catch dynamically loaded content
     addDefaultFilterIcons();
     setInterval(addDefaultFilterIcons, 1000);
-    
-    // Auto-click default filter for form URLs without arguments
+
+    // Auto-apply default filter for form URLs without arguments
     function checkAutoClickDefault() {
         // Only for URLs like "https://scaleqa.byjasco.com/scale/insights/2723" (no ? parameters)
         if (location.pathname.includes('/insights/') && !location.search) {
@@ -951,29 +955,20 @@
             if (formId) {
                 const defaultFilter = getDefaultFilter(formId);
                 if (defaultFilter) {
-                    console.log('[ScalePlus] Looking for default filter:', defaultFilter);
-                    // Find the default filter in the saved searches and click it
-                    const savedSearchItems = document.querySelectorAll('a[id="SearchPaneMenuFavoritesChooseSearch"]');
-                    for (const item of savedSearchItems) {
-                        const textSpan = item.querySelector('.deletesavedsearchtext');
-                        if (textSpan && textSpan.textContent.trim() === defaultFilter) {
-                            console.log('[ScalePlus] Auto-clicking default filter:', defaultFilter);
-                            item.click();
-                            
-                            // Click stop button after a short delay (using same logic as Enter key)
-                            setTimeout(() => {
-                                const stopBtn = document.getElementById('InsightMenuActionStopSearch');
-                                if (isVisible(stopBtn)) {
-                                    console.log('[ScalePlus] Auto-clicking stop button');
-                                    stopBtn.click();
-                                } else {
-                                    console.log('[ScalePlus] Stop button not visible for auto-click');
-                                }
-                            }, 500);
-                            return true;
-                        }
-                    }
-                    console.log('[ScalePlus] Default filter not found in saved searches');
+                    const username = getUsernameFromCookie();
+                    console.log(`[ScalePlus] Looking for default filter: ${defaultFilter} for user ${username}`);
+
+                    fetchSavedFilter(defaultFilter)
+                        .then(savedFilters => {
+                            console.log(`[ScalePlus] Applying default filter: ${defaultFilter} (user: ${username})`);
+                            applySavedFilters(savedFilters);
+                        })
+                        .catch(err => {
+                            console.warn('[ScalePlus] Failed to fetch or apply saved filter:', err);
+                            console.log(`[ScalePlus] Default filter not found in saved searches for user ${username}`);
+                        });
+
+                    return true;
                 }
             }
         }
@@ -991,7 +986,7 @@
                 if (savedSearchItems.length > 0) {
                     const formId = extractFormIdFromUrl(location.href);
                     const defaultFilter = formId ? getDefaultFilter(formId) : null;
-                    
+
                     if (defaultFilter) {
                         console.log('[ScalePlus] Page loaded, checking for auto-click');
                         if (checkAutoClickDefault()) {
@@ -1006,50 +1001,349 @@
         }
     }, 1000);
 
-    // Add auto-click to clear filters button
+    // Custom clear filters functionality
+    function clearAllFilters() {
+        // Clear basic search filters
+        const basicFilters = document.querySelectorAll('#SearchPane input, #SearchPane select, #SearchPane textarea');
+        basicFilters.forEach(input => {
+            if (input.type === 'text' || input.type === 'textarea') {
+                input.value = '';
+                // Trigger change event to notify Scale's UI
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            } else if (input.type === 'checkbox') {
+                input.checked = false;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            } else if (input.tagName === 'SELECT') {
+                input.selectedIndex = 0;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+
+        // Clear advanced filters
+        const advancedFilters = document.querySelectorAll('#AdvancedSearchPane input, #AdvancedSearchPane select, #AdvancedSearchPane textarea');
+        advancedFilters.forEach(input => {
+            if (input.type === 'text' || input.type === 'textarea') {
+                input.value = '';
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            } else if (input.type === 'checkbox') {
+                input.checked = false;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            } else if (input.tagName === 'SELECT') {
+                input.selectedIndex = 0;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        });
+
+        // Clear advanced criteria grid properly
+        try {
+            const grid = $('#SearchPaneAdvCritAdvCritGrid');
+            if (grid.data('igGrid')) {
+                console.log('[ScalePlus] Clearing advanced criteria grid');
+                const rows = grid.igGrid('rows');
+                rows.each(function () {
+                    const rowId = $(this).attr('data-id');
+                    grid.igGridUpdating('deleteRow', rowId);
+                });
+            }
+        } catch (err) {
+            console.warn('[ScalePlus] Could not clear advanced criteria grid:', err);
+            // fallback: try resetting data source
+            try {
+                const grid = $('#SearchPaneAdvCritAdvCritGrid');
+                grid.igGrid('option', 'dataSource', { Records: [] });
+            } catch (err2) {
+                console.warn('[ScalePlus] Could not reset advanced grid data source:', err2);
+            }
+        }
+
+        // Clear toggle switches
+        try {
+            const toggles = document.querySelectorAll('#SearchPane input[data-toggle="toggle"], #AdvancedSearchPane input[data-toggle="toggle"]');
+            toggles.forEach(toggle => {
+                if (typeof $(toggle).bootstrapToggle === 'function') {
+                    $(toggle).bootstrapToggle('off');
+                }
+            });
+        } catch (err) {
+            console.warn('[ScalePlus] Could not clear toggle switches:', err);
+        }
+
+        // Clear igCombo fields properly
+        try {
+            clearIgComboFields();
+        } catch (err) {
+            console.warn('[ScalePlus] Could not clear igCombo fields:', err);
+        }
+
+        console.log('[ScalePlus] Cleared all filters');
+    }
+
+    function resetCombo(comboName) {
+        const comboEl = $('#' + comboName);
+        if (!comboEl.length || !comboEl.data('igCombo')) {
+            return;
+        }
+
+        console.log(`[ScalePlus] Resetting combo: ${comboName}`);
+
+        // Step 1: use the API to clear selection and value
+        comboEl.igCombo('deselectAll');
+        comboEl.igCombo('value', []);
+
+        // Step 2: clear the hidden field and the visible input
+        const wrapper = comboEl.closest('.ui-igcombo-wrapper');
+        wrapper.find('.ui-igcombo-hidden-field').val('');
+        wrapper.find('.ui-igcombo-field').val('').trigger('input').trigger('change');
+
+        // Step 3: simulate a click on the built-in clear button
+        const clearBtn = wrapper.find('.ui-igcombo-clear');
+        if (clearBtn.length) {
+            clearBtn[0].click(); // use native click to invoke widget logic
+        }
+    }
+
+    function applyComboFilters(comboFilters) {
+        // Step 1: Clear ALL multi-select combo boxes first to start with clean slate
+        console.log('[ScalePlus] Clearing all multi-select combos first');
+        const allMultiSelectCombos = $('[data-controltype="igComboMultiSelectWithCheckBox"]');
+        allMultiSelectCombos.each(function () {
+            const wrapper = $(this);
+            const comboId = wrapper.attr('id');
+            if (comboId) {
+                const comboEl = $('#' + comboId);
+                if (comboEl.length && comboEl.data('igCombo')) {
+                    console.log('[ScalePlus] Clearing combo', comboId);
+                    comboEl.igCombo('value', []); // clear all selections
+                }
+            }
+        });
+
+        // Step 2: Apply the values from the combo filters (using old working method)
+        if (!comboFilters) return;
+        console.log('[ScalePlus] Applying', comboFilters.length, 'saved combo values');
+        comboFilters.forEach(combo => {
+            const values = Array.isArray(combo.value) ? combo.value : [];
+            if (values.length > 0) {
+                // set the new values normally
+                console.log(`[ScalePlus] Setting combo ${combo.name} to`, values);
+                const el = $('#' + combo.name);
+                if (el.length && el.data('igCombo')) {
+                    el.igCombo('value', values);
+                }
+            }
+        });
+    }
+
+    function applyAdvancedCriteria(savedFilters, formId) {
+        if (!savedFilters.advSearch || !Array.isArray(savedFilters.advSearch)) {
+            console.log('[ScalePlus] No advanced search filters to apply');
+            return;
+        }
+
+        const adv = savedFilters.advSearch[0];
+        const gridId = adv.name || 'SearchPaneAdvCritAdvCritGrid'; // fallback to default grid ID
+        const records = (adv.value && adv.value.Records) ? adv.value.Records : [];
+
+        console.log(`[ScalePlus] Applying advanced criteria to grid ${gridId}:`, records);
+
+        const grid = $('#' + gridId);
+        if (grid.data('igGrid')) {
+            // Clear existing rows
+            try {
+                console.log('[ScalePlus] Clearing existing advanced criteria rows');
+                const rows = grid.igGrid('rows');
+                rows.each(function () {
+                    const rowId = $(this).attr('data-id');
+                    grid.igGridUpdating('deleteRow', rowId);
+                });
+            } catch (err) {
+                console.warn('[ScalePlus] Could not delete rows individually, trying data source reset:', err);
+                // fall back: reset the data source
+                try {
+                    grid.igGrid('option', 'dataSource', { Records: [] });
+                } catch (err2) {
+                    console.warn('[ScalePlus] Could not reset data source:', err2);
+                }
+            }
+        }
+
+        // Now insert the new records if any
+        if (records.length > 0) {
+            setTimeout(() => {
+                if (_webUi &&
+                    _webUi.insightSearchPaneActions &&
+                    typeof _webUi.insightSearchPaneActions.applyInputAdvanceFilterCriteria === 'function') {
+                    console.log('[ScalePlus] Applying advanced criteria using Scale helper:', records);
+                    _webUi.insightSearchPaneActions.applyInputAdvanceFilterCriteria(
+                        records,
+                        formId || extractFormIdFromUrl(location.href)
+                    );
+                } else {
+                    console.log('[ScalePlus] Scale helper not available, applying manually');
+                    records.forEach(rec => {
+                        grid.igGridUpdating('addRow', {
+                            ConditionIdentifier: rec.ConditionIdentifier,
+                            Condition: rec.Condition,
+                            FieldIdentifier: rec.FieldIdentifier,
+                            Field: rec.Field,
+                            OperandIdentifier: rec.OperandIdentifier,
+                            Operand: rec.Operand,
+                            ValueIdentifier: rec.ValueIdentifier,
+                            Value: rec.Value,
+                            DataType: rec.DataType,
+                            PrimaryKey: _webUi.createGuid()
+                        });
+                    });
+                }
+            }, 50);
+        } else {
+            console.log('[ScalePlus] No advanced criteria records to apply');
+        }
+    }
+
+    function clearIgComboFields() {
+        // Clear all igCombo widgets unconditionally using the comprehensive reset
+        $('#SearchPane .ui-igcombo-wrapper, #AdvancedSearchPane .ui-igcombo-wrapper').each(function () {
+            const wrapper = $(this);
+            const comboEl = wrapper.find('.ui-igcombo');
+            if (comboEl.length) {
+                const comboId = comboEl.attr('id');
+                if (comboId) {
+                    resetCombo(comboId);
+                }
+            }
+        });
+    }
+
+    function toggleAdvancedPanel(visible) {
+        const panel = document.getElementById('ScreenGroupSubAccordion4794');
+        if (panel) {
+            // remove focus from any element inside the panel
+            const active = panel.contains(document.activeElement) ? document.activeElement : null;
+            if (active) active.blur();
+
+            if (visible) {
+                panel.removeAttribute('aria-hidden');
+                panel.removeAttribute('inert');
+                panel.style.display = 'block';
+            } else {
+                // use inert instead of aria-hidden to prevent focus
+                panel.setAttribute('inert', '');
+                panel.style.display = 'none';
+            }
+        }
+    }
+
+    // Apply both basic and advanced criteria using Scale's internal helpers
+    function applySavedFilters(savedFilters) {
+        console.log('[ScalePlus] Applying saved filters using Scale\'s internal functions:', savedFilters);
+
+        // Make sure the search pane is visible
+        clickSearchButtonIfNeeded();
+
+        // Apply basic filters (simple editors, date pickers, combos, etc.)
+        if (savedFilters.inSearch &&
+            _webUi &&
+            _webUi.insightSearchPaneActions &&
+            typeof _webUi.insightSearchPaneActions.applyInputFilterCriteria === 'function') {
+            console.log('[ScalePlus] Applying basic filters:', savedFilters.inSearch);
+            _webUi.insightSearchPaneActions.applyInputFilterCriteria(savedFilters.inSearch);
+        } else {
+            console.log('[ScalePlus] Cannot apply basic filters - missing function or data');
+        }
+
+        // Apply toggle filters manually
+        if (Array.isArray(savedFilters.togSearch)) {
+            console.log('[ScalePlus] Applying toggle filters:', savedFilters.togSearch);
+            savedFilters.togSearch.forEach(tog => {
+                const el = document.getElementById(tog.name);
+                if (el && typeof $(el).bootstrapToggle === 'function') {
+                    console.log(`[ScalePlus] Setting toggle ${tog.name} to ${tog.value ? 'on' : 'off'}`);
+                    $(el).bootstrapToggle(tog.value ? 'on' : 'off');
+                }
+            });
+        }
+
+        // Apply combo-checked-list filters
+        applyComboFilters(savedFilters.comboChkbxSearch);
+
+        // Apply advanced criteria correctly
+        applyAdvancedCriteria(savedFilters, extractFormIdFromUrl(location.href));
+
+        // You intentionally **do not** call the internal searchButtonClicked() here,
+        // because you want to set the filters without running the search.
+    }
+
+    // Replace clear filters button functionality
     function enhanceClearFiltersButton() {
         const clearBtn = document.querySelector('#InsightMenuActionClearFilters');
         if (clearBtn && !clearBtn.hasAttribute('data-enhanced')) {
             clearBtn.setAttribute('data-enhanced', 'true');
             console.log('[ScalePlus] Enhanced clear filters button');
-            
-            // Store original click handler
-            const originalOnclick = clearBtn.onclick;
-            
-            // Add our enhanced click handler
+
+            // Store the original onclick before replacing
+            const originalOnClick = clearBtn.onclick;
+
+            // Completely replace the click handler
+            clearBtn.onclick = null;
+            clearBtn.removeEventListener('click', clearBtn.onclick);
+
             clearBtn.addEventListener('click', function(e) {
-                console.log('[ScalePlus] Clear filters clicked - will apply default filter after clearing');
-                
-                // Apply default filter after a delay to let the clear operation complete
-                setTimeout(() => {
-                    const formId = getFormIdFromUrl();
-                    if (formId && isDefaultFilterEnabled()) {
-                        const defaultFilter = getDefaultFilter(formId);
-                        if (defaultFilter) {
-                            console.log('[ScalePlus] Applying default filter after clear:', defaultFilter);
-                            const savedSearchItems = document.querySelectorAll('a[id="SearchPaneMenuFavoritesChooseSearch"]');
-                            for (const item of savedSearchItems) {
-                                const textSpan = item.querySelector('.deletesavedsearchtext');
-                                if (textSpan && textSpan.textContent.trim() === defaultFilter) {
-                                    console.log('[ScalePlus] Clicking default filter:', defaultFilter);
-                                    item.click();
-                                    
-                                    // Click stop button after applying filter (using same logic as Enter key)
-                                    setTimeout(() => {
-                                        const stopBtn = document.getElementById('InsightMenuActionStopSearch');
-                                        if (isVisible(stopBtn)) {
-                                            console.log('[ScalePlus] Clicking stop button after applying default');
-                                            stopBtn.click();
-                                        } else {
-                                            console.log('[ScalePlus] Stop button not visible after applying default');
-                                        }
-                                    }, 500);
-                                    break;
-                                }
+                console.log('[ScalePlus] Custom clear filters clicked');
+
+                // Check if default filter is set
+                const formId = getFormIdFromUrl();
+                const hasDefault = formId && isDefaultFilterEnabled() && getDefaultFilter(formId);
+
+                if (hasDefault) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    console.log('[ScalePlus] Applying default filter after clear:', getDefaultFilter(formId));
+
+                    // First clear all filters
+                    clearAllFilters();
+
+                    // Then apply default filter
+                    fetchSavedFilter(getDefaultFilter(formId))
+                        .then(savedFilters => {
+                            clickSearchButtonIfNeeded(); // ensure pane exists
+
+                            // Apply basic filters
+                            if (savedFilters.inSearch &&
+                                _webUi &&
+                                _webUi.insightSearchPaneActions &&
+                                typeof _webUi.insightSearchPaneActions.applyInputFilterCriteria === 'function') {
+                                _webUi.insightSearchPaneActions.applyInputFilterCriteria(savedFilters.inSearch);
                             }
-                        }
+
+                            // Apply toggles
+                            if (Array.isArray(savedFilters.togSearch)) {
+                                savedFilters.togSearch.forEach(tog => {
+                                    const el = document.getElementById(tog.name);
+                                    if (el && typeof $(el).bootstrapToggle === 'function') {
+                                        $(el).bootstrapToggle(tog.value ? 'on' : 'off');
+                                    }
+                                });
+                            }
+
+                            // Apply combos
+                            applyComboFilters(savedFilters.comboChkbxSearch);
+
+                            // Apply advanced criteria
+                            applyAdvancedCriteria(savedFilters, formId);
+                        })
+                        .catch(err => console.warn('[ScalePlus] Failed to fetch or apply saved filter after clear:', err));
+                } else {
+                    // No default filter, let the original clear functionality run
+                    console.log('[ScalePlus] No default filter set - using original clear');
+                    if (originalOnClick) {
+                        originalOnClick.call(this, e);
+                    } else {
+                        // Fallback: just clear our way
+                        clearAllFilters();
                     }
-                }, 1000); // Wait 1 second for clear to complete
+                }
             });
         }
     }
