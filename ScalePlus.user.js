@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      2.1
+// @version      2.2
 // @description  Custom enhancements for Scale application with toggleable features
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
@@ -148,6 +148,8 @@
         }, 1500);
     };
 
+
+
     // Create settings modal
     const createSettingsModal = () => {
         const modal = document.createElement('div');
@@ -157,44 +159,22 @@
             <div class="scaleplus-modal-content">
                 <div class="scaleplus-modal-header">
                     <h3>ScalePlus Settings</h3>
-                    <button class="scaleplus-close-btn">&times;</button>
                 </div>
                 <div class="scaleplus-modal-body">
                     <div class="scaleplus-basic-settings">
                         <div class="scaleplus-setting">
                             <label for="search-toggle">Always show search:</label>
-                            <div class="scaleplus-toggle">
-                                <input type="checkbox" id="search-toggle">
-                                <div class="scaleplus-toggle-container">
-                                    <div class="scaleplus-toggle-slider"></div>
-                                    <span class="scaleplus-toggle-text scaleplus-toggle-off">Off</span>
-                                    <span class="scaleplus-toggle-text scaleplus-toggle-on">On</span>
-                                </div>
-                            </div>
+                            <input type="checkbox" id="search-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                             <span class="scaleplus-setting-desc">Automatically show the search pane when the page loads</span>
                         </div>
                         <div class="scaleplus-setting">
                             <label for="enter-toggle">Custom Enter behavior:</label>
-                            <div class="scaleplus-toggle">
-                                <input type="checkbox" id="enter-toggle">
-                                <div class="scaleplus-toggle-container">
-                                    <div class="scaleplus-toggle-slider"></div>
-                                    <span class="scaleplus-toggle-text scaleplus-toggle-off">Off</span>
-                                    <span class="scaleplus-toggle-text scaleplus-toggle-on">On</span>
-                                </div>
-                            </div>
+                            <input type="checkbox" id="enter-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                             <span class="scaleplus-setting-desc">When enabled, Enter triggers Play/Stop</span>
                         </div>
                         <div class="scaleplus-setting">
                             <label for="middle-click-toggle">Middle click to copy:</label>
-                            <div class="scaleplus-toggle">
-                                <input type="checkbox" id="middle-click-toggle">
-                                <div class="scaleplus-toggle-container">
-                                    <div class="scaleplus-toggle-slider"></div>
-                                    <span class="scaleplus-toggle-text scaleplus-toggle-off">Off</span>
-                                    <span class="scaleplus-toggle-text scaleplus-toggle-on">On</span>
-                                </div>
-                            </div>
+                            <input type="checkbox" id="middle-click-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                             <span class="scaleplus-setting-desc">Middle click on grid items to copy text</span>
                         </div>
                     </div>
@@ -207,50 +187,22 @@
                     <div class="scaleplus-advanced-settings">
                         <div class="scaleplus-setting">
                             <label for="f5-toggle">Custom F5 Behavior:</label>
-                            <div class="scaleplus-toggle">
-                                <input type="checkbox" id="f5-toggle">
-                                <div class="scaleplus-toggle-container">
-                                    <div class="scaleplus-toggle-slider"></div>
-                                    <span class="scaleplus-toggle-text scaleplus-toggle-off">Off</span>
-                                    <span class="scaleplus-toggle-text scaleplus-toggle-on">On</span>
-                                </div>
-                            </div>
+                            <input type="checkbox" id="f5-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                             <span class="scaleplus-setting-desc">When enabled, F5 triggers Play/Stop instead of page refresh</span>
                         </div>
                         <div class="scaleplus-setting">
                             <label for="tab-duplicator-toggle">Tab Duplicator:</label>
-                            <div class="scaleplus-toggle">
-                                <input type="checkbox" id="tab-duplicator-toggle">
-                                <div class="scaleplus-toggle-container">
-                                    <div class="scaleplus-toggle-slider"></div>
-                                    <span class="scaleplus-toggle-text scaleplus-toggle-off">Off</span>
-                                    <span class="scaleplus-toggle-text scaleplus-toggle-on">On</span>
-                                </div>
-                            </div>
+                            <input type="checkbox" id="tab-duplicator-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                             <span class="scaleplus-setting-desc">Ctrl+D to duplicate current tab</span>
                         </div>
                         <div class="scaleplus-setting">
                             <label for="default-filter-toggle">Default Filter:</label>
-                            <div class="scaleplus-toggle">
-                                <input type="checkbox" id="default-filter-toggle">
-                                <div class="scaleplus-toggle-container">
-                                    <div class="scaleplus-toggle-slider"></div>
-                                    <span class="scaleplus-toggle-text scaleplus-toggle-off">Off</span>
-                                    <span class="scaleplus-toggle-text scaleplus-toggle-on">On</span>
-                                </div>
-                            </div>
+                            <input type="checkbox" id="default-filter-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                             <span class="scaleplus-setting-desc">Enable default filter selection with star icons</span>
                         </div>
                         <div class="scaleplus-setting">
                             <label for="env-labels-toggle">Environment Labels:</label>
-                            <div class="scaleplus-toggle">
-                                <input type="checkbox" id="env-labels-toggle">
-                                <div class="scaleplus-toggle-container">
-                                    <div class="scaleplus-toggle-slider"></div>
-                                    <span class="scaleplus-toggle-text scaleplus-toggle-off">Off</span>
-                                    <span class="scaleplus-toggle-text scaleplus-toggle-on">On</span>
-                                </div>
-                            </div>
+                            <input type="checkbox" id="env-labels-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                             <span class="scaleplus-setting-desc">Show environment label in navbar</span>
                             </div>
                     </div>
@@ -273,6 +225,59 @@
         `;
         document.body.appendChild(modal);
 
+        // Sample colors from Scale's UI
+        const navBar = document.querySelector('#topNavigationBar') || document.querySelector('.navbar');
+        const bodyStyles = getComputedStyle(document.body);
+        const headerBg = navBar ? getComputedStyle(navBar).backgroundColor : '#494e5e';
+        const bodyBg = bodyStyles.backgroundColor || '#333a45';
+        const textColor = bodyStyles.color || 'white';
+        const borderColor = bodyStyles.borderColor || '#ddd';
+        const buttonBg = getComputedStyle(document.querySelector('button') || document.body).backgroundColor || '#4f93e4';
+        const buttonColor = getComputedStyle(document.querySelector('button') || document.body).color || 'white';
+
+        // Apply sampled colors
+        const modalContent = modal.querySelector('.scaleplus-modal-content');
+        const modalHeader = modal.querySelector('.scaleplus-modal-header');
+        const modalBody = modal.querySelector('.scaleplus-modal-body');
+        const modalFooter = modal.querySelector('.scaleplus-modal-footer');
+        const cancelBtn = modal.querySelector('.scaleplus-cancel-btn');
+        const backdrop = modal.querySelector('.scaleplus-modal-backdrop');
+        const labels = modal.querySelectorAll('label');
+        const descs = modal.querySelectorAll('.scaleplus-setting-desc, .scaleplus-advanced-label');
+        const inputs = modal.querySelectorAll('input[type="text"]');
+
+        // Use light background for modal to ensure visibility
+        const lightBg = '#f4f4f8';
+        const darkText = '#000000';
+        if (modalContent) modalContent.style.backgroundColor = lightBg;
+        if (modalHeader) {
+            modalHeader.style.backgroundColor = headerBg;
+            modalHeader.style.color = textColor;
+        }
+        if (modalBody) {
+            modalBody.style.backgroundColor = lightBg;
+            modalBody.style.color = darkText;
+        }
+        if (modalFooter) {
+            modalFooter.style.backgroundColor = headerBg;
+            modalFooter.style.color = textColor;
+        }
+        if (cancelBtn) {
+            cancelBtn.style.backgroundColor = buttonBg;
+            cancelBtn.style.color = buttonColor;
+        }
+        labels.forEach(label => {
+            label.style.color = darkText;
+        });
+        descs.forEach(desc => {
+            desc.style.color = darkText;
+        });
+        inputs.forEach(input => {
+            input.style.backgroundColor = lightBg;
+            input.style.color = darkText;
+            input.style.borderColor = borderColor;
+        });
+
         // Add styles
         const style = document.createElement('style');
         style.textContent = `
@@ -290,7 +295,6 @@
                 top: 40%;
                 left: 50%;
                 transform: translate(-50%, -50%);
-                background: #333a45;
                 box-shadow: 0 4px 20px rgba(0,0,0,0.3);
                 z-index: 10001;
                 min-width: 800px;
@@ -302,40 +306,22 @@
                 align-items: center;
                 padding: 15px 20px;
                 border-bottom: 1px solid #ddd;
-                background: #494e5e;
             }
             .scaleplus-modal-header h3 {
                 margin: 0;
-                color: white;
                 flex: 1;
                 text-align: center;
-            }
-            .scaleplus-close-btn {
-                background: none;
-                border: none;
-                font-size: 16px;
-                cursor: pointer;
                 color: white;
-                padding: 0;
-                width: 16px;
-                height: 16px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
             }
             .scaleplus-modal-body {
                 padding: 20px;
-                background: #333a45;
             }
             .scaleplus-modal-footer {
                 padding: 10px 20px;
-                background: #494e5e;
                 display: flex;
                 justify-content: flex-end;
             }
             .scaleplus-cancel-btn {
-                background: #4f93e4;
-                color: white;
                 border: none;
                 padding: 10px 20px;
                 cursor: pointer;
@@ -349,89 +335,11 @@
             .scaleplus-setting label {
                 flex: 1;
                 font-weight: bold;
-                color: white;
-            }
-            .scaleplus-toggle {
-                position: relative;
-                margin: 0 10px;
-                width: 80px;
-                height: 34px;
-            }
-            .scaleplus-toggle input {
-                opacity: 0;
-                width: 0;
-                height: 0;
-                position: absolute;
-            }
-            .scaleplus-toggle-container {
-                display: flex;
-                background: #6f6f6f;
-                cursor: pointer;
-                position: relative;
-                overflow: hidden;
-                transition: background 0.3s ease;
-                border-radius: 17px;
-                width: 100%;
-                height: 100%;
-                align-items: center;
-                justify-content: center;
-            }
-            .scaleplus-toggle-slider {
-                position: absolute;
-                top: 2px;
-                left: 2px;
-                width: 30px;
-                height: 30px;
-                background: white;
-                border-radius: 50%;
-                transition: transform 0.3s ease;
-                z-index: 2;
-            }
-            .scaleplus-toggle-text {
-                padding: 0;
-                font-size: 12px;
-                font-weight: bold;
-                color: white;
-                transition: all 0.3s ease;
-                z-index: 3;
-                position: absolute;
-                background: transparent;
-                text-align: center;
-                width: 40px;
-                top: 50%;
-                transform: translateY(-50%);
-                pointer-events: none;
-            }
-            .scaleplus-toggle-off {
-                background: transparent;
-                right: 5px;
-            }
-            .scaleplus-toggle-on {
-                background: transparent;
-                left: 5px;
-            }
-            .scaleplus-toggle input:checked ~ .scaleplus-toggle-container {
-                background: #4f93e4;
-            }
-            .scaleplus-toggle input:checked ~ .scaleplus-toggle-container .scaleplus-toggle-slider {
-                transform: translateX(46px);
-            }
-            .scaleplus-toggle input:checked ~ .scaleplus-toggle-container .scaleplus-toggle-off {
-                opacity: 0;
-            }
-            .scaleplus-toggle input:checked ~ .scaleplus-toggle-container .scaleplus-toggle-on {
-                opacity: 1;
-            }
-            .scaleplus-toggle input:not(:checked) ~ .scaleplus-toggle-container .scaleplus-toggle-off {
-                opacity: 1;
-            }
-            .scaleplus-toggle input:not(:checked) ~ .scaleplus-toggle-container .scaleplus-toggle-on {
-                opacity: 0;
             }
             .scaleplus-setting-desc {
                 font-size: 12px;
-                color: #ccc;
                 flex: 2;
+                margin-left: 20px;
             }
             .scaleplus-env-names {
                 margin-left: 0;
@@ -447,9 +355,6 @@
                 min-width: 200px;
             }
             .scaleplus-env-names input {
-                background: #555;
-                color: white;
-                border: 1px solid #777;
                 padding: 5px;
                 border-radius: 4px;
                 width: 300px;
@@ -459,7 +364,6 @@
                 margin: 20px 0;
             }
             .scaleplus-advanced-label {
-                color: #ccc;
                 font-weight: normal;
                 font-size: 12px;
                 margin-bottom: 10px;
@@ -474,15 +378,11 @@
             }
             .scaleplus-env-setting label {
                 font-weight: bold;
-                color: white;
                 margin-right: 10px;
                 width: 200px;
                 display: inline-block;
             }
             .scaleplus-env-setting input {
-                background: #555;
-                color: white;
-                border: 1px solid #777;
                 padding: 5px;
                 border-radius: 4px;
                 width: 300px;
@@ -541,54 +441,47 @@
         prodNameInput.value = localStorage.getItem('scaleplus_env_prod_name') || 'PRODUCTION ENVIRONMENT';
 
         // Handle toggle changes
-        const toggleContainerSearch = searchToggle.closest('.scaleplus-setting').querySelector('.scaleplus-toggle-container');
-        toggleContainerSearch.addEventListener('click', () => {
-            searchToggle.checked = !searchToggle.checked;
-            localStorage.setItem('scaleplus_show_search_pane', searchToggle.checked.toString());
-            console.log(`[ScalePlus] Show search pane set to: ${searchToggle.checked}`);
+        $('#search-toggle').on('change', function(event) {
+            const state = this.checked;
+            localStorage.setItem('scaleplus_show_search_pane', state.toString());
+            console.log(`[ScalePlus] Show search pane set to: ${state}`);
         });
 
-        const toggleContainerEnter = enterToggle.closest('.scaleplus-setting').querySelector('.scaleplus-toggle-container');
-        toggleContainerEnter.addEventListener('click', () => {
-            enterToggle.checked = !enterToggle.checked;
-            localStorage.setItem('scaleplus_custom_enter', enterToggle.checked.toString());
-            console.log(`[ScalePlus] Custom Enter set to: ${enterToggle.checked}`);
+        $('#enter-toggle').on('change', function(event) {
+            const state = this.checked;
+            localStorage.setItem('scaleplus_custom_enter', state.toString());
+            console.log(`[ScalePlus] Custom Enter set to: ${state}`);
         });
 
-        const toggleContainerMiddle = middleClickToggle.closest('.scaleplus-setting').querySelector('.scaleplus-toggle-container');
-        toggleContainerMiddle.addEventListener('click', () => {
-            middleClickToggle.checked = !middleClickToggle.checked;
-            localStorage.setItem('scaleplus_middle_click_copy', middleClickToggle.checked.toString());
-            console.log(`[ScalePlus] Middle click copy set to: ${middleClickToggle.checked}`);
+        $('#middle-click-toggle').on('change', function(event) {
+            const state = this.checked;
+            localStorage.setItem('scaleplus_middle_click_copy', state.toString());
+            console.log(`[ScalePlus] Middle click copy set to: ${state}`);
         });
 
-        const toggleContainerF5 = f5Toggle.closest('.scaleplus-setting').querySelector('.scaleplus-toggle-container');
-        toggleContainerF5.addEventListener('click', () => {
-            f5Toggle.checked = !f5Toggle.checked;
-            const behavior = f5Toggle.checked ? 'custom' : 'normal';
+        $('#f5-toggle').on('change', function(event) {
+            const state = this.checked;
+            const behavior = state ? 'custom' : 'normal';
             localStorage.setItem(STORAGE_KEY, behavior);
             console.log(`[ScalePlus] F5 behavior set to: ${behavior}`);
         });
 
-        const toggleContainerEnv = envLabelsToggle.closest('.scaleplus-setting').querySelector('.scaleplus-toggle-container');
-        toggleContainerEnv.addEventListener('click', () => {
-            envLabelsToggle.checked = !envLabelsToggle.checked;
-            localStorage.setItem('scaleplus_env_labels', envLabelsToggle.checked.toString());
-            console.log(`[ScalePlus] Environment labels set to: ${envLabelsToggle.checked}`);
+        $('#env-labels-toggle').on('change', function(event) {
+            const state = this.checked;
+            localStorage.setItem('scaleplus_env_labels', state.toString());
+            console.log(`[ScalePlus] Environment labels set to: ${state}`);
         });
 
-        const toggleContainerTab = tabDuplicatorToggle.closest('.scaleplus-setting').querySelector('.scaleplus-toggle-container');
-        toggleContainerTab.addEventListener('click', () => {
-            tabDuplicatorToggle.checked = !tabDuplicatorToggle.checked;
-            localStorage.setItem('scaleplus_tab_duplicator', tabDuplicatorToggle.checked.toString());
-            console.log(`[ScalePlus] Tab duplicator set to: ${tabDuplicatorToggle.checked}`);
+        $('#tab-duplicator-toggle').on('change', function(event) {
+            const state = this.checked;
+            localStorage.setItem('scaleplus_tab_duplicator', state.toString());
+            console.log(`[ScalePlus] Tab duplicator set to: ${state}`);
         });
 
-        const toggleContainerDefaultFilter = defaultFilterToggle.closest('.scaleplus-setting').querySelector('.scaleplus-toggle-container');
-        toggleContainerDefaultFilter.addEventListener('click', () => {
-            defaultFilterToggle.checked = !defaultFilterToggle.checked;
-            localStorage.setItem('scaleplus_default_filter', defaultFilterToggle.checked.toString());
-            console.log(`[ScalePlus] Default filter set to: ${defaultFilterToggle.checked}`);
+        $('#default-filter-toggle').on('change', function(event) {
+            const state = this.checked;
+            localStorage.setItem('scaleplus_default_filter', state.toString());
+            console.log(`[ScalePlus] Default filter set to: ${state}`);
         });
 
         qaNameInput.addEventListener('input', () => {
@@ -599,15 +492,23 @@
             localStorage.setItem('scaleplus_env_prod_name', prodNameInput.value);
         });
 
+        // Initialize bootstrap toggles
+        $('#search-toggle, #enter-toggle, #middle-click-toggle, #f5-toggle, #tab-duplicator-toggle, #default-filter-toggle, #env-labels-toggle').bootstrapToggle();
+
+        // Set initial states explicitly
+        $(searchToggle).bootstrapToggle(searchToggle.checked ? 'on' : 'off');
+        $(enterToggle).bootstrapToggle(enterToggle.checked ? 'on' : 'off');
+        $(middleClickToggle).bootstrapToggle(middleClickToggle.checked ? 'on' : 'off');
+        $(f5Toggle).bootstrapToggle(f5Toggle.checked ? 'on' : 'off');
+        $(envLabelsToggle).bootstrapToggle(envLabelsToggle.checked ? 'on' : 'off');
+        $(tabDuplicatorToggle).bootstrapToggle(tabDuplicatorToggle.checked ? 'on' : 'off');
+        $(defaultFilterToggle).bootstrapToggle(defaultFilterToggle.checked ? 'on' : 'off');
+
         // Handle close
-        const closeBtn = modal.querySelector('.scaleplus-close-btn');
-        const backdrop = modal.querySelector('.scaleplus-modal-backdrop');
-        const cancelBtn = modal.querySelector('.scaleplus-cancel-btn');
         const closeModal = () => {
             modal.remove();
             style.remove();
         };
-        closeBtn.addEventListener('click', closeModal);
         backdrop.addEventListener('click', closeModal);
         cancelBtn.addEventListener('click', closeModal);
     };
@@ -632,7 +533,7 @@
             const settingsModal = document.getElementById('scaleplus-settings-modal');
             if (settingsModal) {
                 e.preventDefault();
-                settingsModal.querySelector('.scaleplus-close-btn').click();
+                settingsModal.querySelector('.scaleplus-cancel-btn').click();
                 return;
             }
             // Check for any visible modal dialogs (display: block)
@@ -1034,28 +935,6 @@
             }
         });
 
-        // Clear advanced criteria grid properly
-        try {
-            const grid = $('#SearchPaneAdvCritAdvCritGrid');
-            if (grid.data('igGrid')) {
-                console.log('[ScalePlus] Clearing advanced criteria grid');
-                const rows = grid.igGrid('rows');
-                rows.each(function () {
-                    const rowId = $(this).attr('data-id');
-                    grid.igGridUpdating('deleteRow', rowId);
-                });
-            }
-        } catch (err) {
-            console.warn('[ScalePlus] Could not clear advanced criteria grid:', err);
-            // fallback: try resetting data source
-            try {
-                const grid = $('#SearchPaneAdvCritAdvCritGrid');
-                grid.igGrid('option', 'dataSource', { Records: [] });
-            } catch (err2) {
-                console.warn('[ScalePlus] Could not reset advanced grid data source:', err2);
-            }
-        }
-
         // Clear toggle switches
         try {
             const toggles = document.querySelectorAll('#SearchPane input[data-toggle="toggle"], #AdvancedSearchPane input[data-toggle="toggle"]');
@@ -1134,73 +1013,6 @@
         });
     }
 
-    function applyAdvancedCriteria(savedFilters, formId) {
-        if (!savedFilters.advSearch || !Array.isArray(savedFilters.advSearch)) {
-            console.log('[ScalePlus] No advanced search filters to apply');
-            return;
-        }
-
-        const adv = savedFilters.advSearch[0];
-        const gridId = adv.name || 'SearchPaneAdvCritAdvCritGrid'; // fallback to default grid ID
-        const records = (adv.value && adv.value.Records) ? adv.value.Records : [];
-
-        console.log(`[ScalePlus] Applying advanced criteria to grid ${gridId}:`, records);
-
-        const grid = $('#' + gridId);
-        if (grid.data('igGrid')) {
-            // Clear existing rows
-            try {
-                console.log('[ScalePlus] Clearing existing advanced criteria rows');
-                const rows = grid.igGrid('rows');
-                rows.each(function () {
-                    const rowId = $(this).attr('data-id');
-                    grid.igGridUpdating('deleteRow', rowId);
-                });
-            } catch (err) {
-                console.warn('[ScalePlus] Could not delete rows individually, trying data source reset:', err);
-                // fall back: reset the data source
-                try {
-                    grid.igGrid('option', 'dataSource', { Records: [] });
-                } catch (err2) {
-                    console.warn('[ScalePlus] Could not reset data source:', err2);
-                }
-            }
-        }
-
-        // Now insert the new records if any
-        if (records.length > 0) {
-            setTimeout(() => {
-                if (_webUi &&
-                    _webUi.insightSearchPaneActions &&
-                    typeof _webUi.insightSearchPaneActions.applyInputAdvanceFilterCriteria === 'function') {
-                    console.log('[ScalePlus] Applying advanced criteria using Scale helper:', records);
-                    _webUi.insightSearchPaneActions.applyInputAdvanceFilterCriteria(
-                        records,
-                        formId || extractFormIdFromUrl(location.href)
-                    );
-                } else {
-                    console.log('[ScalePlus] Scale helper not available, applying manually');
-                    records.forEach(rec => {
-                        grid.igGridUpdating('addRow', {
-                            ConditionIdentifier: rec.ConditionIdentifier,
-                            Condition: rec.Condition,
-                            FieldIdentifier: rec.FieldIdentifier,
-                            Field: rec.Field,
-                            OperandIdentifier: rec.OperandIdentifier,
-                            Operand: rec.Operand,
-                            ValueIdentifier: rec.ValueIdentifier,
-                            Value: rec.Value,
-                            DataType: rec.DataType,
-                            PrimaryKey: _webUi.createGuid()
-                        });
-                    });
-                }
-            }, 50);
-        } else {
-            console.log('[ScalePlus] No advanced criteria records to apply');
-        }
-    }
-
     function clearIgComboFields() {
         // Clear all igCombo widgets unconditionally using the comprehensive reset
         $('#SearchPane .ui-igcombo-wrapper, #AdvancedSearchPane .ui-igcombo-wrapper').each(function () {
@@ -1258,7 +1070,7 @@
             savedFilters.togSearch.forEach(tog => {
                 const el = document.getElementById(tog.name);
                 if (el && typeof $(el).bootstrapToggle === 'function') {
-                    console.log(`[ScalePlus] Setting toggle ${tog.name} to ${tog.value ? 'on' : 'off'}`);
+                    console.log('[ScalePlus] Setting toggle ' + tog.name + ' to ' + (tog.value ? 'on' : 'off'));
                     $(el).bootstrapToggle(tog.value ? 'on' : 'off');
                 }
             });
@@ -1329,9 +1141,6 @@
 
                             // Apply combos
                             applyComboFilters(savedFilters.comboChkbxSearch);
-
-                            // Apply advanced criteria
-                            applyAdvancedCriteria(savedFilters, formId);
                         })
                         .catch(err => console.warn('[ScalePlus] Failed to fetch or apply saved filter after clear:', err));
                 } else {
@@ -1354,4 +1163,5 @@
             enhanceClearFiltersButton();
         }
     }, 500);
+
 })();
