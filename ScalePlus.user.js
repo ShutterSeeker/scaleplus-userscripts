@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      2.3
+// @version      2.4
 // @description  Custom enhancements for Scale application with toggleable features
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
@@ -1053,18 +1053,18 @@
     function clearIgTextEditors() {
         // Clear all igTextEditor widgets using their API
         console.log('[ScalePlus] Clearing igTextEditor widgets');
-        
+
         const textEditors = $('[data-controltype="igTextEditor"], .ui-igtexteditor');
         textEditors.each(function() {
             const el = $(this);
             const id = el.attr('id');
-            
+
             if (id && el.data('igTextEditor')) {
                 console.log(`[ScalePlus] Clearing igTextEditor: ${id}`);
                 try {
                     // Use the igTextEditor API to clear the value
                     el.igTextEditor('value', '');
-                    
+
                     // Also clear the underlying input field
                     const inputField = el.find('input').first();
                     if (inputField.length) {
@@ -1085,18 +1085,18 @@
     function clearIgDatePickers() {
         // Clear all igDatePicker widgets using their API
         console.log('[ScalePlus] Clearing igDatePicker widgets');
-        
+
         const datePickers = $('[data-controltype="igDatePicker"], .ui-igdatepicker');
         datePickers.each(function() {
             const el = $(this);
             const id = el.attr('id');
-            
+
             if (id && el.data('igDatePicker')) {
                 console.log(`[ScalePlus] Clearing igDatePicker: ${id}`);
                 try {
                     // Use the igDatePicker API to clear the value
                     el.igDatePicker('value', null);
-                    
+
                     // Also clear the underlying input field
                     const inputField = el.find('input').first();
                     if (inputField.length) {
@@ -1117,26 +1117,26 @@
     function clearAdvancedCriteriaGrid() {
         // Clear the advanced criteria grid
         console.log('[ScalePlus] Clearing advanced criteria grid');
-        
+
         const gridId = 'SearchPaneAdvCritAdvCritGrid';
         const grid = $('#' + gridId);
-        
+
         if (grid.length && grid.data('igGrid')) {
             try {
                 // Get the current data source
                 const dataSource = grid.igGrid('option', 'dataSource');
-                
+
                 // If there are records, clear them
                 if (dataSource && dataSource.Records && dataSource.Records.length > 0) {
                     console.log(`[ScalePlus] Clearing ${dataSource.Records.length} advanced criteria records`);
-                    
+
                     // Clear the data source
                     const emptyDataSource = {
                         Records: [],
                         TotalRecordsCount: 0,
                         Metadata: dataSource.Metadata || {}
                     };
-                    
+
                     // Update the grid with empty data
                     grid.igGrid('option', 'dataSource', emptyDataSource);
                     grid.igGrid('dataBind');
@@ -1163,6 +1163,32 @@
                 panel.setAttribute('inert', '');
                 panel.style.display = 'none';
             }
+        }
+    }
+
+    function applyAdvancedCriteria(savedFilters, formId) {
+        // Apply advanced criteria if present in saved filters
+        console.log('[ScalePlus] Applying advanced criteria for form:', formId);
+
+        try {
+            // Check if there are advanced criteria in the saved filters
+            if (savedFilters && savedFilters.advSearch && Array.isArray(savedFilters.advSearch)) {
+                console.log('[ScalePlus] Found advanced criteria:', savedFilters.advSearch);
+
+                // Use Scale's internal advanced criteria API if available
+                if (_webUi &&
+                    _webUi.advancedCriteria &&
+                    typeof _webUi.advancedCriteria.applyAdvancedCriteria === 'function') {
+                    console.log('[ScalePlus] Using Scale\'s native advanced criteria function');
+                    _webUi.advancedCriteria.applyAdvancedCriteria(savedFilters.advSearch);
+                } else {
+                    console.log('[ScalePlus] Scale\'s advanced criteria API not available, skipping advanced criteria');
+                }
+            } else {
+                console.log('[ScalePlus] No advanced criteria found in saved filters');
+            }
+        } catch (err) {
+            console.warn('[ScalePlus] Failed to apply advanced criteria:', err);
         }
     }
 
@@ -1213,90 +1239,43 @@
             clearBtn.setAttribute('data-enhanced', 'true');
             console.log('[ScalePlus] Enhanced clear filters button');
 
-            // Store the original onclick before replacing
-            const originalOnClick = clearBtn.onclick;
+            // Store original click handler
+            const originalOnclick = clearBtn.onclick;
 
-            // Completely replace the click handler
-            clearBtn.onclick = null;
-            clearBtn.removeEventListener('click', clearBtn.onclick);
-
+            // Add our enhanced click handler
             clearBtn.addEventListener('click', function(e) {
-                console.log('[ScalePlus] Custom clear filters clicked');
+                console.log('[ScalePlus] Clear filters clicked - will apply default filter after clearing');
 
-                // Check if default filter is set
-                const formId = getFormIdFromUrl();
-                const hasDefault = formId && isDefaultFilterEnabled() && getDefaultFilter(formId);
+                // Apply default filter after a delay to let the clear operation complete
+                setTimeout(() => {
+                    const formId = getFormIdFromUrl();
+                    if (formId && isDefaultFilterEnabled()) {
+                        const defaultFilter = getDefaultFilter(formId);
+                        if (defaultFilter) {
+                            console.log('[ScalePlus] Applying default filter after clear:', defaultFilter);
+                            const savedSearchItems = document.querySelectorAll('a[id="SearchPaneMenuFavoritesChooseSearch"]');
+                            for (const item of savedSearchItems) {
+                                const textSpan = item.querySelector('.deletesavedsearchtext');
+                                if (textSpan && textSpan.textContent.trim() === defaultFilter) {
+                                    console.log('[ScalePlus] Clicking default filter:', defaultFilter);
+                                    item.click();
 
-                if (hasDefault) {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    console.log('[ScalePlus] Applying default filter after clear:', getDefaultFilter(formId));
-
-                    // First clear all filters comprehensively
-                    clearAllFilters();
-                    
-                    // Also try Scale's native clear to ensure everything is reset
-                    try {
-                        if (_webUi && 
-                            _webUi.insightSearchPaneActions && 
-                            typeof _webUi.insightSearchPaneActions.clearButtonClicked === 'function') {
-                            console.log('[ScalePlus] Calling Scale native clear before applying default filter');
-                            _webUi.insightSearchPaneActions.clearButtonClicked.call(this, e);
-                        }
-                    } catch (err) {
-                        console.warn('[ScalePlus] Failed to call native clear function before applying default filter:', err);
-                    }
-
-                    // Then apply default filter
-                    fetchSavedFilter(getDefaultFilter(formId))
-                        .then(savedFilters => {
-                            clickSearchButtonIfNeeded(); // ensure pane exists
-
-                            // Apply basic filters
-                            if (savedFilters.inSearch &&
-                                _webUi &&
-                                _webUi.insightSearchPaneActions &&
-                                typeof _webUi.insightSearchPaneActions.applyInputFilterCriteria === 'function') {
-                                _webUi.insightSearchPaneActions.applyInputFilterCriteria(savedFilters.inSearch);
+                                    // Click stop button after applying filter (using same logic as Enter key)
+                                    setTimeout(() => {
+                                        const stopBtn = document.getElementById('InsightMenuActionStopSearch');
+                                        if (isVisible(stopBtn)) {
+                                            console.log('[ScalePlus] Clicking stop button after applying default');
+                                            stopBtn.click();
+                                        } else {
+                                            console.log('[ScalePlus] Stop button not visible after applying default');
+                                        }
+                                    }, 500);
+                                    break;
+                                }
                             }
-
-                            // Apply toggles
-                            if (Array.isArray(savedFilters.togSearch)) {
-                                savedFilters.togSearch.forEach(tog => {
-                                    const el = document.getElementById(tog.name);
-                                    if (el && typeof $(el).bootstrapToggle === 'function') {
-                                        $(el).bootstrapToggle(tog.value ? 'on' : 'off');
-                                    }
-                                });
-                            }
-
-                            // Apply combos
-                            applyComboFilters(savedFilters.comboChkbxSearch);
-                        })
-                        .catch(err => console.warn('[ScalePlus] Failed to fetch or apply saved filter after clear:', err));
-                } else {
-                    // No default filter, clear everything using both our method and Scale's native method
-                    console.log('[ScalePlus] No default filter set - using comprehensive clear');
-                    
-                    // First use our comprehensive clear
-                    clearAllFilters();
-                    
-                    // Then try to call Scale's native clear function as a backup
-                    try {
-                        if (_webUi && 
-                            _webUi.insightSearchPaneActions && 
-                            typeof _webUi.insightSearchPaneActions.clearButtonClicked === 'function') {
-                            console.log('[ScalePlus] Calling Scale native clear function');
-                            _webUi.insightSearchPaneActions.clearButtonClicked.call(this, e);
-                        } else if (originalOnClick) {
-                            console.log('[ScalePlus] Calling original onclick handler');
-                            originalOnClick.call(this, e);
                         }
-                    } catch (err) {
-                        console.warn('[ScalePlus] Failed to call native clear function:', err);
                     }
-                }
+                }, 10); // Wait 10ms for clear to complete
             });
         }
     }
