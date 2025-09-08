@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      2.4
+// @version      2.5
 // @description  Custom enhancements for Scale application with toggleable features
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
@@ -78,7 +78,10 @@
                 console.log('[ScalePlus] First trigger - Clicking Apply');
                 applyBtn.click();
             } else {
-                console.log('[ScalePlus] First trigger - Apply button not visible');
+                console.log('[ScalePlus] First trigger - Apply button not visible, allowing normal Enter behavior');
+                // Reset firstTrigger so next Enter press will try again
+                firstTrigger = true;
+                return false; // Indicate that we didn't handle the action
             }
         } else {
             if (isVisible(stopBtn)) {
@@ -89,8 +92,10 @@
                 applyBtn.click();
             } else {
                 console.log('[ScalePlus] No visible button to click');
+                return false; // Indicate that we didn't handle the action
             }
         }
+        return true; // Indicate that we handled the action
     };
 
     const getF5Behavior = () => {
@@ -522,9 +527,13 @@
             }
             const behavior = getF5Behavior();
             if (behavior === 'custom') {
-                e.preventDefault();
                 console.log('[ScalePlus] F5 custom behavior triggered');
-                triggerAction();
+                const actionHandled = triggerAction();
+                if (actionHandled) {
+                    e.preventDefault();
+                } else {
+                    console.log('[ScalePlus] Allowing normal F5 behavior');
+                }
             } else {
                 console.log('[ScalePlus] F5 normal behavior - allowing page refresh');
             }
@@ -550,9 +559,14 @@
             } else {
                 const enabled = localStorage.getItem('scaleplus_custom_enter') !== 'false';
                 if (enabled) {
+                    const actionHandled = triggerAction();
+                    if (!actionHandled) {
+                        // triggerAction returned false, allow normal Enter behavior
+                        console.log('[ScalePlus] Allowing normal Enter behavior');
+                        return;
+                    }
                     e.preventDefault();
                     console.log('[ScalePlus] Enter key triggered');
-                    triggerAction();
                 }
             }
         } else if (e.key.toLowerCase() === 'd' && e.ctrlKey && !e.shiftKey) {
