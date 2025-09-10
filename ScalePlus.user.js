@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      2.5
+// @version      2.6
 // @description  Custom enhancements for Scale application with toggleable features
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
@@ -14,12 +14,39 @@
 (function () {
     'use strict';
 
+    // Constants for localStorage keys and default values
+    const SETTINGS = {
+        SHOW_SEARCH_PANE: 'scaleplus_show_search_pane',
+        CUSTOM_ENTER: 'scaleplus_custom_enter',
+        MIDDLE_CLICK_COPY: 'scaleplus_middle_click_copy',
+        ENV_LABELS: 'scaleplus_env_labels',
+        TAB_DUPLICATOR: 'scaleplus_tab_duplicator',
+        DEFAULT_FILTER: 'scaleplus_default_filter',
+        ADV_CRITERIA_ENHANCEMENT: 'scaleplus_adv_criteria_enhancement',
+        F5_BEHAVIOR: 'scaleplus_f5_behavior',
+        ENV_QA_NAME: 'scaleplus_env_qa_name',
+        ENV_PROD_NAME: 'scaleplus_env_prod_name'
+    };
+
+    const DEFAULTS = {
+        [SETTINGS.SHOW_SEARCH_PANE]: 'true',
+        [SETTINGS.CUSTOM_ENTER]: 'true',
+        [SETTINGS.MIDDLE_CLICK_COPY]: 'true',
+        [SETTINGS.ENV_LABELS]: 'false',
+        [SETTINGS.TAB_DUPLICATOR]: 'false',
+        [SETTINGS.DEFAULT_FILTER]: 'true',
+        [SETTINGS.ADV_CRITERIA_ENHANCEMENT]: 'true',
+        [SETTINGS.F5_BEHAVIOR]: 'false',
+        [SETTINGS.ENV_QA_NAME]: 'QA ENVIRONMENT',
+        [SETTINGS.ENV_PROD_NAME]: 'PRODUCTION ENVIRONMENT'
+    };
+
     // Helper: normalize spaces (convert &nbsp; → space, collapse whitespace)
     const normalizeSpaces = (text) => text.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
 
     // On page load, click the search button if not already active
     function clickSearchButtonIfNeeded() {
-        const enabled = localStorage.getItem('scaleplus_show_search_pane') !== 'false';
+        const enabled = localStorage.getItem(SETTINGS.SHOW_SEARCH_PANE) !== 'false';
         if (!enabled) return;
         function tryClick() {
             var searchBtn = document.querySelector('li.navsearch.visible-sm.visible-md.visible-lg a.navimageanchor[data-toggle="search"]');
@@ -42,16 +69,11 @@
     }
     clickSearchButtonIfNeeded();
 
-    const STORAGE_KEY = 'scaleplus_f5_behavior';
-
-    // Set defaults
-    if (localStorage.getItem('scaleplus_show_search_pane') === null) localStorage.setItem('scaleplus_show_search_pane', 'true');
-    if (localStorage.getItem('scaleplus_custom_enter') === null) localStorage.setItem('scaleplus_custom_enter', 'true');
-    if (localStorage.getItem('scaleplus_middle_click_copy') === null) localStorage.setItem('scaleplus_middle_click_copy', 'true');
-    if (localStorage.getItem('scaleplus_env_labels') === null) localStorage.setItem('scaleplus_env_labels', 'false');
-    if (localStorage.getItem('scaleplus_tab_duplicator') === null) localStorage.setItem('scaleplus_tab_duplicator', 'false');
-    if (localStorage.getItem('scaleplus_default_filter') === null) localStorage.setItem('scaleplus_default_filter', 'true');
-
+    /**
+     * Checks if an element is visible on the page
+     * @param {Element} el - The element to check
+     * @returns {boolean} - True if the element is visible
+     */
     const isVisible = (el) => {
         if (!el) return false;
         const parentLi = el.closest('li');
@@ -62,12 +84,17 @@
               getComputedStyle(target).pointerEvents !== 'none' &&
               getComputedStyle(target).visibility !== 'hidden' &&
               getComputedStyle(target).display !== 'none';
-        console.log(`[ScalePlus] isVisible(${el.id}):`, visible);
+        // Removed console.log to prevent spam - uncomment for debugging if needed
+        // console.log(`[ScalePlus] isVisible(${el.id}):`, visible);
         return visible;
     };
 
     let firstTrigger = true;
 
+    /**
+     * Triggers the search action (Apply/Stop) based on current state
+     * @returns {boolean} - True if an action was triggered
+     */
     const triggerAction = () => {
         const stopBtn = document.getElementById('InsightMenuActionStopSearch');
         const applyBtn = document.getElementById('InsightMenuApply');
@@ -99,24 +126,30 @@
     };
 
     const getF5Behavior = () => {
-        const stored = localStorage.getItem(STORAGE_KEY);
+        const stored = localStorage.getItem(SETTINGS.F5_BEHAVIOR);
         if (stored) {
             console.log(`[ScalePlus] Using stored F5 behavior: ${stored}`);
             return stored;
         }
         // Default to normal behavior if not set (users can change via Configure workstation button)
-        const defaultBehavior = 'normal';
-        localStorage.setItem(STORAGE_KEY, defaultBehavior);
+        const defaultBehavior = DEFAULTS[SETTINGS.F5_BEHAVIOR];
+        localStorage.setItem(SETTINGS.F5_BEHAVIOR, defaultBehavior);
         console.log(`[ScalePlus] Default F5 behavior set to: ${defaultBehavior}`);
         return defaultBehavior;
     };
 
     const clearF5Preference = () => {
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(SETTINGS.F5_BEHAVIOR);
         console.log('[ScalePlus] F5 behavior preference cleared');
         alert('ScalePlus: F5 behavior preference has been cleared.');
     };
 
+    /**
+     * Copies text to clipboard and shows a tooltip
+     * @param {string} text - The text to copy
+     * @param {number} x - X coordinate for tooltip
+     * @param {number} y - Y coordinate for tooltip
+     */
     const copyToClipboard = (text, x, y) => {
         navigator.clipboard.writeText(text).then(() => {
             console.log('[ScalePlus] Copied to clipboard:', text);
@@ -126,6 +159,12 @@
         });
     };
 
+    /**
+     * Shows a temporary tooltip at the specified coordinates
+     * @param {number} x - X coordinate
+     * @param {number} y - Y coordinate
+     * @param {string} text - Tooltip text to display
+     */
     const showTooltip = (x, y, text) => {
         const tooltip = document.createElement('div');
         tooltip.textContent = text;
@@ -162,70 +201,78 @@
         modal.innerHTML = `
             <div class="scaleplus-modal-backdrop"></div>
             <div class="scaleplus-modal-content">
-                <div class="scaleplus-modal-header">
-                    <h3>ScalePlus Settings</h3>
-                </div>
-                <div class="scaleplus-modal-body">
-                    <div class="scaleplus-basic-settings">
-                        <div class="scaleplus-setting">
-                            <label for="search-toggle">Always show search:</label>
-                            <input type="checkbox" id="search-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
-                            <span class="scaleplus-setting-desc">Automatically show the search pane when the page loads</span>
-                        </div>
-                        <div class="scaleplus-setting">
-                            <label for="enter-toggle">Custom Enter behavior:</label>
-                            <input type="checkbox" id="enter-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
-                            <span class="scaleplus-setting-desc">When enabled, Enter triggers Play/Stop</span>
-                        </div>
-                        <div class="scaleplus-setting">
-                            <label for="middle-click-toggle">Middle click to copy:</label>
-                            <input type="checkbox" id="middle-click-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
-                            <span class="scaleplus-setting-desc">Middle click on grid items to copy text</span>
-                        </div>
+                <form class="form-horizontal" id="ScalePlusSettingsModalDialogForm" novalidate="novalidate" data-controltype="form">
+                    <div class="modal-header" data-controltype="modalDialogHeader" data-resourcekey="SCALEPLUSSETTINGS" data-resourcevalue="ScalePlus Settings">
+                        <button type="button" class="close scaleplus-modal-close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h4 class="modal-title">ScalePlus Settings</h4>
                     </div>
-
-                    <div class="scaleplus-divider">
-                        <div class="scaleplus-advanced-label">Advanced Settings</div>
-                        <div class="scaleplus-divider-line"></div>
-                    </div>
-
-                    <div class="scaleplus-advanced-settings">
-                        <div class="scaleplus-setting">
-                            <label for="f5-toggle">Custom F5 Behavior:</label>
-                            <input type="checkbox" id="f5-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
-                            <span class="scaleplus-setting-desc">When enabled, F5 triggers Play/Stop instead of page refresh</span>
-                        </div>
-                        <div class="scaleplus-setting">
-                            <label for="tab-duplicator-toggle">Tab Duplicator:</label>
-                            <input type="checkbox" id="tab-duplicator-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
-                            <span class="scaleplus-setting-desc">Ctrl+D to duplicate current tab</span>
-                        </div>
-                        <div class="scaleplus-setting">
-                            <label for="default-filter-toggle">Default Filter:</label>
-                            <input type="checkbox" id="default-filter-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
-                            <span class="scaleplus-setting-desc">Enable default filter selection with star icons</span>
-                        </div>
-                        <div class="scaleplus-setting">
-                            <label for="env-labels-toggle">Environment Labels:</label>
-                            <input type="checkbox" id="env-labels-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
-                            <span class="scaleplus-setting-desc">Show environment label in navbar</span>
+                    <div class="modal-body" data-controltype="modalDialogBody">
+                        <div class="scaleplus-basic-settings">
+                            <div class="scaleplus-setting">
+                                <label for="search-toggle">Always show search:</label>
+                                <input type="checkbox" id="search-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
+                                <span class="scaleplus-setting-desc">Automatically show the search pane when the page loads</span>
                             </div>
-                    </div>
+                            <div class="scaleplus-setting">
+                                <label for="enter-toggle">Custom Enter behavior:</label>
+                                <input type="checkbox" id="enter-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
+                                <span class="scaleplus-setting-desc">When enabled, Enter triggers Play/Stop</span>
+                            </div>
+                            <div class="scaleplus-setting">
+                                <label for="middle-click-toggle">Middle click to copy:</label>
+                                <input type="checkbox" id="middle-click-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
+                                <span class="scaleplus-setting-desc">Middle click on grid items to copy text</span>
+                            </div>
+                            <div class="scaleplus-setting">
+                                <label for="adv-criteria-indicator-toggle">Enhance Advanced criteria:</label>
+                                <input type="checkbox" id="adv-criteria-indicator-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
+                                <span class="scaleplus-setting-desc">Show count in header and condition column in advanced criteria grid</span>
+                            </div>
+                        </div>
 
-                    <div class="scaleplus-env-names">
-                        <div class="scaleplus-env-setting">
-                            <label for="qa-name">QA Name:</label>
-                            <input type="text" id="qa-name" placeholder="QA ENVIRONMENT">
+                        <div class="scaleplus-divider">
+                            <div class="scaleplus-advanced-label">Advanced Settings</div>
+                            <div class="scaleplus-divider-line"></div>
                         </div>
-                        <div class="scaleplus-env-setting">
-                            <label for="prod-name">Prod Name:</label>
-                            <input type="text" id="prod-name" placeholder="PRODUCTION ENVIRONMENT">
+
+                        <div class="scaleplus-advanced-settings">
+                            <div class="scaleplus-setting">
+                                <label for="f5-toggle">Custom F5 Behavior:</label>
+                                <input type="checkbox" id="f5-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
+                                <span class="scaleplus-setting-desc">When enabled, F5 triggers Play/Stop instead of page refresh</span>
+                            </div>
+                            <div class="scaleplus-setting">
+                                <label for="tab-duplicator-toggle">Tab Duplicator:</label>
+                                <input type="checkbox" id="tab-duplicator-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
+                                <span class="scaleplus-setting-desc">Ctrl+D to duplicate current tab</span>
+                            </div>
+                            <div class="scaleplus-setting">
+                                <label for="default-filter-toggle">Enhance Favorites:</label>
+                                <input type="checkbox" id="default-filter-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
+                                <span class="scaleplus-setting-desc">Add star icons to favorites for default filter selection</span>
+                            </div>
+                            <div class="scaleplus-setting">
+                                <label for="env-labels-toggle">Environment Labels:</label>
+                                <input type="checkbox" id="env-labels-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
+                                <span class="scaleplus-setting-desc">Show environment label in navbar</span>
+                            </div>
+                        </div>
+
+                        <div class="scaleplus-env-names">
+                            <div class="scaleplus-env-setting">
+                                <label for="qa-name">QA Name:</label>
+                                <input type="text" id="qa-name" placeholder="QA ENVIRONMENT">
+                            </div>
+                            <div class="scaleplus-env-setting">
+                                <label for="prod-name">Prod Name:</label>
+                                <input type="text" id="prod-name" placeholder="PRODUCTION ENVIRONMENT">
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="scaleplus-modal-footer">
-                    <button class="scaleplus-cancel-btn">Close</button>
-                </div>
+                    <div class="modal-footer" data-controltype="modalDialogFooter">
+                        <button id="scaleplus-close-btn" class="btn btn-default" data-resourcekey="BTN_CLOSE" data-resourcevalue="Close">Close</button>
+                    </div>
+                </form>
             </div>
         `;
         document.body.appendChild(modal);
@@ -233,19 +280,21 @@
         // Sample colors from Scale's UI
         const navBar = document.querySelector('#topNavigationBar') || document.querySelector('.navbar');
         const bodyStyles = getComputedStyle(document.body);
-        const headerBg = navBar ? getComputedStyle(navBar).backgroundColor : '#494e5e';
-        const bodyBg = bodyStyles.backgroundColor || '#333a45';
-        const textColor = bodyStyles.color || 'white';
-        const borderColor = bodyStyles.borderColor || '#ddd';
-        const buttonBg = getComputedStyle(document.querySelector('button') || document.body).backgroundColor || '#4f93e4';
-        const buttonColor = getComputedStyle(document.querySelector('button') || document.body).color || 'white';
+        const headerBg = '#494e5e';
+        const bodyBg = '#f4f4f8';
+        const footerBg = '#494e5e';
+        const textColor = '#ffffff';
+        const borderColor = '#ddd';
+        const buttonBg = '#4f93e4';
+        const buttonColor = '#ffffff';
 
         // Apply sampled colors
         const modalContent = modal.querySelector('.scaleplus-modal-content');
-        const modalHeader = modal.querySelector('.scaleplus-modal-header');
-        const modalBody = modal.querySelector('.scaleplus-modal-body');
-        const modalFooter = modal.querySelector('.scaleplus-modal-footer');
-        const cancelBtn = modal.querySelector('.scaleplus-cancel-btn');
+        const modalHeader = modal.querySelector('.modal-header');
+        const modalBody = modal.querySelector('.modal-body');
+        const modalFooter = modal.querySelector('.modal-footer');
+        const closeBtn = modal.querySelector('.scaleplus-modal-close');
+        const cancelBtn = modal.querySelector('#scaleplus-close-btn');
         const backdrop = modal.querySelector('.scaleplus-modal-backdrop');
         const labels = modal.querySelectorAll('label');
         const descs = modal.querySelectorAll('.scaleplus-setting-desc, .scaleplus-advanced-label');
@@ -254,18 +303,21 @@
         // Use light background for modal to ensure visibility
         const lightBg = '#f4f4f8';
         const darkText = '#000000';
-        if (modalContent) modalContent.style.backgroundColor = lightBg;
+        if (modalContent) modalContent.style.backgroundColor = bodyBg;
         if (modalHeader) {
             modalHeader.style.backgroundColor = headerBg;
             modalHeader.style.color = textColor;
         }
         if (modalBody) {
-            modalBody.style.backgroundColor = lightBg;
+            modalBody.style.backgroundColor = bodyBg;
             modalBody.style.color = darkText;
         }
         if (modalFooter) {
-            modalFooter.style.backgroundColor = headerBg;
+            modalFooter.style.backgroundColor = footerBg;
             modalFooter.style.color = textColor;
+        }
+        if (closeBtn) {
+            // closeBtn.style.color = buttonBg; // Removed to let CSS handle it
         }
         if (cancelBtn) {
             cancelBtn.style.backgroundColor = buttonBg;
@@ -275,12 +327,12 @@
             label.style.color = darkText;
         });
         descs.forEach(desc => {
-            desc.style.color = darkText;
+            // desc.style.color = darkText; // Removed to let CSS handle it
         });
         inputs.forEach(input => {
-            input.style.backgroundColor = lightBg;
-            input.style.color = darkText;
-            input.style.borderColor = borderColor;
+            // input.style.backgroundColor = lightBg;
+            // input.style.color = darkText;
+            // input.style.borderColor = borderColor;
         });
 
         // Add styles
@@ -294,43 +346,128 @@
                 height: 100%;
                 background: rgba(0,0,0,0.5);
                 z-index: 10000;
+                opacity: 0;
+                animation: scaleplus-fade-in 0.2s ease-out forwards;
             }
             .scaleplus-modal-content {
                 position: fixed;
-                top: 40%;
+                top: -100px;
                 left: 50%;
-                transform: translate(-50%, -50%);
+                transform: translateX(-50%);
                 box-shadow: 0 4px 20px rgba(0,0,0,0.3);
                 z-index: 10001;
                 min-width: 800px;
                 max-width: 700px;
+                max-height: calc(100vh - 100px);
+                display: flex;
+                flex-direction: column;
+                border-radius: 0;
+                background-color: #f4f4f8;
+                overflow: hidden;
+                animation: scaleplus-drop-in 0.3s ease-out forwards;
             }
-            .scaleplus-modal-header {
+            @keyframes scaleplus-fade-in {
+                to {
+                    opacity: 1;
+                }
+            }
+            @keyframes scaleplus-drop-in {
+                to {
+                    top: 50px;
+                }
+            }
+            @media (max-width: 850px) {
+                .scaleplus-modal-content {
+                    min-width: calc(100vw - 40px);
+                    max-width: calc(100vw - 40px);
+                    left: 20px;
+                    transform: none;
+                    background-color: #f4f4f8;
+                }
+            }
+            .modal-header {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 padding: 15px 20px;
-                border-bottom: 1px solid #ddd;
+                background-color: #494e5e !important;
+                color: white;
+                width: 100%;
+                box-sizing: border-box;
+                flex-shrink: 0;
+                position: relative;
+                z-index: 1;
+                margin: 0;
             }
-            .scaleplus-modal-header h3 {
+            .modal-header .close {
+                margin: 0;
+                color: white !important;
+                opacity: 0.8;
+                font-size: 28px;
+                line-height: 1;
+                cursor: pointer;
+                background: none;
+                border: none;
+                padding: 0;
+                width: 30px;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: absolute;
+                right: 15px;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+            .modal-header .close:hover {
+                opacity: 1;
+                color: white;
+            }
+            .modal-header h4 {
                 margin: 0;
                 flex: 1;
                 text-align: center;
                 color: white;
+                font-size: 18px;
+                font-weight: 500;
+                padding-right: 30px;
             }
-            .scaleplus-modal-body {
-                padding: 20px;
+            .modal-body {
+                padding: 20px !important;
+                overflow-y: auto !important;
+                flex: 1;
+                background-color: #f4f4f8 !important;
+                color: #000000 !important;
+                position: relative;
+                z-index: 0;
+                max-height: calc(100vh - 200px) !important;
             }
-            .scaleplus-modal-footer {
+            .modal-footer {
                 padding: 10px 20px;
                 display: flex;
                 justify-content: flex-end;
+                flex-shrink: 0;
+                border-top: 1px solid #ddd;
+                background-color: #494e5e !important;
+                color: white;
+                width: 100%;
+                box-sizing: border-box;
+                position: relative;
+                z-index: 1;
+                margin: 0;
             }
-            .scaleplus-cancel-btn {
+            .modal-footer .btn {
                 border: none;
-                padding: 10px 20px;
+                padding: 8px 16px;
                 cursor: pointer;
                 font-size: 14px;
+                background-color: #4f93e4;
+                color: white;
+                border-radius: 0;
+                margin-left: 10px;
+            }
+            .modal-footer .btn:hover {
+                background-color: #3a7bc8;
             }
             .scaleplus-setting {
                 display: flex;
@@ -340,11 +477,13 @@
             .scaleplus-setting label {
                 flex: 1;
                 font-weight: bold;
+                color: #000000;
             }
             .scaleplus-setting-desc {
                 font-size: 12px;
                 flex: 2;
                 margin-left: 20px;
+                color: #666666 !important;
             }
             .scaleplus-env-names {
                 margin-left: 0;
@@ -361,9 +500,12 @@
             }
             .scaleplus-env-names input {
                 padding: 5px;
-                border-radius: 4px;
+                border-radius: 0 !important;
                 width: 300px;
                 display: inline-block;
+                background-color: #ffffff !important;
+                color: #666666 !important;
+                border: 1px solid #999999 !important;
             }
             .scaleplus-divider {
                 margin: 20px 0;
@@ -373,6 +515,7 @@
                 font-size: 12px;
                 margin-bottom: 10px;
                 text-align: left;
+                color: #666666 !important;
             }
             .scaleplus-divider-line {
                 border-top: 1px solid #555;
@@ -386,57 +529,67 @@
                 margin-right: 10px;
                 width: 200px;
                 display: inline-block;
+                color: #000000;
             }
             .scaleplus-env-setting input {
                 padding: 5px;
-                border-radius: 4px;
+                border-radius: 0 !important;
                 width: 300px;
                 display: inline-block;
+                background-color: #ffffff !important;
+                color: #666666 !important;
+                border: 1px solid #999999 !important;
             }
         `;
         document.head.appendChild(style);
 
         // Set initial toggle states
         const f5Toggle = modal.querySelector('#f5-toggle');
-        const currentF5 = localStorage.getItem(STORAGE_KEY);
-        if (currentF5 === 'custom') {
+        const currentF5 = localStorage.getItem(SETTINGS.F5_BEHAVIOR);
+        if (currentF5 !== 'false') {
             f5Toggle.checked = true;
         }
 
         const searchToggle = modal.querySelector('#search-toggle');
-        const currentSearch = localStorage.getItem('scaleplus_show_search_pane');
+        const currentSearch = localStorage.getItem(SETTINGS.SHOW_SEARCH_PANE);
         if (currentSearch !== 'false') {
             searchToggle.checked = true;
         }
 
         const enterToggle = modal.querySelector('#enter-toggle');
-        const currentEnter = localStorage.getItem('scaleplus_custom_enter');
+        const currentEnter = localStorage.getItem(SETTINGS.CUSTOM_ENTER);
         if (currentEnter !== 'false') {
             enterToggle.checked = true;
         }
 
         const middleClickToggle = modal.querySelector('#middle-click-toggle');
-        const currentMiddle = localStorage.getItem('scaleplus_middle_click_copy');
+        const currentMiddle = localStorage.getItem(SETTINGS.MIDDLE_CLICK_COPY);
         if (currentMiddle !== 'false') {
             middleClickToggle.checked = true;
         }
 
         const envLabelsToggle = modal.querySelector('#env-labels-toggle');
-        const currentEnv = localStorage.getItem('scaleplus_env_labels');
+        const currentEnv = localStorage.getItem(SETTINGS.ENV_LABELS);
         if (currentEnv === 'true') {
             envLabelsToggle.checked = true;
         }
 
         const tabDuplicatorToggle = modal.querySelector('#tab-duplicator-toggle');
-        const currentTab = localStorage.getItem('scaleplus_tab_duplicator');
+        const currentTab = localStorage.getItem(SETTINGS.TAB_DUPLICATOR);
         if (currentTab !== 'false') {
             tabDuplicatorToggle.checked = true;
         }
 
         const defaultFilterToggle = modal.querySelector('#default-filter-toggle');
-        const currentDefaultFilter = localStorage.getItem('scaleplus_default_filter');
+        const currentDefaultFilter = localStorage.getItem(SETTINGS.DEFAULT_FILTER);
         if (currentDefaultFilter !== 'false') {
             defaultFilterToggle.checked = true;
+        }
+
+        const advCriteriaIndicatorToggle = modal.querySelector('#adv-criteria-indicator-toggle');
+        const currentAdvCriteriaIndicator = localStorage.getItem(SETTINGS.ADV_CRITERIA_ENHANCEMENT);
+        if (currentAdvCriteriaIndicator !== 'false') {
+            advCriteriaIndicatorToggle.checked = true;
         }
 
         const qaNameInput = modal.querySelector('#qa-name');
@@ -448,45 +601,103 @@
         // Handle toggle changes
         $('#search-toggle').on('change', function(event) {
             const state = this.checked;
-            localStorage.setItem('scaleplus_show_search_pane', state.toString());
+            localStorage.setItem(SETTINGS.SHOW_SEARCH_PANE, state.toString());
             console.log(`[ScalePlus] Show search pane set to: ${state}`);
         });
 
         $('#enter-toggle').on('change', function(event) {
             const state = this.checked;
-            localStorage.setItem('scaleplus_custom_enter', state.toString());
+            localStorage.setItem(SETTINGS.CUSTOM_ENTER, state.toString());
             console.log(`[ScalePlus] Custom Enter set to: ${state}`);
         });
 
         $('#middle-click-toggle').on('change', function(event) {
             const state = this.checked;
-            localStorage.setItem('scaleplus_middle_click_copy', state.toString());
+            localStorage.setItem(SETTINGS.MIDDLE_CLICK_COPY, state.toString());
             console.log(`[ScalePlus] Middle click copy set to: ${state}`);
         });
 
         $('#f5-toggle').on('change', function(event) {
             const state = this.checked;
-            const behavior = state ? 'custom' : 'normal';
-            localStorage.setItem(STORAGE_KEY, behavior);
-            console.log(`[ScalePlus] F5 behavior set to: ${behavior}`);
+            localStorage.setItem(SETTINGS.F5_BEHAVIOR, state.toString());
+            console.log(`[ScalePlus] F5 behavior set to: ${state}`);
         });
 
         $('#env-labels-toggle').on('change', function(event) {
             const state = this.checked;
-            localStorage.setItem('scaleplus_env_labels', state.toString());
+            localStorage.setItem(SETTINGS.ENV_LABELS, state.toString());
             console.log(`[ScalePlus] Environment labels set to: ${state}`);
         });
 
         $('#tab-duplicator-toggle').on('change', function(event) {
             const state = this.checked;
-            localStorage.setItem('scaleplus_tab_duplicator', state.toString());
+            localStorage.setItem(SETTINGS.TAB_DUPLICATOR, state.toString());
             console.log(`[ScalePlus] Tab duplicator set to: ${state}`);
         });
 
         $('#default-filter-toggle').on('change', function(event) {
             const state = this.checked;
-            localStorage.setItem('scaleplus_default_filter', state.toString());
+            localStorage.setItem(SETTINGS.DEFAULT_FILTER, state.toString());
             console.log(`[ScalePlus] Default filter set to: ${state}`);
+            updateFavoritesStarIcon(); // Update star icon when feature is toggled
+        });
+
+        $('#adv-criteria-indicator-toggle').on('change', function(event) {
+            const state = this.checked;
+            localStorage.setItem(SETTINGS.ADV_CRITERIA_ENHANCEMENT, state.toString());
+            console.log(`[ScalePlus] Advanced criteria enhancement set to: ${state}`);
+
+            // Update the counter immediately when toggled
+            if (state) {
+                updateAdvancedCriteriaCount();
+            } else {
+                // Reset to original text when disabled
+                const headers = document.querySelectorAll('h3.ui-accordion-header');
+                headers.forEach(header => {
+                    const link = header.querySelector('a[data-resourcekey="ADVANCEDCRITERIA"]');
+                    if (link) {
+                        const baseText = link.getAttribute('data-resourcevalue') || 'Advanced criteria';
+                        link.textContent = baseText;
+                    }
+                });
+            }
+
+            // Update grid columns immediately
+            setTimeout(() => {
+                const $grid = $('#SearchPaneAdvCritAdvCritGrid');
+                if ($grid.length && $grid.data('igGrid')) {
+                    try {
+                        const columns = $grid.igGrid('option', 'columns');
+                        const conditionColumn = columns.find(col => col.key === 'Condition');
+                        if (conditionColumn) {
+                            conditionColumn.hidden = !state;
+                            if (state) {
+                                conditionColumn.headerText = 'Condition';
+                                conditionColumn.width = '15%';
+                                // Adjust other columns when showing condition
+                                const fieldColumn = columns.find(col => col.key === 'Field');
+                                const operandColumn = columns.find(col => col.key === 'Operand');
+                                const valueColumn = columns.find(col => col.key === 'Value');
+                                if (fieldColumn) fieldColumn.width = '30%';
+                                if (operandColumn) operandColumn.width = '15%';
+                                if (valueColumn) valueColumn.width = '30%';
+                            } else {
+                                // Reset to original widths when hiding condition
+                                const fieldColumn = columns.find(col => col.key === 'Field');
+                                const operandColumn = columns.find(col => col.key === 'Operand');
+                                const valueColumn = columns.find(col => col.key === 'Value');
+                                if (fieldColumn) fieldColumn.width = '40%';
+                                if (operandColumn) operandColumn.width = '20%';
+                                if (valueColumn) valueColumn.width = '40%';
+                            }
+                            $grid.igGrid('option', 'columns', columns);
+                            $grid.igGrid('dataBind');
+                        }
+                    } catch (err) {
+                        console.warn('[ScalePlus] Could not update grid columns on toggle:', err);
+                    }
+                }
+            }, 100);
         });
 
         qaNameInput.addEventListener('input', () => {
@@ -498,7 +709,7 @@
         });
 
         // Initialize bootstrap toggles
-        $('#search-toggle, #enter-toggle, #middle-click-toggle, #f5-toggle, #tab-duplicator-toggle, #default-filter-toggle, #env-labels-toggle').bootstrapToggle();
+        $('#search-toggle, #enter-toggle, #middle-click-toggle, #f5-toggle, #tab-duplicator-toggle, #default-filter-toggle, #env-labels-toggle, #adv-criteria-indicator-toggle').bootstrapToggle();
 
         // Set initial states explicitly
         $(searchToggle).bootstrapToggle(searchToggle.checked ? 'on' : 'off');
@@ -508,6 +719,7 @@
         $(envLabelsToggle).bootstrapToggle(envLabelsToggle.checked ? 'on' : 'off');
         $(tabDuplicatorToggle).bootstrapToggle(tabDuplicatorToggle.checked ? 'on' : 'off');
         $(defaultFilterToggle).bootstrapToggle(defaultFilterToggle.checked ? 'on' : 'off');
+        $(advCriteriaIndicatorToggle).bootstrapToggle(advCriteriaIndicatorToggle.checked ? 'on' : 'off');
 
         // Handle close
         const closeModal = () => {
@@ -515,7 +727,8 @@
             style.remove();
         };
         backdrop.addEventListener('click', closeModal);
-        cancelBtn.addEventListener('click', closeModal);
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
     };
 
     document.addEventListener('keydown', function (e) {
@@ -526,7 +739,7 @@
                 return;
             }
             const behavior = getF5Behavior();
-            if (behavior === 'custom') {
+            if (behavior !== 'false') {
                 console.log('[ScalePlus] F5 custom behavior triggered');
                 const actionHandled = triggerAction();
                 if (actionHandled) {
@@ -557,7 +770,7 @@
                 // Let Enter act as normal if any modal is visible
                 return;
             } else {
-                const enabled = localStorage.getItem('scaleplus_custom_enter') !== 'false';
+                const enabled = localStorage.getItem(SETTINGS.CUSTOM_ENTER) !== 'false';
                 if (enabled) {
                     const actionHandled = triggerAction();
                     if (!actionHandled) {
@@ -570,7 +783,7 @@
                 }
             }
         } else if (e.key.toLowerCase() === 'd' && e.ctrlKey && !e.shiftKey) {
-            const enabled = localStorage.getItem('scaleplus_tab_duplicator') !== 'false';
+            const enabled = localStorage.getItem(SETTINGS.TAB_DUPLICATOR) !== 'false';
             if (enabled) {
                 e.preventDefault();
                 window.open(window.location.href, '_blank');
@@ -612,7 +825,7 @@
 
     document.addEventListener('mousedown', function (e) {
         if (e.button === 1) {
-            const enabled = localStorage.getItem('scaleplus_middle_click_copy') !== 'false';
+            const enabled = localStorage.getItem(SETTINGS.MIDDLE_CLICK_COPY) !== 'false';
             if (enabled) {
                 e.preventDefault();
                 copyInnerText(e);
@@ -622,7 +835,7 @@
 
     // Environment Labels
     function addEnvironmentLabel() {
-        const enabled = localStorage.getItem('scaleplus_env_labels') === 'true';
+        const enabled = localStorage.getItem(SETTINGS.ENV_LABELS) === 'true';
         if (!enabled) return;
 
         const navBar = document.getElementById('topNavigationBar');
@@ -631,8 +844,8 @@
         // Create a label element
         const label = document.createElement('div');
         const isProd = window.location.hostname === 'scale20.byjasco.com';
-        const qaName = localStorage.getItem('scaleplus_env_qa_name') || 'QA ENVIRONMENT';
-        const prodName = localStorage.getItem('scaleplus_env_prod_name') || 'PRODUCTION ENVIRONMENT';
+        const qaName = localStorage.getItem(SETTINGS.ENV_QA_NAME) || DEFAULTS[SETTINGS.ENV_QA_NAME];
+        const prodName = localStorage.getItem(SETTINGS.ENV_PROD_NAME) || DEFAULTS[SETTINGS.ENV_PROD_NAME];
         const labelText = isProd ? prodName : qaName;
         const bgColor = isProd ? '#c0392b' : '#d0b132';
         const borderColor = bgColor;
@@ -673,7 +886,7 @@
 
     // Check if default filter feature is enabled
     function isDefaultFilterEnabled() {
-        return localStorage.getItem('scaleplus_default_filter') !== 'false';
+        return localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
     }
 
     // Helper to get username from UserInformation cookie
@@ -699,6 +912,7 @@
     const username = getUsernameFromCookie();
     localStorage.setItem(key, filterText);
     console.log(`[ScalePlus] Set default filter for form ${formId} and user ${username}: ${filterText}`);
+    updateFavoritesStarIcon();
     }
 
     function getDefaultFilter(formId) {
@@ -711,6 +925,190 @@
     const username = getUsernameFromCookie();
     localStorage.removeItem(key);
     console.log(`[ScalePlus] Cleared default filter for form ${formId} and user ${username}`);
+    updateFavoritesStarIcon();
+    }
+
+    // Update favorites dropdown star icon based on default filter status
+    function updateFavoritesStarIcon() {
+        const formId = getFormIdFromUrl();
+        if (!formId) {
+            console.log(`[ScalePlus] No form ID found, skipping star icon update`);
+            return;
+        }
+
+        const hasDefaultFilter = !!getDefaultFilter(formId);
+        const isFeatureEnabled = isDefaultFilterEnabled();
+        const starIcon = document.querySelector('#InsightMenuFavoritesDropdown .fas.fa-star.starIcon');
+
+        console.log(`[ScalePlus] Updating star icon - formId: ${formId}, hasDefault: ${hasDefaultFilter}, featureEnabled: ${isFeatureEnabled}, starIcon found: ${!!starIcon}`);
+
+        if (starIcon) {
+            const shouldBeYellow = hasDefaultFilter && isFeatureEnabled;
+            const currentColor = starIcon.style.color;
+            const isCurrentlyYellow = currentColor === '#f1c40f' || currentColor === 'rgb(241, 196, 15)';
+
+            console.log(`[ScalePlus] Star icon state - shouldBeYellow: ${shouldBeYellow}, isCurrentlyYellow: ${isCurrentlyYellow}, currentColor: "${currentColor}"`);
+
+            if (shouldBeYellow && !isCurrentlyYellow) {
+                starIcon.style.color = '#f1c40f'; // Yellow when default filter exists and feature is enabled
+                console.log(`[ScalePlus] Favorites star set to yellow - default filter active for form ${formId}`);
+            } else if (!shouldBeYellow && isCurrentlyYellow) {
+                starIcon.style.color = ''; // Reset to default color
+                console.log(`[ScalePlus] Favorites star reset to default for form ${formId}`);
+            } else {
+                console.log(`[ScalePlus] Star icon already in correct state`);
+            }
+        } else {
+            console.log(`[ScalePlus] Star icon element not found`);
+        }
+    }
+
+    // Clean up old ScalePlus cache entries from previous versions
+    function cleanupOldCacheEntries() {
+        const currentSettingsKeys = Object.values(SETTINGS);
+        const knownKeys = new Set([
+            ...currentSettingsKeys,
+            // Add any other known keys that should be preserved
+            'scaleplus_env_qa_name',
+            'scaleplus_env_prod_name'
+        ]);
+
+        let cleanedCount = 0;
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.includes('scaleplus') && !knownKeys.has(key)) {
+                // Check if it's a default filter key pattern (formId + DefaultFilter + username)
+                if (!key.includes('DefaultFilter')) {
+                    localStorage.removeItem(key);
+                    cleanedCount++;
+                    console.log(`[ScalePlus] Cleaned up old cache entry: ${key}`);
+                }
+            }
+        }
+
+        if (cleanedCount > 0) {
+            console.log(`[ScalePlus] Cleaned up ${cleanedCount} old cache entries`);
+        }
+    }
+
+    // Monitor for favorite deletions and clean up related cache
+    function monitorFavoriteDeletions() {
+        // Monitor the favorites dropdown for changes
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'childList') {
+                    // Check if any favorites were removed
+                    mutation.removedNodes.forEach((node) => {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            const deletedFavorite = node.querySelector('.deletesavedsearchtext');
+                            if (deletedFavorite) {
+                                const filterName = deletedFavorite.textContent?.trim();
+                                if (filterName) {
+                                    cleanupDeletedFavoriteCache(filterName);
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        // Start observing the favorites dropdown
+        const favoritesDropdown = document.querySelector('#InsightMenuFavoritesDropdown');
+        if (favoritesDropdown) {
+            observer.observe(favoritesDropdown, {
+                childList: true,
+                subtree: true
+            });
+        }
+
+        // Monitor the confirmation dialog Yes button instead of periodic checks
+        const monitorConfirmationDialog = () => {
+            const yesButton = document.querySelector('#confirmPositive');
+            if (yesButton && !yesButton.hasAttribute('data-scaleplus-monitored')) {
+                yesButton.setAttribute('data-scaleplus-monitored', 'true');
+                yesButton.addEventListener('click', () => {
+                    // Wait a bit for the deletion to complete, then clean up orphaned cache
+                    setTimeout(() => {
+                        cleanupOrphanedDefaultFilters();
+                    }, 500);
+                });
+            }
+        };
+
+        // Monitor for the confirmation dialog appearing
+        const dialogObserver = new MutationObserver(() => {
+            monitorConfirmationDialog();
+        });
+
+        dialogObserver.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        // Initial check
+        monitorConfirmationDialog();
+    }
+
+    // Clean up cache when a favorite is deleted
+    function cleanupDeletedFavoriteCache(deletedFilterName) {
+        const username = getUsernameFromCookie();
+        let cleanedCount = 0;
+
+        // Find and remove any default filter cache entries for this favorite
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.includes('DefaultFilter') && key.includes(username)) {
+                const storedFilterName = localStorage.getItem(key);
+                if (storedFilterName === deletedFilterName) {
+                    localStorage.removeItem(key);
+                    cleanedCount++;
+                    console.log(`[ScalePlus] Cleaned up default filter cache for deleted favorite: ${deletedFilterName}`);
+                }
+            }
+        }
+
+        // Update the star icon since we may have removed a default filter
+        setTimeout(() => {
+            updateFavoritesStarIcon();
+        }, 100);
+    }
+
+    // Clean up orphaned default filters (filters that reference favorites that no longer exist)
+    function cleanupOrphanedDefaultFilters() {
+        const username = getUsernameFromCookie();
+        const currentFavorites = new Set();
+
+        // Get all current favorite names
+        const savedSearchItems = document.querySelectorAll('a[id="SearchPaneMenuFavoritesChooseSearch"] .deletesavedsearchtext');
+        savedSearchItems.forEach(item => {
+            const filterName = item.textContent?.trim();
+            if (filterName) {
+                currentFavorites.add(filterName);
+            }
+        });
+
+        let cleanedCount = 0;
+
+        // Check all default filter cache entries
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.includes('DefaultFilter') && key.includes(username)) {
+                const storedFilterName = localStorage.getItem(key);
+                if (storedFilterName && !currentFavorites.has(storedFilterName)) {
+                    localStorage.removeItem(key);
+                    cleanedCount++;
+                    console.log(`[ScalePlus] Cleaned up orphaned default filter cache: ${storedFilterName}`);
+                }
+            }
+        }
+
+        if (cleanedCount > 0) {
+            // Delay the star icon update to ensure DOM is updated
+            setTimeout(() => {
+                updateFavoritesStarIcon();
+            }, 100);
+        }
     }
 
     function fetchSavedFilter(defaultFilterName) {
@@ -738,7 +1136,7 @@
     }
 
     function addDefaultFilterIcons() {
-        const enabled = localStorage.getItem('scaleplus_default_filter') !== 'false';
+        const enabled = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
         if (!enabled) return;
 
         const formId = getFormIdFromUrl();
@@ -750,19 +1148,35 @@
             style.id = 'scaleplus-dropdown-styles';
             style.textContent = `
                 .dropdown-menu li a {
-                    min-height: 24px !important;
-                    padding: 6px 12px !important;
                     display: flex !important;
                     align-items: center !important;
                 }
                 .scaleplus-default-icon {
                     transition: color 0.2s ease;
+                    cursor: pointer;
+                    margin-right: 5px;
+                    font-size: 16px;
+                    padding: 2px;
+                    vertical-align: middle;
+                    flex-shrink: 0;
                 }
-                .scaleplus-default-icon:hover {
-                    filter: brightness(0.7) !important;
+                .scaleplus-default-icon.glyphicon-star-empty:hover {
+                    color: #f1c40f !important;
+                }
+                .scaleplus-default-icon.glyphicon-star:hover {
+                    color: #f39c12 !important;
+                }
+                .deletesavedsearchbutton {
+                    vertical-align: middle !important;
+                    cursor: pointer !important;
+                    margin: 0 0 0 0px !important;
+                    padding: 0 !important;
+                    border: none !important;
+                    background: none !important;
+                    line-height: 1 !important;
                 }
                 .deletesavedsearchbutton:hover {
-                    filter: brightness(0.7) !important;
+                    color: #e74c3c !important;
                 }
                 .deletesavedsearchtext {
                     flex: 1 !important;
@@ -792,7 +1206,7 @@
             defaultIcon.style.cssText = `
                 cursor: pointer;
                 margin-right: 8px;
-                color: ${currentDefault === filterText ? 'white' : '#ccc'};
+                color: ${currentDefault === filterText ? '#f1c40f' : '#ccc'};
                 font-size: 16px;
                 padding: 2px;
                 vertical-align: middle;
@@ -822,7 +1236,7 @@
                     // Set as default
                     setDefaultFilter(formId, filterText);
                     defaultIcon.className = 'scaleplus-default-icon navbar-right glyphicon glyphicon-star';
-                    defaultIcon.style.color = 'white';
+                    defaultIcon.style.color = '#f1c40f';
                     defaultIcon.style.verticalAlign = 'middle';
 
                     // Update other icons to be unselected
@@ -846,7 +1260,7 @@
 
                 // Add flex-shrink to delete button too
                 deleteBtn.style.flexShrink = '0';
-                deleteBtn.style.marginLeft = '5px';
+                deleteBtn.style.marginLeft = '25px';
 
                 // Remove any existing width restrictions from text span
                 const textSpan = item.querySelector('.deletesavedsearchtext');
@@ -859,11 +1273,55 @@
     }
 
     // Run initially and then periodically to catch dynamically loaded content
+    // Polling interval: 1000ms (1 second) to balance responsiveness with performance
     addDefaultFilterIcons();
-    setInterval(addDefaultFilterIcons, 1000);
+    // Remove constant polling - use event-driven approach instead
+    // setInterval(addDefaultFilterIcons, 1000);
+
+    // Add event-driven approach to handle dynamically loaded content
+    function setupDynamicContentObserver() {
+        const observer = new MutationObserver((mutations) => {
+            let shouldCheck = false;
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'childList') {
+                    // Check if any new elements were added that might need default filter icons
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            const hasSavedSearchItems = node.querySelectorAll && node.querySelectorAll('a[id="SearchPaneMenuFavoritesChooseSearch"]').length > 0;
+                            const isSavedSearchItem = node.id === 'SearchPaneMenuFavoritesChooseSearch';
+                            if (hasSavedSearchItems || isSavedSearchItem) {
+                                shouldCheck = true;
+                            }
+                        }
+                    });
+                }
+            });
+            if (shouldCheck && isDefaultFilterEnabled()) {
+                // Small delay to ensure DOM is fully updated
+                setTimeout(() => {
+                    addDefaultFilterIcons();
+                }, 100);
+            }
+        });
+
+        // Observe the entire document for changes
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
+
+    // Set up the dynamic content observer
+    setupDynamicContentObserver();
+
+    // Clean up old ScalePlus cache entries on startup
+    cleanupOldCacheEntries();
+
+    // Monitor for favorite deletions and clean up cache
+    monitorFavoriteDeletions();
 
     // Auto-apply default filter for form URLs without arguments
-    function checkAutoClickDefault() {
+    function checkAutoApplyDefault() {
         // Only for URLs like "https://scaleqa.byjasco.com/scale/insights/2723" (no ? parameters)
         if (location.pathname.includes('/insights/') && !location.search) {
             const formId = extractFormIdFromUrl(location.href);
@@ -890,22 +1348,23 @@
         return false;
     }
 
-    // Monitor for saved searches dropdown to appear for auto-click
-    let hasAutoClicked = false;
+    // Monitor for saved searches dropdown to appear for auto-apply
+    let hasAutoApplied = false;
     let hasLoggedNoDefault = false;
-    setInterval(() => {
+
+    function checkForAutoApply() {
         if (isDefaultFilterEnabled()) {
-            // Check for page load auto-click
-            if (!hasAutoClicked && document.readyState === 'complete') {
+            // Check for page load auto-apply (only once)
+            if (!hasAutoApplied && document.readyState === 'complete') {
                 const savedSearchItems = document.querySelectorAll('a[id="SearchPaneMenuFavoritesChooseSearch"]');
                 if (savedSearchItems.length > 0) {
                     const formId = extractFormIdFromUrl(location.href);
                     const defaultFilter = formId ? getDefaultFilter(formId) : null;
 
                     if (defaultFilter) {
-                        console.log('[ScalePlus] Page loaded, checking for auto-click');
-                        if (checkAutoClickDefault()) {
-                            hasAutoClicked = true;
+                        console.log('[ScalePlus] Page loaded, checking for auto-apply default filter');
+                        if (checkAutoApplyDefault()) {
+                            hasAutoApplied = true;
                         }
                     } else if (!hasLoggedNoDefault) {
                         console.log('[ScalePlus] Page loaded - no default filter set');
@@ -914,7 +1373,26 @@
                 }
             }
         }
-    }, 1000);
+    }
+
+    // Check once when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            checkForAutoApply();
+            updateFavoritesStarIcon(); // Update star icon when DOM is ready
+        });
+    } else {
+        checkForAutoApply();
+        updateFavoritesStarIcon(); // Update star icon immediately if DOM is already ready
+    }
+
+    // Check again when page is fully loaded (as backup)
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            checkForAutoApply();
+            updateFavoritesStarIcon(); // Update star icon on page load
+        }, 100);
+    });
 
     // Custom clear filters functionality
     function clearAllFilters() {
@@ -1181,28 +1659,69 @@
     }
 
     function applyAdvancedCriteria(savedFilters, formId) {
-        // Apply advanced criteria if present in saved filters
-        console.log('[ScalePlus] Applying advanced criteria for form:', formId);
+        if (!savedFilters.advSearch || !Array.isArray(savedFilters.advSearch)) {
+            console.log('[ScalePlus] No advanced search filters to apply');
+            return;
+        }
 
-        try {
-            // Check if there are advanced criteria in the saved filters
-            if (savedFilters && savedFilters.advSearch && Array.isArray(savedFilters.advSearch)) {
-                console.log('[ScalePlus] Found advanced criteria:', savedFilters.advSearch);
+        const adv = savedFilters.advSearch[0];
+        const gridId = adv.name || 'SearchPaneAdvCritAdvCritGrid'; // fallback to default grid ID
+        const records = (adv.value && adv.value.Records) ? adv.value.Records : [];
 
-                // Use Scale's internal advanced criteria API if available
-                if (_webUi &&
-                    _webUi.advancedCriteria &&
-                    typeof _webUi.advancedCriteria.applyAdvancedCriteria === 'function') {
-                    console.log('[ScalePlus] Using Scale\'s native advanced criteria function');
-                    _webUi.advancedCriteria.applyAdvancedCriteria(savedFilters.advSearch);
-                } else {
-                    console.log('[ScalePlus] Scale\'s advanced criteria API not available, skipping advanced criteria');
+        console.log(`[ScalePlus] Applying advanced criteria to grid ${gridId}:`, records);
+
+        const grid = $('#' + gridId);
+        if (grid.data('igGrid')) {
+            // Clear existing rows
+            try {
+                console.log('[ScalePlus] Clearing existing advanced criteria rows');
+                const rows = grid.igGrid('rows');
+                rows.each(function () {
+                    const rowId = $(this).attr('data-id');
+                    grid.igGridUpdating('deleteRow', rowId);
+                });
+            } catch (err) {
+                console.warn('[ScalePlus] Could not delete rows individually, trying data source reset:', err);
+                // fall back: reset the data source
+                try {
+                    grid.igGrid('option', 'dataSource', { Records: [] });
+                } catch (err2) {
+                    console.warn('[ScalePlus] Could not reset data source:', err2);
                 }
-            } else {
-                console.log('[ScalePlus] No advanced criteria found in saved filters');
             }
-        } catch (err) {
-            console.warn('[ScalePlus] Failed to apply advanced criteria:', err);
+        }
+
+        // Now insert the new records if any
+        if (records.length > 0) {
+            setTimeout(() => {
+                if (_webUi &&
+                    _webUi.insightSearchPaneActions &&
+                    typeof _webUi.insightSearchPaneActions.applyInputAdvanceFilterCriteria === 'function') {
+                    console.log('[ScalePlus] Applying advanced criteria using Scale helper:', records);
+                    _webUi.insightSearchPaneActions.applyInputAdvanceFilterCriteria(
+                        records,
+                        formId || extractFormIdFromUrl(location.href)
+                    );
+                } else {
+                    console.log('[ScalePlus] Scale helper not available, applying manually');
+                    records.forEach(rec => {
+                        grid.igGridUpdating('addRow', {
+                            ConditionIdentifier: rec.ConditionIdentifier,
+                            Condition: rec.Condition,
+                            FieldIdentifier: rec.FieldIdentifier,
+                            Field: rec.Field,
+                            OperandIdentifier: rec.OperandIdentifier,
+                            Operand: rec.Operand,
+                            ValueIdentifier: rec.ValueIdentifier,
+                            Value: rec.Value,
+                            DataType: rec.DataType,
+                            PrimaryKey: _webUi.createGuid()
+                        });
+                    });
+                }
+            }, 50);
+        } else {
+            console.log('[ScalePlus] No advanced criteria records to apply');
         }
     }
 
@@ -1267,26 +1786,14 @@
                         const defaultFilter = getDefaultFilter(formId);
                         if (defaultFilter) {
                             console.log('[ScalePlus] Applying default filter after clear:', defaultFilter);
-                            const savedSearchItems = document.querySelectorAll('a[id="SearchPaneMenuFavoritesChooseSearch"]');
-                            for (const item of savedSearchItems) {
-                                const textSpan = item.querySelector('.deletesavedsearchtext');
-                                if (textSpan && textSpan.textContent.trim() === defaultFilter) {
-                                    console.log('[ScalePlus] Clicking default filter:', defaultFilter);
-                                    item.click();
-
-                                    // Click stop button after applying filter (using same logic as Enter key)
-                                    setTimeout(() => {
-                                        const stopBtn = document.getElementById('InsightMenuActionStopSearch');
-                                        if (isVisible(stopBtn)) {
-                                            console.log('[ScalePlus] Clicking stop button after applying default');
-                                            stopBtn.click();
-                                        } else {
-                                            console.log('[ScalePlus] Stop button not visible after applying default');
-                                        }
-                                    }, 500);
-                                    break;
-                                }
-                            }
+                            fetchSavedFilter(defaultFilter)
+                                .then(savedFilters => {
+                                    console.log(`[ScalePlus] Applying default filter: ${defaultFilter} after clear`);
+                                    applySavedFilters(savedFilters);
+                                })
+                                .catch(err => {
+                                    console.warn('[ScalePlus] Failed to fetch or apply saved filter after clear:', err);
+                                });
                         }
                     }
                 }, 10); // Wait 10ms for clear to complete
@@ -1294,11 +1801,213 @@
         }
     }
 
-    // Monitor for clear filters button
-    setInterval(() => {
+    // Monitor for clear filters button - use event-driven approach instead of polling
+    // setInterval(() => {
+    //     if (isDefaultFilterEnabled()) {
+    //         enhanceClearFiltersButton();
+    //     }
+    // }, 500);
+
+    // Add event-driven approach for clear filters button
+    function setupClearFiltersObserver() {
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'childList') {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            const clearBtn = node.id === 'InsightMenuActionClearFilters' ? node :
+                                           node.querySelector && node.querySelector('#InsightMenuActionClearFilters');
+                            if (clearBtn && isDefaultFilterEnabled()) {
+                                setTimeout(() => {
+                                    enhanceClearFiltersButton();
+                                }, 100);
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        // Initial check
         if (isDefaultFilterEnabled()) {
             enhanceClearFiltersButton();
         }
-    }, 500);
+    }
+
+    // Set up the clear filters observer
+    setupClearFiltersObserver();
+
+    // Advanced Criteria Counter
+    function updateAdvancedCriteriaCount() {
+        // Check if advanced criteria indicator is enabled
+        const isEnabled = localStorage.getItem(SETTINGS.ADV_CRITERIA_ENHANCEMENT) !== 'false';
+        if (!isEnabled) return;
+
+        // Find the advanced criteria accordion header
+        const headers = document.querySelectorAll('h3.ui-accordion-header');
+        let advancedHeader = null;
+
+        headers.forEach(header => {
+            const link = header.querySelector('a[data-resourcekey="ADVANCEDCRITERIA"]');
+            if (link) {
+                advancedHeader = header;
+            }
+        });
+
+        if (!advancedHeader) return;
+
+        // Get the current count of advanced criteria rows
+        const grid = $('#SearchPaneAdvCritAdvCritGrid');
+        let count = 0;
+
+        if (grid.length && grid.data('igGrid')) {
+            try {
+                const dataSource = grid.igGrid('option', 'dataSource');
+                if (dataSource && dataSource.Records) {
+                    count = dataSource.Records.length;
+                } else {
+                    // Fallback: count visible rows
+                    count = grid.find('tbody tr').length;
+                }
+            } catch (err) {
+                console.warn('[ScalePlus] Could not get advanced criteria count from grid:', err);
+                // Fallback: count visible rows
+                count = grid.find('tbody tr').length;
+            }
+        }
+
+        // Update the header text
+        const link = advancedHeader.querySelector('a[data-resourcekey="ADVANCEDCRITERIA"]');
+        if (link) {
+            const baseText = link.getAttribute('data-resourcevalue') || 'Advanced criteria';
+            link.textContent = count > 0 ? `${baseText} (${count})` : baseText;
+        }
+    }
+
+    function setupAdvancedCriteriaObserver() {
+        // Check if advanced criteria indicator is enabled
+        const isEnabled = localStorage.getItem(SETTINGS.ADV_CRITERIA_ENHANCEMENT) !== 'false';
+        if (!isEnabled) return;
+
+        const grid = document.getElementById('SearchPaneAdvCritAdvCritGrid');
+        if (!grid) return;
+
+        // Flag to prevent duplicate logging
+        let gridColumnsModified = false;
+
+        // Function to modify grid columns to show condition
+        function modifyGridColumns() {
+            const $grid = $('#SearchPaneAdvCritAdvCritGrid');
+            if ($grid.length && $grid.data('igGrid')) {
+                try {
+                    // Check if advanced criteria enhancement is enabled
+                    const isEnabled = localStorage.getItem(SETTINGS.ADV_CRITERIA_ENHANCEMENT) !== 'false';
+
+                    // Get current columns
+                    const columns = $grid.igGrid('option', 'columns');
+
+                    // Find and modify the Condition column
+                    const conditionColumn = columns.find(col => col.key === 'Condition');
+                    if (conditionColumn) {
+                        conditionColumn.hidden = !isEnabled; // Show only if enabled
+                        conditionColumn.headerText = 'Condition';
+                        conditionColumn.width = '14%';
+
+                        // Add formatter to show just AND/OR instead of longer text
+                        conditionColumn.formatter = function (val) {
+                            if (val && typeof val === 'string') {
+                                // Extract just AND or OR from the value
+                                const upperVal = val.toUpperCase();
+                                if (upperVal.includes('AND')) return 'AND';
+                                if (upperVal.includes('OR')) return 'OR';
+                                return val; // fallback to original value
+                            }
+                            return val || '';
+                        };
+
+                        // Adjust other column widths based on condition column visibility
+                        const fieldColumn = columns.find(col => col.key === 'Field');
+                        const operandColumn = columns.find(col => col.key === 'Operand');
+                        const valueColumn = columns.find(col => col.key === 'Value');
+
+                        if (isEnabled) {
+                            // Condition column is visible - adjust widths
+                            if (fieldColumn) fieldColumn.width = '30%';
+                            if (operandColumn) operandColumn.width = '15%';
+                            if (valueColumn) valueColumn.width = '30%';
+                        } else {
+                            // Condition column is hidden - use original widths
+                            if (fieldColumn) fieldColumn.width = '40%';
+                            if (operandColumn) operandColumn.width = '20%';
+                            if (valueColumn) valueColumn.width = '40%';
+                        }
+
+                        // Update the grid with modified columns
+                        $grid.igGrid('option', 'columns', columns);
+                        $grid.igGrid('dataBind');
+
+                        // Only log once per session to avoid duplicates
+                        if (!gridColumnsModified) {
+                            console.log('[ScalePlus] Modified advanced criteria grid to show condition column with AND/OR only');
+                            gridColumnsModified = true;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('[ScalePlus] Could not modify grid columns:', err);
+                }
+            }
+        }
+
+        // Initial update
+        updateAdvancedCriteriaCount();
+
+        // Try to modify columns immediately and after delays to ensure grid is ready
+        modifyGridColumns();
+        setTimeout(modifyGridColumns, 1000); // Wait 1s for grid initialization
+        setTimeout(modifyGridColumns, 3000); // Wait 3s for any dynamic loading
+
+        // Set up MutationObserver to watch for changes to the grid
+        const observer = new MutationObserver((mutations) => {
+            let shouldUpdate = false;
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'childList' && mutation.target.tagName === 'TBODY') {
+                    shouldUpdate = true;
+                }
+            });
+            if (shouldUpdate) {
+                updateAdvancedCriteriaCount();
+            }
+        });
+
+        // Observe changes to the tbody (where rows are added/removed)
+        const tbody = grid.querySelector('tbody');
+        if (tbody) {
+            observer.observe(tbody, {
+                childList: true,
+                subtree: true
+            });
+        }
+
+        // Also observe the entire grid for other changes
+        observer.observe(grid, {
+            childList: true,
+            subtree: true,
+            attributes: true
+        });
+
+        console.log('[ScalePlus] Advanced criteria counter observer set up');
+    }
+
+    // Set up the observer when the page loads
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupAdvancedCriteriaObserver);
+    } else {
+        setupAdvancedCriteriaObserver();
+    }
 
 })();
