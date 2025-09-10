@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      2.6
+// @version      2.7
 // @description  Custom enhancements for Scale application with toggleable features
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
@@ -43,6 +43,513 @@
 
     // Helper: normalize spaces (convert &nbsp; → space, collapse whitespace)
     const normalizeSpaces = (text) => text.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
+
+    // Function to extract current filter criteria from the page
+    function extractCurrentFilterCriteria() {
+        const criteria = [];
+
+        // Try to get values from regular input fields
+        try {
+            const inputs = document.querySelectorAll('input[id*="Criteria"], input[name*="Criteria"], input[id*="Date"], input[name*="Date"]');
+            inputs.forEach(input => {
+                if (input.value && input.value.trim()) {
+                    criteria.push({
+                        name: input.id || input.name,
+                        value: input.value.trim()
+                    });
+                    console.log(`[ScalePlus] Added input criteria: ${input.id || input.name} = ${input.value.trim()}`);
+                }
+            });
+        } catch (e) {
+            console.warn('[ScalePlus] Could not extract input values:', e);
+        }
+
+        // Try to get values from igTextEditor widgets
+        try {
+            const textEditors = $('[data-controltype="igTextEditor"]');
+            console.log('[ScalePlus] Found', textEditors.length, 'igTextEditor widgets');
+            textEditors.each(function() {
+                const editor = $(this);
+                const id = editor.attr('id');
+                if (id && (id.includes('Date') || id.includes('Criteria'))) {
+                    const value = editor.igTextEditor('value');
+                    if (value) {
+                        criteria.push({
+                            name: id,
+                            value: value
+                        });
+                        console.log(`[ScalePlus] Added IG text criteria: ${id} = ${value}`);
+                    }
+                }
+            });
+        } catch (e) {
+            console.warn('[ScalePlus] Could not extract igTextEditor values:', e);
+        }
+
+        // Try to get values from igDatePicker widgets
+        try {
+            const datePickers = $('[data-controltype="igDatePicker"]');
+            console.log('[ScalePlus] Found', datePickers.length, 'igDatePicker widgets');
+            datePickers.each(function() {
+                const picker = $(this);
+                const id = picker.attr('id');
+                if (id && (id.includes('Date') || id.includes('Criteria'))) {
+                    const value = picker.igDatePicker('value');
+                    if (value) {
+                        criteria.push({
+                            name: id,
+                            value: value.toISOString()
+                        });
+                        console.log(`[ScalePlus] Added IG date criteria: ${id} = ${value.toISOString()}`);
+                    }
+                }
+            });
+        } catch (e) {
+            console.warn('[ScalePlus] Could not extract igDatePicker values:', e);
+        }
+
+        console.log('[ScalePlus] Total extracted criteria:', criteria.length, criteria);
+        return criteria;
+    }
+
+    // Function to check if criteria contain date fields
+    function checkForDateCriteria(filterData) {
+        if (!filterData || !filterData.inSearch) return false;
+
+        const datePatterns = [
+            /date/i,
+            /time/i,
+            /created/i,
+            /modified/i,
+            /updated/i,
+            /start/i,
+            /end/i,
+            /from/i,
+            /to/i,
+            /begin/i,
+            /finish/i
+        ];
+
+        for (const criterion of filterData.inSearch) {
+            const fieldName = criterion.name || '';
+            const fieldValue = criterion.value || '';
+
+            // Check if field name matches date patterns
+            const nameMatches = datePatterns.some(pattern => pattern.test(fieldName));
+
+            // Check if value looks like a date
+            const valueLooksLikeDate = /^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}/.test(fieldValue) ||
+                                      /^\d{4}-\d{2}-\d{2}/.test(fieldValue) ||
+                                      /today|yesterday|tomorrow/i.test(fieldValue);
+
+            if (nameMatches || valueLooksLikeDate) {
+                console.log(`[ScalePlus] Date criteria detected: ${fieldName} = ${fieldValue}`);
+                return true;
+            }
+        }
+
+        console.log('[ScalePlus] No date criteria found');
+        return false;
+    }
+
+    // Common function to handle save dialog submission (used by both button clicks and Enter key)
+    function handleSaveDialogSubmission(saveBtn, originalHandler, e) {
+        // Check if this is a re-triggered save (avoid infinite loops)
+        if (saveBtn.hasAttribute('data-scaleplus-retrigger')) {
+            console.log('[ScalePlus] Re-triggered save detected, proceeding normally');
+            return true; // Allow the save to proceed
+        }
+
+        // Extract information immediately
+        const filterNameInput = document.querySelector('#SaveSearchNameEditor');
+        console.log('[ScalePlus] Filter name input found:', !!filterNameInput);
+        const filterName = filterNameInput ? filterNameInput.value?.trim() : null;
+        console.log('[ScalePlus] Filter name extracted:', filterName);
+
+        if (filterName) {
+            const formId = getFormIdFromUrl();
+            console.log('[ScalePlus] Form ID:', formId);
+            const currentFilters = extractCurrentFilterCriteria();
+            const hasDateCriteria = checkForDateCriteria({ inSearch: currentFilters });
+
+            if (hasDateCriteria && formId) {
+                // Check if favorites enhancement is enabled
+                const isFavoritesEnabled = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+
+                if (isFavoritesEnabled) {
+                    console.log(`[ScalePlus] Save dialog submission: Filter "${filterName}" contains date criteria`);
+
+                    // Prevent original save
+                    if (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+
+                    // Show our modal
+                    showDateModeModal(formId, filterName, { inSearch: currentFilters }, () => {
+                        // After modal closes, trigger original save
+                        setTimeout(() => {
+                            console.log('[ScalePlus] Re-triggering original save after modal');
+                            // Mark as re-triggered so we don't intercept it again
+                            saveBtn.setAttribute('data-scaleplus-retrigger', 'true');
+                            console.log('[ScalePlus] Set data-scaleplus-retrigger attribute for re-triggering');
+                            // Remove our interception marker temporarily
+                            saveBtn.removeAttribute('data-scaleplus-enhanced');
+
+                            try {
+                                // Simple approach: Just click the same save button with re-trigger flag
+                                console.log('[ScalePlus] Re-triggering by clicking the same save button');
+
+                                // Click the same button that was originally intercepted
+                                saveBtn.click();
+                            } catch (error) {
+                                console.error('[ScalePlus] Error during re-trigger:', error);
+                            } finally {
+                                // Clean up the re-trigger marker
+                                setTimeout(() => {
+                                    saveBtn.removeAttribute('data-scaleplus-retrigger');
+                                }, 1000);
+                            }
+                        }, 100);
+                    });
+
+                    return false;
+                } else {
+                    console.log(`[ScalePlus] Favorites enhancement disabled, proceeding with normal save`);
+                }
+            }
+        }
+
+        // No date criteria or couldn't extract info, proceed normally
+        console.log('[ScalePlus] Save dialog submission: Proceeding with normal save');
+        return true;
+    }
+
+    // Alternative approach: Watch for save dialog creation and hook into the save process
+    function setupSaveDialogObserver() {
+        // Check if favorites enhancement is enabled
+        const isFavoritesEnabled = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+        if (!isFavoritesEnabled) {
+            console.log('[ScalePlus] Favorites enhancement disabled, skipping save dialog observer setup');
+            return; // Favorites enhancement disabled, don't set up observer
+        }
+
+        console.log('[ScalePlus] Setting up save dialog observer');
+
+        // Function to enhance a save dialog with our functionality
+        const enhanceSaveDialog = (saveDialog) => {
+            console.log('[ScalePlus] Enhancing save dialog');
+
+            // Look for the save button in the dialog using multiple methods
+            let saveBtn = null;
+
+            // Try standard CSS selectors first
+            saveBtn = saveBtn || saveDialog.querySelector('button[type="submit"]');
+            saveBtn = saveBtn || saveDialog.querySelector('.ui-button');
+            saveBtn = saveBtn || saveDialog.querySelector('button[class*="save"]');
+
+            // If still not found, look for any button containing "Save" text
+            if (!saveBtn) {
+                const buttons = saveDialog.querySelectorAll('button');
+                for (const button of buttons) {
+                    if (button.textContent && button.textContent.toLowerCase().includes('save')) {
+                        saveBtn = button;
+                        break;
+                    }
+                }
+            }
+
+            if (saveBtn && !saveBtn.hasAttribute('data-scaleplus-enhanced')) {
+                console.log('[ScalePlus] Save button found in dialog');
+
+                // Mark as enhanced to avoid duplicate enhancement
+                saveBtn.setAttribute('data-scaleplus-enhanced', 'true');
+
+                // Store original handler
+                const originalHandler = saveBtn.onclick || null;
+
+                // Remove any existing onclick handler to prevent conflicts
+                saveBtn.onclick = null;
+
+                // Add our click handler with capture phase to intercept before other listeners
+                const clickHandler = function(e) {
+                    console.log('[ScalePlus] Save button clicked in dialog (captured)');
+
+                    // Check if this is a re-triggered save (avoid infinite loops)
+                    if (saveBtn.hasAttribute('data-scaleplus-retrigger')) {
+                        console.log('[ScalePlus] Re-triggered save detected, allowing original save logic to run');
+                        // Don't prevent default or stop propagation - let the original save happen
+                        return; // Exit immediately, don't process further
+                    }
+
+                    // Ensure the input field value is committed before processing
+                    const filterNameInput = document.querySelector('#SaveSearchNameEditor');
+                    if (filterNameInput) {
+                        // For save button, ensure the typed value is captured
+                        let currentValue = filterNameInput.value?.trim();
+                        console.log('[ScalePlus] Current input value before commit (save button):', currentValue);
+
+                        // If value is empty, try to force commit by focusing/blurring
+                        if (!currentValue) {
+                            // Temporarily focus and blur to ensure value is committed
+                            const activeElement = document.activeElement;
+                            filterNameInput.focus();
+                            filterNameInput.blur();
+                            // Restore focus to original element
+                            if (activeElement && activeElement !== filterNameInput) {
+                                activeElement.focus();
+                            }
+                            currentValue = filterNameInput.value?.trim();
+                            console.log('[ScalePlus] Input value after focus/blur commit (save button):', currentValue);
+                        }
+
+                        console.log('[ScalePlus] Final input value for save button processing:', currentValue);
+                    }
+
+                    // Small delay to allow input field to update
+                    setTimeout(() => {
+                        // Double-check re-trigger flag in case it was set during the delay
+                        if (saveBtn.hasAttribute('data-scaleplus-retrigger')) {
+                            console.log('[ScalePlus] Re-trigger flag detected in timeout, skipping processing');
+                            return;
+                        }
+
+                        // Handle the save submission
+                        const shouldProceed = handleSaveDialogSubmission(saveBtn, originalHandler, e);
+
+                        // If handleSaveDialogSubmission returns true, it means no date modal was shown
+                        // and we should proceed with the normal save
+                        if (shouldProceed) {
+                            console.log('[ScalePlus] Save button: Proceeding with normal save');
+                            try {
+                                if (originalHandler) {
+                                    console.log('[ScalePlus] Save button: Using original handler');
+                                    originalHandler.call(saveBtn, e);
+                                } else {
+                                    console.log('[ScalePlus] Save button: Using button click fallback');
+                                    // For button clicks, we need to temporarily remove our override
+                                    // to allow the original click to work
+                                    e.stopImmediatePropagation();
+                                    saveBtn.click();
+                                }
+                            } catch (error) {
+                                console.error('[ScalePlus] Save button: Error during save:', error);
+                            }
+                        } else {
+                            // Prevent the event from bubbling to other listeners
+                            e.stopImmediatePropagation();
+                        }
+                    }, 10); // Small delay to allow input field to update
+
+                    return false;
+                };
+
+                // Store reference to the handler for potential removal
+                saveBtn._scaleplusClickHandler = clickHandler;
+                saveBtn.addEventListener('click', clickHandler, true); // Use capture phase
+
+                // Add Enter key handling to the dialog
+                const dialogContent = saveDialog.querySelector('.ui-dialog-content, .ui-widget-content') || saveDialog;
+                if (dialogContent && !dialogContent.hasAttribute('data-scaleplus-enter-enhanced')) {
+                    dialogContent.setAttribute('data-scaleplus-enter-enhanced', 'true');
+
+                    // Add keydown listener with capture phase for better reliability
+                    dialogContent.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' && !e.repeat) {
+                            console.log('[ScalePlus] Enter key pressed in save dialog');
+
+                            // Check if this is a re-triggered save (avoid infinite loops)
+                            if (saveBtn.hasAttribute('data-scaleplus-retrigger')) {
+                                console.log('[ScalePlus] Re-triggered save detected in Enter handler, allowing original save logic to run');
+                                // Don't prevent default or stop propagation - let the original save happen
+                                return;
+                            }
+
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            // Ensure the input field value is committed before processing
+                            const filterNameInput = document.querySelector('#SaveSearchNameEditor');
+                            if (filterNameInput) {
+                                // For Enter key, we need to ensure the typed value is captured
+                                // First try to get the current value directly
+                                let currentValue = filterNameInput.value?.trim();
+                                console.log('[ScalePlus] Current input value before commit:', currentValue);
+
+                                // If value is empty but user might have typed, force commit by focusing/blurring
+                                if (!currentValue) {
+                                    // Temporarily focus and blur to ensure value is committed
+                                    const activeElement = document.activeElement;
+                                    filterNameInput.focus();
+                                    filterNameInput.blur();
+                                    // Restore focus to original element
+                                    if (activeElement && activeElement !== filterNameInput) {
+                                        activeElement.focus();
+                                    }
+                                    currentValue = filterNameInput.value?.trim();
+                                    console.log('[ScalePlus] Input value after focus/blur commit:', currentValue);
+                                }
+
+                                console.log('[ScalePlus] Final input value for Enter key processing:', currentValue);
+                            }
+
+                            // Small delay to allow input field to update
+                            setTimeout(() => {
+                                // Double-check re-trigger flag in case it was set during the delay
+                                if (saveBtn.hasAttribute('data-scaleplus-retrigger')) {
+                                    console.log('[ScalePlus] Re-trigger flag detected in Enter timeout, skipping processing');
+                                    return;
+                                }
+
+                                // Handle the save submission
+                                const shouldProceed = handleSaveDialogSubmission(saveBtn, originalHandler, e);
+
+                                // If handleSaveDialogSubmission returns true, it means no date modal was shown
+                                // and we should proceed with the normal save
+                                if (shouldProceed) {
+                                    console.log('[ScalePlus] Enter key: Proceeding with normal save');
+                                    try {
+                                        if (originalHandler) {
+                                            console.log('[ScalePlus] Enter key: Using original handler');
+                                            originalHandler.call(saveBtn, e);
+                                        } else {
+                                            console.log('[ScalePlus] Enter key: Using button click');
+                                            saveBtn.click();
+                                        }
+                                    } catch (error) {
+                                        console.error('[ScalePlus] Enter key: Error during save:', error);
+                                    }
+                                } else {
+                                    // Prevent the event from bubbling to other listeners
+                                    e.stopImmediatePropagation();
+                                }
+                            }, 10); // Small delay to allow input field to update
+
+                            return false;
+                        }
+                    }, true); // Use capture phase
+
+                    // Also add to the dialog itself as backup
+                    saveDialog.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' && !e.repeat) {
+                            console.log('[ScalePlus] Enter key pressed in save dialog (backup handler)');
+
+                            // Check if this is a re-triggered save (avoid infinite loops)
+                            if (saveBtn.hasAttribute('data-scaleplus-retrigger')) {
+                                console.log('[ScalePlus] Re-triggered save detected in Enter backup handler, allowing original save logic to run');
+                                // Don't prevent default or stop propagation - let the original save happen
+                                return;
+                            }
+
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            // Ensure the input field value is committed before processing
+                            const filterNameInput = document.querySelector('#SaveSearchNameEditor');
+                            if (filterNameInput) {
+                                // For Enter key, we need to ensure the typed value is captured
+                                // First try to get the current value directly
+                                let currentValue = filterNameInput.value?.trim();
+                                console.log('[ScalePlus] Current input value before commit (backup):', currentValue);
+
+                                // If value is empty but user might have typed, force commit by focusing/blurring
+                                if (!currentValue) {
+                                    // Temporarily focus and blur to ensure value is committed
+                                    const activeElement = document.activeElement;
+                                    filterNameInput.focus();
+                                    filterNameInput.blur();
+                                    // Restore focus to original element
+                                    if (activeElement && activeElement !== filterNameInput) {
+                                        activeElement.focus();
+                                    }
+                                    currentValue = filterNameInput.value?.trim();
+                                    console.log('[ScalePlus] Input value after focus/blur commit (backup):', currentValue);
+                                }
+
+                                console.log('[ScalePlus] Final input value for Enter key processing (backup):', currentValue);
+                            }
+
+                            // Small delay to allow input field to update
+                            setTimeout(() => {
+                                // Double-check re-trigger flag in case it was set during the delay
+                                if (saveBtn.hasAttribute('data-scaleplus-retrigger')) {
+                                    console.log('[ScalePlus] Re-trigger flag detected in backup Enter timeout, skipping processing');
+                                    return;
+                                }
+
+                                // Handle the save submission
+                                const shouldProceed = handleSaveDialogSubmission(saveBtn, originalHandler, e);
+
+                                // If handleSaveDialogSubmission returns true, it means no date modal was shown
+                                // and we should proceed with the normal save
+                                if (shouldProceed) {
+                                    console.log('[ScalePlus] Enter key backup: Proceeding with normal save');
+                                    try {
+                                        if (originalHandler) {
+                                            console.log('[ScalePlus] Enter key backup: Using original handler');
+                                            originalHandler.call(saveBtn, e);
+                                        } else {
+                                            console.log('[ScalePlus] Enter key backup: Using button click');
+                                            saveBtn.click();
+                                        }
+                                    } catch (error) {
+                                        console.error('[ScalePlus] Enter key backup: Error during save:', error);
+                                    }
+                                } else {
+                                    // Prevent the event from bubbling to other listeners
+                                    e.stopImmediatePropagation();
+                                }
+                            }, 10); // Small delay to allow input field to update
+
+                            return false;
+                        }
+                    }, true);
+                }
+            } else if (!saveBtn) {
+                console.log('[ScalePlus] No save button found in dialog');
+            }
+        };
+
+        // Check for existing save dialogs first
+        const existingDialogs = document.querySelectorAll('.ui-dialog, [role="dialog"]');
+        existingDialogs.forEach(dialog => {
+            if (dialog.textContent?.includes('Save')) {
+                console.log('[ScalePlus] Found existing save dialog');
+                enhanceSaveDialog(dialog);
+            }
+        });
+
+        // Set up observer for new dialogs
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'childList') {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            // Check the node itself
+                            if ((node.classList?.contains('ui-dialog') || node.getAttribute('role') === 'dialog') &&
+                                node.textContent?.includes('Save')) {
+                                enhanceSaveDialog(node);
+                            }
+
+                            // Check for dialogs within the added node
+                            const saveDialog = node.querySelector ? node.querySelector('.ui-dialog, [role="dialog"]') : null;
+                            if (saveDialog && saveDialog.textContent?.includes('Save')) {
+                                enhanceSaveDialog(saveDialog);
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        // Start observing
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        console.log('[ScalePlus] Save dialog observer active');
+    }
 
     // On page load, click the search button if not already active
     function clickSearchButtonIfNeeded() {
@@ -800,6 +1307,376 @@
         });
     }
 
+    // Intercept Save Search button to handle date criteria
+    function setupSaveButtonInterception() {
+        // Check if favorites enhancement is enabled
+        const isFavoritesEnabled = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+        if (!isFavoritesEnabled) {
+            console.log('[ScalePlus] Favorites enhancement disabled, skipping save button interception setup');
+            return; // Favorites enhancement disabled, don't set up interception
+        }
+
+        console.log('[ScalePlus] Setting up save button interception');
+
+        // Use event delegation to catch dynamically created save buttons
+        document.addEventListener('click', function(e) {
+            const saveBtn = e.target.closest('#SaveSearchSaveButton');
+            if (saveBtn) {
+                console.log('[ScalePlus] Save button clicked, intercepted:', saveBtn);
+
+                // Check if this is a re-triggered save after modal interaction
+                if (saveBtn.hasAttribute('data-scaleplus-retrigger')) {
+                    console.log('[ScalePlus] This is a re-triggered save after modal, allowing it to proceed normally');
+                    // Don't remove the attribute here - let the specific handlers handle it
+                    return; // Don't intercept re-triggered saves
+                }
+
+                // Check if we're already processing this click to prevent double handling
+                if (saveBtn.hasAttribute('data-scaleplus-processing')) {
+                    return; // Already processing this click
+                }
+
+                // Mark as currently being processed to prevent double handling
+                saveBtn.setAttribute('data-scaleplus-processing', 'true');
+                console.log('[ScalePlus] Processing save button interception');
+
+                    // Extract filter name and criteria IMMEDIATELY before anything else happens
+                    const filterNameInput = document.querySelector('#SaveSearchNameEditor');
+                    console.log('[ScalePlus] Filter name input found:', !!filterNameInput);
+
+                    if (!filterNameInput) {
+                        console.warn('[ScalePlus] Could not find filter name input (#SaveSearchNameEditor)');
+                        // Try alternative selectors
+                        const altInputs = document.querySelectorAll('input[id*="SaveSearch"], input[name*="SaveSearch"]');
+                        console.log('[ScalePlus] Alternative inputs found:', altInputs.length);
+
+                        // Remove processing flag and re-trigger the original save
+                        saveBtn.removeAttribute('data-scaleplus-processing');
+                        return;
+                    }
+
+                    const filterName = filterNameInput.value?.trim();
+                    console.log('[ScalePlus] Filter name extracted:', filterName);
+
+                    if (!filterName) {
+                        console.warn('[ScalePlus] Filter name is empty');
+                        // Remove processing flag and re-trigger the original save
+                        saveBtn.removeAttribute('data-scaleplus-processing');
+                        return;
+                    }
+
+                    const formId = getFormIdFromUrl();
+                    console.log('[ScalePlus] Form ID:', formId);
+
+                    if (!formId) {
+                        console.warn('[ScalePlus] Could not determine form ID');
+                        // Remove processing flag and re-trigger the original save
+                        saveBtn.removeAttribute('data-scaleplus-processing');
+                        return;
+                    }
+
+                    // Extract current filter criteria immediately
+                    const currentFilters = extractCurrentFilterCriteria();
+                    const hasDateCriteria = checkForDateCriteria({ inSearch: currentFilters });
+
+                    console.log('[ScalePlus] Date criteria detected:', hasDateCriteria);
+
+                    if (hasDateCriteria) {
+                        // Check if favorites enhancement is enabled
+                        const isFavoritesEnabled = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+
+                        if (isFavoritesEnabled) {
+                            console.log(`[ScalePlus] Filter "${filterName}" contains date criteria, showing date mode modal`);
+
+                            // Prevent the original save from happening
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            // Show the date mode modal
+                            showDateModeModal(formId, filterName, { inSearch: currentFilters }, () => {
+                                // After modal is closed, trigger the original save
+                                setTimeout(() => {
+                                    console.log('[ScalePlus] Re-triggering original save after modal');
+                                    // Mark as re-triggered so we don't intercept it again
+                                    saveBtn.setAttribute('data-scaleplus-retrigger', 'true');
+                                    // Remove our processing marker
+                                    saveBtn.removeAttribute('data-scaleplus-processing');
+                                    saveBtn.click();
+                                    // Clean up the re-trigger marker
+                                    setTimeout(() => {
+                                        saveBtn.removeAttribute('data-scaleplus-retrigger');
+                                    }, 1000);
+                                }, 100);
+                            });
+                        } else {
+                            console.log(`[ScalePlus] Favorites enhancement disabled, proceeding with normal save`);
+                            // No date criteria or favorites disabled, remove our processing marker and let the original save proceed
+                            saveBtn.removeAttribute('data-scaleplus-processing');
+                            // Don't prevent default - let the original save happen
+                        }
+                    } else {
+                        console.log(`[ScalePlus] Filter "${filterName}" has no date criteria, proceeding with normal save`);
+                        // No date criteria, remove our processing marker and let the original save proceed
+                        saveBtn.removeAttribute('data-scaleplus-processing');
+                        // Don't prevent default - let the original save happen
+                    }
+            }
+        }, true); // Use capture phase to intercept before other handlers
+    }
+
+    // Extract current filter criteria from the search form
+    function extractCurrentFilterCriteria() {
+        console.log('[ScalePlus] Extracting current filter criteria');
+        const criteria = [];
+
+        // Get all input fields that might contain filter values
+        const inputs = document.querySelectorAll('#SearchPane input[type="text"], #SearchPane input[type="hidden"], #SearchPane select, #SearchPane textarea');
+        console.log('[ScalePlus] Found', inputs.length, 'input elements in SearchPane');
+
+        inputs.forEach(input => {
+            const name = input.name || input.id;
+            let value = input.value;
+
+            // Skip empty values and certain system fields
+            if (!name || !value || value.trim() === '' ||
+                name.includes('Editor') ||
+                name.includes('Button') ||
+                name.includes('clear')) {
+                return;
+            }
+
+            // Handle different input types
+            if (input.type === 'checkbox') {
+                value = input.checked ? 'true' : 'false';
+            }
+
+            // Only include fields that look like actual filter criteria
+            if (name.includes('Criteria') || name.includes('Search') || name.includes('Filter')) {
+                criteria.push({
+                    name: name,
+                    value: value
+                });
+                console.log(`[ScalePlus] Added criteria: ${name} = ${value}`);
+            }
+        });
+
+        // Also try to get values from igTextEditor widgets
+        try {
+            const igEditors = $('[data-controltype="igTextEditor"]');
+            console.log('[ScalePlus] Found', igEditors.length, 'igTextEditor widgets');
+            igEditors.each(function() {
+                const editor = $(this);
+                const id = editor.attr('id');
+                if (id && (id.includes('Criteria') || id.includes('Search'))) {
+                    const value = editor.igTextEditor('value');
+                    if (value) {
+                        criteria.push({
+                            name: id,
+                            value: value
+                        });
+                        console.log(`[ScalePlus] Added IG text criteria: ${id} = ${value}`);
+                    }
+                }
+            });
+        } catch (e) {
+            console.warn('[ScalePlus] Could not extract igTextEditor values:', e);
+        }
+
+        // Try to get values from igDatePicker widgets
+        try {
+            const datePickers = $('[data-controltype="igDatePicker"]');
+            console.log('[ScalePlus] Found', datePickers.length, 'igDatePicker widgets');
+            datePickers.each(function() {
+                const picker = $(this);
+                const id = picker.attr('id');
+                if (id && (id.includes('Date') || id.includes('Criteria'))) {
+                    const value = picker.igDatePicker('value');
+                    if (value) {
+                        criteria.push({
+                            name: id,
+                            value: value.toISOString()
+                        });
+                        console.log(`[ScalePlus] Added IG date criteria: ${id} = ${value.toISOString()}`);
+                    }
+                }
+            });
+        } catch (e) {
+            console.warn('[ScalePlus] Could not extract igDatePicker values:', e);
+        }
+
+        console.log('[ScalePlus] Total extracted criteria:', criteria.length, criteria);
+        return criteria;
+    }
+
+    // Set up the save button interception if favorites enhancement is enabled
+    const isFavoritesEnabled1 = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+    if (isFavoritesEnabled1) {
+        setupSaveButtonInterception();
+    } else {
+        console.log('[ScalePlus] Favorites enhancement disabled, skipping save button interception setup');
+    }
+
+    // Set up the save dialog observer immediately when script loads if favorites enhancement is enabled
+    if (isFavoritesEnabled1) {
+        setupSaveDialogObserver();
+    } else {
+        console.log('[ScalePlus] Favorites enhancement disabled, skipping save dialog observer setup');
+    }
+    function setupScaleSaveHook() {
+        // Check if favorites enhancement is enabled
+        const isFavoritesEnabled = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+        if (!isFavoritesEnabled) {
+            console.log('[ScalePlus] Favorites enhancement disabled, skipping Scale save hook setup');
+            return; // Favorites enhancement disabled, don't set up hooks
+        }
+
+        // Common Scale function names that might handle saving
+        const possibleSaveFunctions = [
+            '_webUi.insightSearchPaneActions.saveSearch',
+            '_webUi.insightSearchPaneActions.SaveSearch',
+            'window.saveSearch',
+            'window.SaveSearch'
+        ];
+
+        // Override these functions if they exist
+        possibleSaveFunctions.forEach(funcPath => {
+            try {
+                const funcParts = funcPath.split('.');
+                let obj = window;
+                for (let i = 0; i < funcParts.length - 1; i++) {
+                    obj = obj[funcParts[i]];
+                    if (!obj) break;
+                }
+
+                if (obj) {
+                    const funcName = funcParts[funcParts.length - 1];
+                    const originalFunc = obj[funcName];
+
+                    if (originalFunc && typeof originalFunc === 'function') {
+                        console.log(`[ScalePlus] Hooking into Scale save function: ${funcPath}`);
+
+                        obj[funcName] = function(...args) {
+                            // Extract filter information before calling original function
+                            const filterNameInput = document.querySelector('#SaveSearchNameEditor');
+                            const filterName = filterNameInput ? filterNameInput.value?.trim() : null;
+
+                            if (filterName) {
+                                const formId = getFormIdFromUrl();
+                                const currentFilters = extractCurrentFilterCriteria();
+                                const hasDateCriteria = checkForDateCriteria({ inSearch: currentFilters });
+
+                                if (hasDateCriteria && formId) {
+                                    // Check if favorites enhancement is enabled
+                                    const isFavoritesEnabled = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+
+                                    if (isFavoritesEnabled) {
+                                        console.log(`[ScalePlus] Scale hook: Filter "${filterName}" contains date criteria`);
+
+                                        // Show modal and delay the save
+                                        showDateModeModal(formId, filterName, { inSearch: currentFilters }, () => {
+                                            // After modal closes, call original function
+                                            setTimeout(() => {
+                                                originalFunc.apply(this, args);
+                                            }, 100);
+                                        });
+
+                                        return; // Don't call original function yet
+                                    } else {
+                                        console.log(`[ScalePlus] Scale hook: Favorites enhancement disabled, proceeding with normal save`);
+                                    }
+                                }
+                            }
+
+                            // No date criteria, call original function
+                            return originalFunc.apply(this, args);
+                        };
+                    }
+                }
+            } catch (e) {
+                // Function doesn't exist or can't be hooked, continue
+            }
+        });
+    }
+
+    // Try to set up Scale save hook
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setupScaleSaveHook);
+    } else {
+        setupScaleSaveHook();
+    }
+
+    // Intercept favorite filter selection to apply cached date settings
+    function setupFavoriteClickInterception() {
+        document.addEventListener('click', function(e) {
+            // Check if favorites enhancement is enabled
+            const isFavoritesEnabled = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+            if (!isFavoritesEnabled) {
+                return; // Favorites enhancement disabled, don't intercept clicks
+            }
+
+            const favoriteLink = e.target.closest('a[id="SearchPaneMenuFavoritesChooseSearch"]');
+            if (favoriteLink) {
+                // Don't intercept clicks on star or delete buttons
+                const clickedElement = e.target.closest('.scaleplus-default-icon, .deletesavedsearchbutton');
+                if (clickedElement) {
+                    console.log('[ScalePlus] Click on star/delete button, allowing normal behavior');
+                    return; // Let star and delete buttons work normally
+                }
+
+                // Check if we're already processing this click to prevent double handling
+                if (favoriteLink.hasAttribute('data-scaleplus-processing')) {
+                    return; // Already processing this click
+                }
+
+                const filterName = favoriteLink.querySelector('.deletesavedsearchtext')?.textContent?.trim();
+                const formId = getFormIdFromUrl();
+
+                if (filterName && formId) {
+                    // Mark as currently being processed to prevent double handling
+                    favoriteLink.setAttribute('data-scaleplus-processing', 'true');
+
+                    // Check if this filter has cached date settings
+                    const dateCache = getFilterDateCache(formId, filterName);
+                    if (dateCache) {
+                        console.log(`[ScalePlus] Favorite "${filterName}" has cached date settings (mode: ${dateCache.dateMode}), applying custom date handling`);
+
+                        // Fetch the saved filter and apply with date adjustments (always apply cached settings)
+                        fetchSavedFilter(filterName)
+                            .then(savedFilters => {
+                                const modifiedFilters = applyCachedDateSettings(savedFilters, filterName, formId);
+                                console.log(`[ScalePlus] Applied cached date settings to favorite "${filterName}" with mode: ${dateCache.dateMode}`);
+                                applySavedFilters(modifiedFilters, filterName, formId);
+                                // Remove processing flag after completion
+                                favoriteLink.removeAttribute('data-scaleplus-processing');
+                            })
+                            .catch(err => {
+                                console.warn('[ScalePlus] Failed to fetch and apply cached filter:', err);
+                                // Remove processing flag and let the original click proceed
+                                favoriteLink.removeAttribute('data-scaleplus-processing');
+                                favoriteLink.click();
+                            });
+
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    } else {
+                        console.log(`[ScalePlus] Favorite "${filterName}" has no cached date settings, using default behavior`);
+                        // Remove processing flag
+                        favoriteLink.removeAttribute('data-scaleplus-processing');
+                    }
+                }
+            }
+        }, true); // Use capture phase
+    }
+
+    // Set up the favorite click interception if favorites enhancement is enabled
+    const isFavoritesEnabled3 = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+    if (isFavoritesEnabled3) {
+        setupFavoriteClickInterception();
+    } else {
+        console.log('[ScalePlus] Favorites enhancement disabled, skipping favorite click interception setup');
+    }
+
     function copyInnerText(e) {
         let el = e.target;
         while (el && (!el.getAttribute || !el.getAttribute('aria-describedby') || !el.getAttribute('aria-describedby').startsWith('ListPaneDataGrid'))) {
@@ -874,8 +1751,26 @@
 
     // Default Filter Management
     function getFormIdFromUrl() {
+        console.log(`[ScalePlus] Current URL: ${window.location.href}`);
+
+        // Primary pattern: extract form ID from /insights/{number} in URL path
         const match = window.location.pathname.match(/insights\/(\d+)/);
-        return match ? match[1] : null;
+        if (match) {
+            const formId = match[1];
+            console.log(`[ScalePlus] Found form ID: ${formId}`);
+            return formId;
+        }
+
+        // Fallback: check URL search parameters (less common)
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramFormId = urlParams.get('formId') || urlParams.get('FormID');
+        if (paramFormId) {
+            console.log(`[ScalePlus] Found form ID from URL parameters: ${paramFormId}`);
+            return paramFormId;
+        }
+
+        console.log(`[ScalePlus] No form ID found in URL`);
+        return null;
     }
 
     // Alternative function name for compatibility
@@ -908,11 +1803,11 @@
     }
 
     function setDefaultFilter(formId, filterText) {
-    const key = getDefaultFilterKey(formId);
-    const username = getUsernameFromCookie();
-    localStorage.setItem(key, filterText);
-    console.log(`[ScalePlus] Set default filter for form ${formId} and user ${username}: ${filterText}`);
-    updateFavoritesStarIcon();
+        const key = getDefaultFilterKey(formId);
+        const username = getUsernameFromCookie();
+        localStorage.setItem(key, filterText);
+        console.log(`[ScalePlus] Set default filter for form ${formId} and user ${username}: ${filterText}`);
+        updateFavoritesStarIcon();
     }
 
     function getDefaultFilter(formId) {
@@ -921,14 +1816,167 @@
     }
 
     function clearDefaultFilter(formId) {
-    const key = getDefaultFilterKey(formId);
-    const username = getUsernameFromCookie();
-    localStorage.removeItem(key);
-    console.log(`[ScalePlus] Cleared default filter for form ${formId} and user ${username}`);
-    updateFavoritesStarIcon();
+        const key = getDefaultFilterKey(formId);
+        const username = getUsernameFromCookie();
+        localStorage.removeItem(key);
+        console.log(`[ScalePlus] Cleared default filter for form ${formId} and user ${username}`);
+        updateFavoritesStarIcon();
     }
 
-    // Update favorites dropdown star icon based on default filter status
+    // Check if saved filters contain date/time criteria
+    function checkForDateCriteria(savedFilters) {
+        console.log('[ScalePlus] Checking for date criteria in filters:', savedFilters);
+        if (!savedFilters || !savedFilters.inSearch) {
+            console.log('[ScalePlus] No savedFilters or inSearch property found');
+            return false;
+        }
+
+        // Check basic search filters for date fields
+        const dateFields = savedFilters.inSearch.filter(filter => {
+            const name = filter.name || '';
+            const value = filter.value || '';
+
+            console.log(`[ScalePlus] Checking filter: ${name} = ${value}`);
+
+            // More specific date field detection
+            const isDateField = (
+                name.toLowerCase().includes('date') ||
+                name.includes('Date') ||
+                name.includes('DATE') ||
+                name.includes('ReceivedDate') ||
+                name.includes('CreatedDate') ||
+                name.includes('ModifiedDate') ||
+                name.includes('FromDate') ||
+                name.includes('ToDate') ||
+                name.includes('StartDate') ||
+                name.includes('EndDate')
+            );
+
+            // Check if value looks like a date (ISO format or common date patterns)
+            const isDateValue = (
+                /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value) || // ISO format
+                /^\d{4}-\d{2}-\d{2}/.test(value) || // Date only
+                /\d{1,2}\/\d{1,2}\/\d{4}/.test(value) || // MM/DD/YYYY
+                /\d{1,2}-\d{1,2}-\d{4}/.test(value) // MM-DD-YYYY
+            );
+
+            const result = isDateField && isDateValue && value.trim() !== '';
+            console.log(`[ScalePlus] Filter ${name}: isDateField=${isDateField}, isDateValue=${isDateValue}, result=${result}`);
+            return result;
+        });
+
+        console.log(`[ScalePlus] Found ${dateFields.length} date fields:`, dateFields.map(f => f.name));
+        return dateFields.length > 0;
+    }
+
+    // Generate unique key for filter date cache
+    function getFilterDateCacheKey(formId, filterName) {
+        const username = getUsernameFromCookie();
+        // Sanitize filter name to make it safe for localStorage key
+        const safeFilterName = filterName.replace(/[^a-zA-Z0-9]/g, '_');
+        return `${formId}Filter${safeFilterName}${username}`;
+    }
+
+    // Get cached date settings for a specific filter
+    function getFilterDateCache(formId, filterName) {
+        const key = getFilterDateCacheKey(formId, filterName);
+        const stored = localStorage.getItem(key);
+
+        if (!stored) return null;
+
+        try {
+            return JSON.parse(stored);
+        } catch (e) {
+            console.warn('[ScalePlus] Could not parse filter date cache:', e);
+            return null;
+        }
+    }
+
+    // Set cached date settings for a specific filter
+    function setFilterDateCache(formId, filterName, dateMode, dateOffsets) {
+        const key = getFilterDateCacheKey(formId, filterName);
+        const cacheData = {
+            dateMode: dateMode,
+            dateOffsets: dateOffsets,
+            savedAt: new Date().toISOString()
+        };
+
+        localStorage.setItem(key, JSON.stringify(cacheData));
+        console.log(`[ScalePlus] Saved date cache for filter "${filterName}":`, cacheData);
+    }
+
+    // Calculate date offsets from current time
+    function calculateDateOffsets(savedFilters, savedAt) {
+        const offsets = {};
+        const savedTime = new Date(savedAt);
+        const now = new Date();
+
+        if (!savedFilters || !savedFilters.inSearch) return offsets;
+
+        savedFilters.inSearch.forEach(filter => {
+            if (filter.name && filter.name.includes('Date') && filter.value) {
+                try {
+                    const filterDate = new Date(filter.value);
+                    if (!isNaN(filterDate.getTime())) {
+                        // Calculate difference in milliseconds
+                        const diffMs = filterDate.getTime() - savedTime.getTime();
+                        offsets[filter.name] = diffMs;
+                    }
+                } catch (e) {
+                    console.warn(`[ScalePlus] Could not parse date for ${filter.name}:`, filter.value);
+                }
+            }
+        });
+
+        return offsets;
+    }
+
+    // Apply cached date settings to saved filters
+    function applyCachedDateSettings(savedFilters, filterName, formId) {
+        // Check if favorites enhancement is enabled
+        const isFavoritesEnabled = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+        if (!isFavoritesEnabled) {
+            console.log('[ScalePlus] Favorites enhancement disabled, skipping cached date settings application');
+            return savedFilters;
+        }
+
+        if (!savedFilters) return savedFilters;
+
+        const cache = getFilterDateCache(formId, filterName);
+        if (!cache || cache.dateMode === 'normal') {
+            return savedFilters;
+        }
+
+        // Clone the filters to avoid modifying the original
+        const modifiedFilters = JSON.parse(JSON.stringify(savedFilters));
+
+        modifiedFilters.inSearch.forEach(filter => {
+            if (filter.name && cache.dateOffsets[filter.name] !== undefined) {
+                const offsetMs = cache.dateOffsets[filter.name];
+                let newDate;
+
+                if (cache.dateMode === 'relative_date') {
+                    // Keep the time from original filter, but adjust the date
+                    const originalDate = new Date(filter.value);
+                    const daysDiff = Math.floor(offsetMs / (1000 * 60 * 60 * 24));
+                    newDate = new Date();
+                    newDate.setDate(newDate.getDate() + daysDiff);
+                    // Keep original time
+                    newDate.setHours(originalDate.getHours(), originalDate.getMinutes(), originalDate.getSeconds(), originalDate.getMilliseconds());
+                } else if (cache.dateMode === 'relative_date_time') {
+                    // Adjust both date and time
+                    newDate = new Date(new Date().getTime() + offsetMs);
+                }
+
+                if (newDate) {
+                    filter.value = newDate.toISOString();
+                    console.log(`[ScalePlus] Applied ${cache.dateMode} offset to ${filter.name}: ${filter.value}`);
+                }
+            }
+        });
+
+        return modifiedFilters;
+    }    // Update favorites dropdown star icon based on default filter status
     function updateFavoritesStarIcon() {
         const formId = getFormIdFromUrl();
         if (!formId) {
@@ -993,6 +2041,13 @@
 
     // Monitor for favorite deletions and clean up related cache
     function monitorFavoriteDeletions() {
+        // Check if favorites enhancement is enabled
+        const isFavoritesEnabled = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+        if (!isFavoritesEnabled) {
+            console.log('[ScalePlus] Favorites enhancement disabled, skipping favorite deletion monitoring');
+            return;
+        }
+
         // Monitor the favorites dropdown for changes
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
@@ -1031,6 +2086,8 @@
                     // Wait a bit for the deletion to complete, then clean up orphaned cache
                     setTimeout(() => {
                         cleanupOrphanedDefaultFilters();
+                        // Also clean up any date cache for deleted filters
+                        cleanupOrphanedDateCache();
                     }, 500);
                 });
             }
@@ -1048,6 +2105,103 @@
 
         // Initial check
         monitorConfirmationDialog();
+
+        // Also monitor for AJAX calls that might delete filters if favorites enhancement is enabled
+        const isFavoritesEnabled5 = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+        if (isFavoritesEnabled5) {
+            monitorFilterDeletionAjax();
+        } else {
+            console.log('[ScalePlus] Favorites enhancement disabled, skipping AJAX filter deletion monitoring');
+        }
+    }
+
+    // Monitor AJAX calls for filter deletions
+    function monitorFilterDeletionAjax() {
+        // Check if favorites enhancement is enabled
+        const isFavoritesEnabled = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+        if (!isFavoritesEnabled) {
+            console.log('[ScalePlus] Favorites enhancement disabled, skipping AJAX filter deletion monitoring setup');
+            return;
+        }
+
+        // Intercept XMLHttpRequest to catch filter deletions
+        const originalOpen = XMLHttpRequest.prototype.open;
+        XMLHttpRequest.prototype.open = function(method, url) {
+            // Store the URL for later inspection
+            this._url = url;
+            this._method = method;
+            return originalOpen.apply(this, arguments);
+        };
+
+        const originalSend = XMLHttpRequest.prototype.send;
+        XMLHttpRequest.prototype.send = function(data) {
+            // Check if this is a filter deletion request
+            if (this._url && this._url.includes('ScreenPartSearchApi') && this._method === 'DELETE') {
+                // Try to extract filter name from the request data
+                let deletedFilterName = null;
+                if (data) {
+                    try {
+                        const parsedData = typeof data === 'string' ? JSON.parse(data) : data;
+                        if (parsedData && parsedData.searchName) {
+                            deletedFilterName = parsedData.searchName;
+                        }
+                    } catch (e) {
+                        // Try to extract from URL parameters
+                        const urlParams = new URLSearchParams(this._url.split('?')[1]);
+                        deletedFilterName = urlParams.get('searchName');
+                    }
+                }
+
+                if (deletedFilterName) {
+                    console.log(`[ScalePlus] Detected filter deletion via AJAX: ${deletedFilterName}`);
+                    // Clean up cache after a short delay to ensure deletion completes
+                    setTimeout(() => {
+                        cleanupDeletedFavoriteCache(deletedFilterName);
+                    }, 1000);
+                }
+            }
+
+            return originalSend.apply(this, arguments);
+        };
+
+        // Also intercept fetch calls
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options) {
+            const method = options?.method || 'GET';
+
+            // Check if this is a filter deletion request
+            if (url && typeof url === 'string' && url.includes('ScreenPartSearchApi') && method === 'DELETE') {
+                let deletedFilterName = null;
+
+                // Try to extract filter name from URL or body
+                if (options?.body) {
+                    try {
+                        const bodyData = typeof options.body === 'string' ? JSON.parse(options.body) : options.body;
+                        if (bodyData && bodyData.searchName) {
+                            deletedFilterName = bodyData.searchName;
+                        }
+                    } catch (e) {
+                        // Ignore parsing errors
+                    }
+                }
+
+                // Try URL parameters
+                if (!deletedFilterName && typeof url === 'string') {
+                    const urlParams = new URLSearchParams(url.split('?')[1]);
+                    deletedFilterName = urlParams.get('searchName');
+                }
+
+                if (deletedFilterName) {
+                    console.log(`[ScalePlus] Detected filter deletion via fetch: ${deletedFilterName}`);
+                    // Clean up cache after a short delay
+                    setTimeout(() => {
+                        cleanupDeletedFavoriteCache(deletedFilterName);
+                    }, 1000);
+                }
+            }
+
+            return originalFetch.apply(this, arguments);
+        };
     }
 
     // Clean up cache when a favorite is deleted
@@ -1068,10 +2222,37 @@
             }
         }
 
+        // Also clean up any date cache for this filter
+        const formId = getFormIdFromUrl();
+        if (formId) {
+            const dateCacheKey = getFilterDateCacheKey(formId, deletedFilterName);
+            if (localStorage.getItem(dateCacheKey)) {
+                localStorage.removeItem(dateCacheKey);
+                console.log(`[ScalePlus] Cleaned up date cache for deleted favorite: ${deletedFilterName}`);
+            }
+        }
+
         // Update the star icon since we may have removed a default filter
         setTimeout(() => {
             updateFavoritesStarIcon();
         }, 100);
+    }
+
+    // Periodic cleanup of orphaned cache entries (safety net)
+    function schedulePeriodicCacheCleanup() {
+        // Check if favorites enhancement is enabled
+        const isFavoritesEnabled = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+        if (!isFavoritesEnabled) {
+            console.log('[ScalePlus] Favorites enhancement disabled, skipping periodic cache cleanup scheduling');
+            return;
+        }
+
+        // Run cleanup every 5 minutes to catch any missed orphaned entries
+        setInterval(() => {
+            console.log('[ScalePlus] Running periodic cache cleanup');
+            cleanupOrphanedDefaultFilters();
+            cleanupOrphanedDateCache();
+        }, 5 * 60 * 1000); // 5 minutes
     }
 
     // Clean up orphaned default filters (filters that reference favorites that no longer exist)
@@ -1108,6 +2289,51 @@
             setTimeout(() => {
                 updateFavoritesStarIcon();
             }, 100);
+        }
+    }
+
+    // Clean up orphaned date cache entries (date cache for filters that no longer exist)
+    function cleanupOrphanedDateCache() {
+        const username = getUsernameFromCookie();
+        const currentFavorites = new Set();
+
+        // Get all current favorite names
+        const savedSearchItems = document.querySelectorAll('a[id="SearchPaneMenuFavoritesChooseSearch"] .deletesavedsearchtext');
+        savedSearchItems.forEach(item => {
+            const filterName = item.textContent?.trim();
+            if (filterName) {
+                currentFavorites.add(filterName);
+            }
+        });
+
+        let cleanedCount = 0;
+
+        // Check all date cache entries
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.includes('Filter') && key.includes(username) && !key.includes('DefaultFilter')) {
+                // Extract filter name from the key
+                // Key format: formIdFilterSafeFilterNameUsername
+                const keyParts = key.split('Filter');
+                if (keyParts.length >= 2) {
+                    const filterPart = keyParts[1];
+                    // Remove username from the end to get the safe filter name
+                    const safeFilterName = filterPart.replace(username, '');
+                    // Try to decode the safe filter name back to original
+                    const originalFilterName = safeFilterName.replace(/_/g, ' ');
+
+                    // Check if this filter still exists
+                    if (originalFilterName && !currentFavorites.has(originalFilterName)) {
+                        localStorage.removeItem(key);
+                        cleanedCount++;
+                        console.log(`[ScalePlus] Cleaned up orphaned date cache for deleted favorite: ${originalFilterName}`);
+                    }
+                }
+            }
+        }
+
+        if (cleanedCount > 0) {
+            console.log(`[ScalePlus] Cleaned up ${cleanedCount} orphaned date cache entries`);
         }
     }
 
@@ -1311,17 +2537,42 @@
         });
     }
 
-    // Set up the dynamic content observer
-    setupDynamicContentObserver();
+    // Set up the dynamic content observer if favorites enhancement is enabled
+    const isFavoritesEnabled6 = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+    if (isFavoritesEnabled6) {
+        setupDynamicContentObserver();
+    } else {
+        console.log('[ScalePlus] Favorites enhancement disabled, skipping dynamic content observer setup');
+    }
 
     // Clean up old ScalePlus cache entries on startup
     cleanupOldCacheEntries();
 
-    // Monitor for favorite deletions and clean up cache
-    monitorFavoriteDeletions();
+    // Clean up any orphaned cache entries that may exist
+    setTimeout(() => {
+        cleanupOrphanedDefaultFilters();
+        cleanupOrphanedDateCache();
+    }, 2000); // Wait 2 seconds for page to fully load
+
+    // Monitor for favorite deletions and clean up cache if favorites enhancement is enabled
+    const isFavoritesEnabled4 = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+    if (isFavoritesEnabled4) {
+        monitorFavoriteDeletions();
+    } else {
+        console.log('[ScalePlus] Favorites enhancement disabled, skipping favorite deletion monitoring setup');
+    }
+
+    // Schedule periodic cleanup of orphaned cache entries
+    schedulePeriodicCacheCleanup();
 
     // Auto-apply default filter for form URLs without arguments
     function checkAutoApplyDefault() {
+        // Check if favorites enhancement is enabled
+        const isFavoritesEnabled = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+        if (!isFavoritesEnabled) {
+            return false; // Favorites enhancement disabled
+        }
+
         // Only for URLs like "https://scaleqa.byjasco.com/scale/insights/2723" (no ? parameters)
         if (location.pathname.includes('/insights/') && !location.search) {
             const formId = extractFormIdFromUrl(location.href);
@@ -1334,7 +2585,11 @@
                     fetchSavedFilter(defaultFilter)
                         .then(savedFilters => {
                             console.log(`[ScalePlus] Applying default filter: ${defaultFilter} (user: ${username})`);
-                            applySavedFilters(savedFilters);
+
+                            // Apply date offsets if the filter has cached date settings
+                            const modifiedFilters = applyCachedDateSettings(savedFilters, defaultFilter, formId);
+
+                            applySavedFilters(modifiedFilters, defaultFilter, formId);
                         })
                         .catch(err => {
                             console.warn('[ScalePlus] Failed to fetch or apply saved filter:', err);
@@ -1726,27 +2981,33 @@
     }
 
     // Apply both basic and advanced criteria using Scale's internal helpers
-    function applySavedFilters(savedFilters) {
+    function applySavedFilters(savedFilters, filterName, formId) {
         console.log('[ScalePlus] Applying saved filters using Scale\'s internal functions:', savedFilters);
 
         // Make sure the search pane is visible
         clickSearchButtonIfNeeded();
 
+        // Apply date adjustments if this filter has cached date settings
+        let filtersToApply = savedFilters;
+        if (filterName && formId) {
+            filtersToApply = applyCachedDateSettings(savedFilters, filterName, formId);
+        }
+
         // Apply basic filters (simple editors, date pickers, combos, etc.)
-        if (savedFilters.inSearch &&
+        if (filtersToApply.inSearch &&
             _webUi &&
             _webUi.insightSearchPaneActions &&
             typeof _webUi.insightSearchPaneActions.applyInputFilterCriteria === 'function') {
-            console.log('[ScalePlus] Applying basic filters:', savedFilters.inSearch);
-            _webUi.insightSearchPaneActions.applyInputFilterCriteria(savedFilters.inSearch);
+            console.log('[ScalePlus] Applying basic filters:', filtersToApply.inSearch);
+            _webUi.insightSearchPaneActions.applyInputFilterCriteria(filtersToApply.inSearch);
         } else {
             console.log('[ScalePlus] Cannot apply basic filters - missing function or data');
         }
 
         // Apply toggle filters manually
-        if (Array.isArray(savedFilters.togSearch)) {
-            console.log('[ScalePlus] Applying toggle filters:', savedFilters.togSearch);
-            savedFilters.togSearch.forEach(tog => {
+        if (Array.isArray(filtersToApply.togSearch)) {
+            console.log('[ScalePlus] Applying toggle filters:', filtersToApply.togSearch);
+            filtersToApply.togSearch.forEach(tog => {
                 const el = document.getElementById(tog.name);
                 if (el && typeof $(el).bootstrapToggle === 'function') {
                     console.log('[ScalePlus] Setting toggle ' + tog.name + ' to ' + (tog.value ? 'on' : 'off'));
@@ -1756,10 +3017,10 @@
         }
 
         // Apply combo-checked-list filters
-        applyComboFilters(savedFilters.comboChkbxSearch);
+        applyComboFilters(filtersToApply.comboChkbxSearch);
 
         // Apply advanced criteria correctly
-        applyAdvancedCriteria(savedFilters, extractFormIdFromUrl(location.href));
+        applyAdvancedCriteria(filtersToApply, extractFormIdFromUrl(location.href));
 
         // You intentionally **do not** call the internal searchButtonClicked() here,
         // because you want to set the filters without running the search.
@@ -1767,6 +3028,13 @@
 
     // Replace clear filters button functionality
     function enhanceClearFiltersButton() {
+        // Check if favorites enhancement is enabled
+        const isFavoritesEnabled = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+        if (!isFavoritesEnabled) {
+            console.log('[ScalePlus] Favorites enhancement disabled, skipping clear filters enhancement');
+            return;
+        }
+
         const clearBtn = document.querySelector('#InsightMenuActionClearFilters');
         if (clearBtn && !clearBtn.hasAttribute('data-enhanced')) {
             clearBtn.setAttribute('data-enhanced', 'true');
@@ -1789,7 +3057,11 @@
                             fetchSavedFilter(defaultFilter)
                                 .then(savedFilters => {
                                     console.log(`[ScalePlus] Applying default filter: ${defaultFilter} after clear`);
-                                    applySavedFilters(savedFilters);
+
+                                    // Apply date offsets if the filter has cached date settings
+                                    const modifiedFilters = applyCachedDateSettings(savedFilters, defaultFilter, formId);
+
+                                    applySavedFilters(modifiedFilters, defaultFilter, formId);
                                 })
                                 .catch(err => {
                                     console.warn('[ScalePlus] Failed to fetch or apply saved filter after clear:', err);
@@ -1839,8 +3111,253 @@
         }
     }
 
-    // Set up the clear filters observer
-    setupClearFiltersObserver();
+    // Set up the clear filters observer if favorites enhancement is enabled
+    const isFavoritesEnabled7 = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+    if (isFavoritesEnabled7) {
+        setupClearFiltersObserver();
+    } else {
+        console.log('[ScalePlus] Favorites enhancement disabled, skipping clear filters observer setup');
+    }
+
+    // Show date mode selection modal
+    function showDateModeModal(formId, filterName, savedFilters, onSaveCallback) {
+        // Check if favorites enhancement is enabled
+        const isFavoritesEnabled = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+        if (!isFavoritesEnabled) {
+            console.log('[ScalePlus] Favorites enhancement disabled, skipping date mode modal');
+            return;
+        }
+
+        // Prevent multiple modals
+        const existingModal = document.getElementById('scaleplus-date-mode-modal');
+        if (existingModal) {
+            console.log('[ScalePlus] Modal already exists, removing it first');
+            existingModal.remove();
+        }
+
+        const modal = document.createElement('div');
+        modal.id = 'scaleplus-date-mode-modal';
+        modal.innerHTML = `
+            <div class="scaleplus-modal-backdrop"></div>
+            <div class="scaleplus-modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close scaleplus-modal-close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">Date/Time Filter Options</h4>
+                </div>
+                <div class="modal-body">
+                    <p>The filter "<strong>${filterName}</strong>" contains date/time criteria.</p>
+                    <p>How would you like to handle these dates when applying the filter?</p>
+
+                    <div class="scaleplus-date-options">
+                        <div class="radio">
+                            <label>
+                                <input type="radio" name="dateMode" value="normal" checked>
+                                <strong>Normal:</strong> Use the exact dates and times as saved
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label>
+                                <input type="radio" name="dateMode" value="relative_date">
+                                <strong>Relative Date:</strong> Adjust dates relative to today, keep original times
+                                <br><small>Example: "1 day ago from 9 AM - 5 PM" becomes "yesterday from 9 AM - 5 PM"</small>
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label>
+                                <input type="radio" name="dateMode" value="relative_date_time">
+                                <strong>Relative Date & Time:</strong> Adjust both dates and times relative to now
+                                <br><small>Example: "1 day ago at 2 PM" becomes "yesterday at 2 PM"</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="scaleplus-date-cancel-btn" class="btn btn-default">Cancel</button>
+                    <button id="scaleplus-date-save-btn" class="btn btn-primary">Save Filter</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        // Apply Scale-like styling
+        const modalContent = modal.querySelector('.scaleplus-modal-content');
+        const modalHeader = modal.querySelector('.modal-header');
+        const modalBody = modal.querySelector('.modal-body');
+        const modalFooter = modal.querySelector('.modal-footer');
+        const closeBtn = modal.querySelector('.scaleplus-modal-close');
+        const cancelBtn = modal.querySelector('#scaleplus-date-cancel-btn');
+        const saveBtn = modal.querySelector('#scaleplus-date-save-btn');
+        const backdrop = modal.querySelector('.scaleplus-modal-backdrop');
+
+        // Use same styling as settings modal
+        Object.assign(modalContent.style, {
+            position: 'fixed',
+            top: '-100px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+            zIndex: '10001',
+            minWidth: '600px',
+            maxWidth: '600px',
+            maxHeight: 'calc(100vh - 100px)',
+            display: 'flex',
+            flexDirection: 'column',
+            borderRadius: '0',
+            backgroundColor: '#f4f4f8',
+            overflow: 'hidden',
+            animation: 'scaleplus-drop-in 0.3s ease-out forwards'
+        });
+
+        Object.assign(modalHeader.style, {
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '15px 20px',
+            backgroundColor: '#494e5e',
+            color: 'white',
+            width: '100%',
+            boxSizing: 'border-box',
+            flexShrink: '0',
+            position: 'relative',
+            zIndex: '1',
+            margin: '0'
+        });
+
+        Object.assign(modalBody.style, {
+            padding: '20px',
+            overflowY: 'auto',
+            flex: '1',
+            backgroundColor: '#f4f4f8',
+            color: '#000000',
+            position: 'relative',
+            zIndex: '0',
+            maxHeight: 'calc(100vh - 200px)'
+        });
+
+        Object.assign(modalFooter.style, {
+            padding: '10px 20px',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            flexShrink: '0',
+            borderTop: '1px solid #ddd',
+            backgroundColor: '#494e5e',
+            color: 'white',
+            width: '100%',
+            boxSizing: 'border-box',
+            position: 'relative',
+            zIndex: '1',
+            margin: '0'
+        });
+
+        // Style buttons
+        [cancelBtn, saveBtn].forEach(btn => {
+            Object.assign(btn.style, {
+                border: 'none',
+                padding: '8px 16px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                backgroundColor: '#4f93e4',
+                color: 'white',
+                borderRadius: '0',
+                marginLeft: '10px'
+            });
+        });
+
+        saveBtn.style.backgroundColor = '#4f93e4';
+        cancelBtn.style.backgroundColor = '#6c757d';
+
+        saveBtn.onmouseover = () => saveBtn.style.backgroundColor = '#3a7bc8';
+        saveBtn.onmouseout = () => saveBtn.style.backgroundColor = '#4f93e4';
+        cancelBtn.onmouseover = () => cancelBtn.style.backgroundColor = '#5a6268';
+        cancelBtn.onmouseout = () => cancelBtn.style.backgroundColor = '#6c757d';
+
+        // Style close button
+        Object.assign(closeBtn.style, {
+            margin: '0',
+            color: 'white',
+            opacity: '0.8',
+            fontSize: '28px',
+            lineHeight: '1',
+            cursor: 'pointer',
+            background: 'none',
+            border: 'none',
+            padding: '0',
+            width: '30px',
+            height: '30px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'absolute',
+            right: '15px',
+            top: '50%',
+            transform: 'translateY(-50%)'
+        });
+
+        closeBtn.onmouseover = () => closeBtn.style.opacity = '1';
+        closeBtn.onmouseout = () => closeBtn.style.opacity = '0.8';
+
+        // Style radio options
+        const radioLabels = modal.querySelectorAll('.radio label');
+        radioLabels.forEach(label => {
+            Object.assign(label.style, {
+                display: 'block',
+                marginBottom: '15px',
+                cursor: 'pointer',
+                color: '#000000'
+            });
+        });
+
+        const radios = modal.querySelectorAll('input[type="radio"]');
+        radios.forEach(radio => {
+            Object.assign(radio.style, {
+                marginRight: '10px'
+            });
+        });
+
+        // Add backdrop styling
+        Object.assign(backdrop.style, {
+            position: 'fixed',
+            top: '0',
+            left: '0',
+            width: '100%',
+            height: '100%',
+            background: 'rgba(0,0,0,0.5)',
+            zIndex: '10000',
+            opacity: '0',
+            animation: 'scaleplus-fade-in 0.2s ease-out forwards'
+        });
+
+        // Handle save button
+        saveBtn.addEventListener('click', () => {
+            const selectedMode = modal.querySelector('input[name="dateMode"]:checked').value;
+            const savedAt = new Date().toISOString();
+            const dateOffsets = calculateDateOffsets(savedFilters, savedAt);
+
+            // Save the date cache for this specific filter
+            setFilterDateCache(formId, filterName, selectedMode, dateOffsets);
+
+            console.log(`[ScalePlus] Saved date mode "${selectedMode}" for filter "${filterName}"`);
+            console.log('[ScalePlus] Removing modal after save');
+
+            // Call the callback if provided (for save button interception)
+            if (onSaveCallback) {
+                console.log('[ScalePlus] Calling onSaveCallback');
+                onSaveCallback();
+            }
+
+            modal.remove();
+        });
+
+        // Handle cancel/close
+        const closeModal = () => {
+            console.log('[ScalePlus] Closing modal (cancel/close)');
+            modal.remove();
+            // Note: Don't call onSaveCallback for cancel/close - only for save
+        };
+        cancelBtn.addEventListener('click', closeModal);
+        closeBtn.addEventListener('click', closeModal);
+        backdrop.addEventListener('click', closeModal);
+    }
 
     // Advanced Criteria Counter
     function updateAdvancedCriteriaCount() {
@@ -2008,6 +3525,14 @@
         document.addEventListener('DOMContentLoaded', setupAdvancedCriteriaObserver);
     } else {
         setupAdvancedCriteriaObserver();
+    }
+
+    // Set up the save dialog observer immediately when script loads if favorites enhancement is enabled
+    const isFavoritesEnabled2 = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+    if (isFavoritesEnabled2) {
+        setupSaveDialogObserver();
+    } else {
+        console.log('[ScalePlus] Favorites enhancement disabled, skipping save dialog observer setup');
     }
 
 })();
