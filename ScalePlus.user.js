@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      2.6
+// @version      2.7
 // @description  Custom enhancements for Scale application with toggleable features
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
@@ -198,16 +198,19 @@
     const createSettingsModal = () => {
         const modal = document.createElement('div');
         modal.id = 'scaleplus-settings-modal';
+        modal.className = 'modal fade';
+        modal.setAttribute('tabindex', '-1');
+        modal.setAttribute('role', 'dialog');
         modal.innerHTML = `
-            <div class="scaleplus-modal-backdrop"></div>
-            <div class="scaleplus-modal-content">
-                <form class="form-horizontal" id="ScalePlusSettingsModalDialogForm" novalidate="novalidate" data-controltype="form">
-                    <div class="modal-header" data-controltype="modalDialogHeader" data-resourcekey="SCALEPLUSSETTINGS" data-resourcevalue="ScalePlus Settings">
-                        <button type="button" class="close scaleplus-modal-close" data-dismiss="modal" aria-hidden="true">×</button>
-                        <h4 class="modal-title">ScalePlus Settings</h4>
-                    </div>
-                    <div class="modal-body" data-controltype="modalDialogBody">
-                        <div class="scaleplus-basic-settings">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form class="form-horizontal" id="ScalePlusSettingsModalDialogForm" novalidate="novalidate" data-controltype="form">
+                        <div class="modal-header" data-controltype="modalDialogHeader" data-resourcekey="SCALEPLUSSETTINGS" data-resourcevalue="ScalePlus Settings">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h4 class="modal-title">ScalePlus Settings</h4>
+                        </div>
+                        <div class="modal-body" data-controltype="modalDialogBody">
+                            <div class="scaleplus-basic-settings">
                             <div class="scaleplus-setting">
                                 <label for="search-toggle">Always show search:</label>
                                 <input type="checkbox" id="search-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
@@ -221,12 +224,17 @@
                             <div class="scaleplus-setting">
                                 <label for="middle-click-toggle">Middle click to copy:</label>
                                 <input type="checkbox" id="middle-click-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
-                                <span class="scaleplus-setting-desc">Middle click on grid items to copy text</span>
+                                <span class="scaleplus-setting-desc">Middle click on grid items to copy text, or on favorites to open in new tab</span>
                             </div>
                             <div class="scaleplus-setting">
                                 <label for="adv-criteria-indicator-toggle">Enhance Advanced criteria:</label>
                                 <input type="checkbox" id="adv-criteria-indicator-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                                 <span class="scaleplus-setting-desc">Show count in header and condition column in advanced criteria grid</span>
+                            </div>
+                            <div class="scaleplus-setting">
+                                <label for="default-filter-toggle">Enhance Favorites:</label>
+                                <input type="checkbox" id="default-filter-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
+                                <span class="scaleplus-setting-desc">Add star icons to favorites for default filter selection</span>
                             </div>
                         </div>
 
@@ -247,11 +255,6 @@
                                 <span class="scaleplus-setting-desc">Ctrl+D to duplicate current tab</span>
                             </div>
                             <div class="scaleplus-setting">
-                                <label for="default-filter-toggle">Enhance Favorites:</label>
-                                <input type="checkbox" id="default-filter-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
-                                <span class="scaleplus-setting-desc">Add star icons to favorites for default filter selection</span>
-                            </div>
-                            <div class="scaleplus-setting">
                                 <label for="env-labels-toggle">Environment Labels:</label>
                                 <input type="checkbox" id="env-labels-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                                 <span class="scaleplus-setting-desc">Show environment label in navbar</span>
@@ -270,38 +273,34 @@
                         </div>
                     </div>
                     <div class="modal-footer" data-controltype="modalDialogFooter">
-                        <button id="scaleplus-close-btn" class="btn btn-default" data-resourcekey="BTN_CLOSE" data-resourcevalue="Close">Close</button>
+                        <button id="scaleplus-close-btn" class="btn btn-default" data-dismiss="modal" data-resourcekey="BTN_CLOSE" data-resourcevalue="Close">Close</button>
                     </div>
                 </form>
             </div>
+        </div>
         `;
         document.body.appendChild(modal);
 
         // Sample colors from Scale's UI
-        const navBar = document.querySelector('#topNavigationBar') || document.querySelector('.navbar');
-        const bodyStyles = getComputedStyle(document.body);
         const headerBg = '#494e5e';
         const bodyBg = '#f4f4f8';
         const footerBg = '#494e5e';
         const textColor = '#ffffff';
-        const borderColor = '#ddd';
         const buttonBg = '#4f93e4';
         const buttonColor = '#ffffff';
 
         // Apply sampled colors
-        const modalContent = modal.querySelector('.scaleplus-modal-content');
+        const modalContent = modal.querySelector('.modal-content');
         const modalHeader = modal.querySelector('.modal-header');
         const modalBody = modal.querySelector('.modal-body');
         const modalFooter = modal.querySelector('.modal-footer');
-        const closeBtn = modal.querySelector('.scaleplus-modal-close');
+        const closeBtn = modal.querySelector('.close');
         const cancelBtn = modal.querySelector('#scaleplus-close-btn');
-        const backdrop = modal.querySelector('.scaleplus-modal-backdrop');
         const labels = modal.querySelectorAll('label');
         const descs = modal.querySelectorAll('.scaleplus-setting-desc, .scaleplus-advanced-label');
         const inputs = modal.querySelectorAll('input[type="text"]');
 
         // Use light background for modal to ensure visibility
-        const lightBg = '#f4f4f8';
         const darkText = '#000000';
         if (modalContent) modalContent.style.backgroundColor = bodyBg;
         if (modalHeader) {
@@ -315,9 +314,6 @@
         if (modalFooter) {
             modalFooter.style.backgroundColor = footerBg;
             modalFooter.style.color = textColor;
-        }
-        if (closeBtn) {
-            // closeBtn.style.color = buttonBg; // Removed to let CSS handle it
         }
         if (cancelBtn) {
             cancelBtn.style.backgroundColor = buttonBg;
@@ -337,53 +333,17 @@
 
         // Add styles
         const style = document.createElement('style');
+        style.setAttribute('data-scaleplus-modal', 'true');
         style.textContent = `
-            .scaleplus-modal-backdrop {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.5);
-                z-index: 10000;
-                opacity: 0;
-                animation: scaleplus-fade-in 0.2s ease-out forwards;
+            #scaleplus-settings-modal .modal-dialog {
+                margin: 50px auto;
+                width: 800px;
+                max-width: 90vw;
             }
-            .scaleplus-modal-content {
-                position: fixed;
-                top: -100px;
-                left: 50%;
-                transform: translateX(-50%);
-                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                z-index: 10001;
-                min-width: 800px;
-                max-width: 700px;
-                max-height: calc(100vh - 100px);
-                display: flex;
-                flex-direction: column;
+            #scaleplus-settings-modal .modal-content {
                 border-radius: 0;
-                background-color: #f4f4f8;
-                overflow: hidden;
-                animation: scaleplus-drop-in 0.3s ease-out forwards;
-            }
-            @keyframes scaleplus-fade-in {
-                to {
-                    opacity: 1;
-                }
-            }
-            @keyframes scaleplus-drop-in {
-                to {
-                    top: 50px;
-                }
-            }
-            @media (max-width: 850px) {
-                .scaleplus-modal-content {
-                    min-width: calc(100vw - 40px);
-                    max-width: calc(100vw - 40px);
-                    left: 20px;
-                    transform: none;
-                    background-color: #f4f4f8;
-                }
+                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                border: none;
             }
             .modal-header {
                 display: flex;
@@ -398,6 +358,7 @@
                 position: relative;
                 z-index: 1;
                 margin: 0;
+                border-bottom: 1px solid #ddd;
             }
             .modal-header .close {
                 margin: 0;
@@ -491,21 +452,24 @@
             .scaleplus-env-names .scaleplus-setting {
                 display: flex;
                 align-items: center;
+                margin-bottom: 15px;
             }
             .scaleplus-env-names .scaleplus-setting label {
-                display: inline-block;
+                flex: 1;
+                font-weight: bold;
+                color: #000000;
                 margin-bottom: 0;
-                margin-right: 10px;
-                min-width: 200px;
             }
             .scaleplus-env-names input {
                 padding: 5px;
                 border-radius: 0 !important;
-                width: 300px;
+                width: 100%;
+                max-width: 300px;
                 display: inline-block;
                 background-color: #ffffff !important;
                 color: #666666 !important;
                 border: 1px solid #999999 !important;
+                flex: 2;
             }
             .scaleplus-divider {
                 margin: 20px 0;
@@ -523,22 +487,48 @@
             }
             .scaleplus-env-setting {
                 margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 10px;
             }
             .scaleplus-env-setting label {
                 font-weight: bold;
                 margin-right: 10px;
-                width: 200px;
+                min-width: 120px;
+                max-width: 200px;
                 display: inline-block;
                 color: #000000;
+                flex: 0 0 auto;
             }
             .scaleplus-env-setting input {
                 padding: 5px;
                 border-radius: 0 !important;
-                width: 300px;
+                width: 100%;
+                max-width: 300px;
                 display: inline-block;
                 background-color: #ffffff !important;
                 color: #666666 !important;
                 border: 1px solid #999999 !important;
+                flex: 1 1 auto;
+                min-width: 200px;
+            }
+            @media (max-width: 600px) {
+                .scaleplus-env-names .scaleplus-setting,
+                .scaleplus-env-setting {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+                .scaleplus-env-names .scaleplus-setting label,
+                .scaleplus-env-setting label {
+                    flex: none;
+                    text-align: left;
+                }
+                .scaleplus-env-names input,
+                .scaleplus-env-setting input {
+                    flex: none;
+                    min-width: 150px;
+                }
             }
         `;
         document.head.appendChild(style);
@@ -722,13 +712,8 @@
         $(advCriteriaIndicatorToggle).bootstrapToggle(advCriteriaIndicatorToggle.checked ? 'on' : 'off');
 
         // Handle close
-        const closeModal = () => {
-            modal.remove();
-            style.remove();
-        };
-        backdrop.addEventListener('click', closeModal);
-        if (closeBtn) closeBtn.addEventListener('click', closeModal);
-        if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+        // Bootstrap handles modal closing automatically with data-dismiss="modal"
+        // No custom closeModal function needed
     };
 
     document.addEventListener('keydown', function (e) {
@@ -796,7 +781,14 @@
     if (configBtn) {
         configBtn.addEventListener('click', (e) => {
             e.preventDefault();
+            const existingModal = document.getElementById('scaleplus-settings-modal');
+            if (existingModal) {
+                existingModal.remove();
+                const existingStyle = document.querySelector('style[data-scaleplus-modal]');
+                if (existingStyle) existingStyle.remove();
+            }
             createSettingsModal();
+            $('#scaleplus-settings-modal').modal('show');
         });
     }
 
@@ -827,13 +819,44 @@
         if (e.button === 1) {
             const enabled = localStorage.getItem(SETTINGS.MIDDLE_CLICK_COPY) !== 'false';
             if (enabled) {
+                // Check if this is a favorite filter link
+                let target = e.target;
+                while (target && target !== document.body) {
+                    if (target.id === 'SearchPaneMenuFavoritesChooseSearch' || target.closest('a[id="SearchPaneMenuFavoritesChooseSearch"]')) {
+                        // This is a favorite filter link - open in new tab with base URL
+                        e.preventDefault();
+                        const link = target.id === 'SearchPaneMenuFavoritesChooseSearch' ? target : target.closest('a[id="SearchPaneMenuFavoritesChooseSearch"]');
+                        if (link) {
+                            // Extract filter name from the link
+                            const filterText = link.querySelector('.deletesavedsearchtext')?.textContent?.trim();
+                            if (filterText) {
+                                console.log('[ScalePlus] Opening favorite filter in new tab:', filterText);
+
+                                // Put the filter name directly in the URL hash
+                                const baseUrl = `${location.origin}${location.pathname}`;
+                                const url = `${baseUrl}#pendingFilter=${encodeURIComponent(filterText)}`;
+                                const newTab = window.open(url, '_blank');
+                                if (newTab) {
+                                    newTab.blur();
+                                    window.focus();
+                                }
+                            } else {
+                                console.warn('[ScalePlus] Could not extract filter name from favorite link');
+                            }
+                        }
+                        return;
+                    }
+                    target = target.parentElement;
+                }
+
+                // Not a favorite link - use copy functionality
                 e.preventDefault();
                 copyInnerText(e);
             }
         }
     });
 
-    // Environment Labels
+    // Add environment label to the top of the page
     function addEnvironmentLabel() {
         const enabled = localStorage.getItem(SETTINGS.ENV_LABELS) === 'true';
         if (!enabled) return;
@@ -855,21 +878,23 @@
             background-color: ${bgColor};
             font-weight: bold;
             font-size: 16px;
-            padding: 8px 8px;
+            padding: 8px 12px;
             border-radius: 4px;
-            margin: 2px 800px;
-            display: inline-block;
+            position: fixed;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1040;
             white-space: nowrap;
+            max-width: fit-content;
         `;
 
-        // Insert it at the beginning of the navbar
-        const header = navBar.querySelector('.navbar-header');
-        if (header) {
-            header.insertBefore(label, header.firstChild);
-        }
+        // Insert it into the body (not navbar) to avoid affecting navbar layout
+        document.body.insertBefore(label, document.body.firstChild);
 
         navBar.style.borderBottom = `6px solid ${borderColor}`;
     }
+
     addEnvironmentLabel();
 
     // Default Filter Management
@@ -1322,8 +1347,13 @@
 
     // Auto-apply default filter for form URLs without arguments
     function checkAutoApplyDefault() {
-        // Only for URLs like "https://scaleqa.byjasco.com/scale/insights/2723" (no ? parameters)
-        if (location.pathname.includes('/insights/') && !location.search) {
+        // Only apply default filter if no filters are present in URL (neither query params nor hash fragment)
+        // and no pending filter was just processed
+        const hasQueryFilters = location.search.includes('filters=');
+        const hasHashFilters = location.hash.includes('filters=');
+        const hasPendingFilter = location.hash.includes('pendingFilter=');
+
+        if (location.pathname.includes('/insights/') && !hasQueryFilters && !hasHashFilters && !hasPendingFilter && !hasProcessedPendingFilter) {
             const formId = extractFormIdFromUrl(location.href);
             if (formId) {
                 const defaultFilter = getDefaultFilter(formId);
@@ -1351,6 +1381,7 @@
     // Monitor for saved searches dropdown to appear for auto-apply
     let hasAutoApplied = false;
     let hasLoggedNoDefault = false;
+    let hasProcessedPendingFilter = false;
 
     function checkForAutoApply() {
         if (isDefaultFilterEnabled()) {
@@ -1375,14 +1406,83 @@
         }
     }
 
+    // Check for pending filter to click from middle-click
+    function checkForPendingFilter() {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const pendingFilterName = hashParams.get('pendingFilter');
+
+        if (pendingFilterName) {
+            const filterName = decodeURIComponent(pendingFilterName);
+            console.log('[ScalePlus] Found pending filter to click:', filterName);
+
+            // Clean up the URL by removing the pendingFilter parameter from hash
+            const newHash = window.location.hash.replace(/[&#]pendingFilter=[^&]*/, '');
+            window.history.replaceState({}, '', window.location.pathname + window.location.search + newHash);
+
+            // Wait for favorites to load and then click the matching one
+            const clickPendingFilter = () => {
+                // First, make sure the favorites dropdown is visible
+                const favoritesDropdown = document.querySelector('#InsightMenuFavoritesDropdown');
+                if (favoritesDropdown && !favoritesDropdown.classList.contains('open')) {
+                    console.log('[ScalePlus] Opening favorites dropdown for pending filter');
+                    const dropdownToggle = favoritesDropdown.querySelector('[data-toggle="dropdown"]');
+                    if (dropdownToggle) {
+                        dropdownToggle.click();
+                        // Wait a bit for the dropdown to open
+                        setTimeout(() => findAndClickFavorite(), 200);
+                        return;
+                    }
+                }
+
+                findAndClickFavorite();
+            };
+
+            const findAndClickFavorite = () => {
+                const favoriteLinks = document.querySelectorAll('a[id="SearchPaneMenuFavoritesChooseSearch"]');
+                console.log(`[ScalePlus] Looking for favorite "${filterName}" among ${favoriteLinks.length} favorites`);
+
+                for (const link of favoriteLinks) {
+                    const linkText = link.querySelector('.deletesavedsearchtext')?.textContent?.trim();
+                    console.log(`[ScalePlus] Checking favorite: "${linkText}"`);
+                    if (linkText === filterName) {
+                        console.log('[ScalePlus] Found pending favorite, waiting 3 seconds for Scale to be ready before clicking:', filterName);
+
+                        // Wait longer for Scale to be fully ready before clicking the favorite
+                        // This prevents "no results" by ensuring the search functionality is initialized
+                        setTimeout(() => {
+                            console.log('[ScalePlus] Clicking pending favorite after delay:', filterName);
+                            link.click();
+                            hasProcessedPendingFilter = true;
+                        }, 1000); // Wait 1 seconds for Scale to be ready
+
+                        return;
+                    }
+                }
+
+                // If not found yet, try again in a moment (favorites might still be loading)
+                if (favoriteLinks.length > 0) {
+                    console.log('[ScalePlus] Pending filter not found, will retry');
+                    setTimeout(clickPendingFilter, 500);
+                } else {
+                    console.log('[ScalePlus] No favorites found yet, will retry');
+                    setTimeout(clickPendingFilter, 1000);
+                }
+            };
+
+            clickPendingFilter();
+        }
+    }
+
     // Check once when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             checkForAutoApply();
+            checkForPendingFilter();
             updateFavoritesStarIcon(); // Update star icon when DOM is ready
         });
     } else {
         checkForAutoApply();
+        checkForPendingFilter();
         updateFavoritesStarIcon(); // Update star icon immediately if DOM is already ready
     }
 
@@ -1390,6 +1490,7 @@
     window.addEventListener('load', () => {
         setTimeout(() => {
             checkForAutoApply();
+            checkForPendingFilter();
             updateFavoritesStarIcon(); // Update star icon on page load
         }, 100);
     });
@@ -1639,25 +1740,6 @@
         }
     }
 
-    function toggleAdvancedPanel(visible) {
-        const panel = document.getElementById('ScreenGroupSubAccordion4794');
-        if (panel) {
-            // remove focus from any element inside the panel
-            const active = panel.contains(document.activeElement) ? document.activeElement : null;
-            if (active) active.blur();
-
-            if (visible) {
-                panel.removeAttribute('aria-hidden');
-                panel.removeAttribute('inert');
-                panel.style.display = 'block';
-            } else {
-                // use inert instead of aria-hidden to prevent focus
-                panel.setAttribute('inert', '');
-                panel.style.display = 'none';
-            }
-        }
-    }
-
     function applyAdvancedCriteria(savedFilters, formId) {
         if (!savedFilters.advSearch || !Array.isArray(savedFilters.advSearch)) {
             console.log('[ScalePlus] No advanced search filters to apply');
@@ -1784,7 +1866,10 @@
                     const formId = getFormIdFromUrl();
                     if (formId && isDefaultFilterEnabled()) {
                         const defaultFilter = getDefaultFilter(formId);
-                        if (defaultFilter) {
+                        // Don't apply default filter if there's still a pending filter that hasn't been processed
+                        // or if a pending filter was just processed
+                        const hasPendingFilter = location.hash.includes('pendingFilter=');
+                        if (defaultFilter && !hasPendingFilter && !hasProcessedPendingFilter) {
                             console.log('[ScalePlus] Applying default filter after clear:', defaultFilter);
                             fetchSavedFilter(defaultFilter)
                                 .then(savedFilters => {
@@ -1794,19 +1879,16 @@
                                 .catch(err => {
                                     console.warn('[ScalePlus] Failed to fetch or apply saved filter after clear:', err);
                                 });
+                        } else if (hasPendingFilter) {
+                            console.log('[ScalePlus] Skipping default filter application after clear - pending filter exists');
+                        } else if (hasProcessedPendingFilter) {
+                            console.log('[ScalePlus] Skipping default filter application after clear - pending filter was just processed');
                         }
                     }
                 }, 10); // Wait 10ms for clear to complete
             });
         }
     }
-
-    // Monitor for clear filters button - use event-driven approach instead of polling
-    // setInterval(() => {
-    //     if (isDefaultFilterEnabled()) {
-    //         enhanceClearFiltersButton();
-    //     }
-    // }, 500);
 
     // Add event-driven approach for clear filters button
     function setupClearFiltersObserver() {
@@ -1968,8 +2050,6 @@
 
         // Try to modify columns immediately and after delays to ensure grid is ready
         modifyGridColumns();
-        setTimeout(modifyGridColumns, 1000); // Wait 1s for grid initialization
-        setTimeout(modifyGridColumns, 3000); // Wait 3s for any dynamic loading
 
         // Set up MutationObserver to watch for changes to the grid
         const observer = new MutationObserver((mutations) => {

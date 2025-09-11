@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         ScalePlus
+// @name         ScalePlus experimental
 // @namespace    http://tampermonkey.net/
 // @version      2.7
 // @description  Custom enhancements for Scale application with toggleable features
@@ -3151,22 +3151,20 @@
                     <div class="scaleplus-date-options">
                         <div class="radio">
                             <label>
-                                <input type="radio" name="dateMode" value="normal" checked>
-                                <strong>Normal:</strong> Use the exact dates and times as saved
-                            </label>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input type="radio" name="dateMode" value="relative_date">
-                                <strong>Relative Date:</strong> Adjust dates relative to today, keep original times
-                                <br><small>Example: "1 day ago from 9 AM - 5 PM" becomes "yesterday from 9 AM - 5 PM"</small>
+                                <input type="radio" name="dateMode" value="relative_date" checked>
+                                <strong>Relative Date</strong>
                             </label>
                         </div>
                         <div class="radio">
                             <label>
                                 <input type="radio" name="dateMode" value="relative_date_time">
-                                <strong>Relative Date & Time:</strong> Adjust both dates and times relative to now
-                                <br><small>Example: "1 day ago at 2 PM" becomes "yesterday at 2 PM"</small>
+                                <strong>Relative Date & Time</strong>
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label>
+                                <input type="radio" name="dateMode" value="normal">
+                                <strong>Absolute</strong>
                             </label>
                         </div>
                     </div>
@@ -3192,7 +3190,7 @@
         // Use same styling as settings modal
         Object.assign(modalContent.style, {
             position: 'fixed',
-            top: '-100px',
+            top: '20%',
             left: '50%',
             transform: 'translateX(-50%)',
             boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
@@ -3249,27 +3247,49 @@
             margin: '0'
         });
 
-        // Style buttons
+        // Style buttons to match Scale's btn btn-default style
         [cancelBtn, saveBtn].forEach(btn => {
+            // Add Scale button classes
+            btn.className = 'btn btn-default';
             Object.assign(btn.style, {
-                border: 'none',
-                padding: '8px 16px',
+                border: '1px solid #ccc',
+                padding: '6px 12px',
                 cursor: 'pointer',
                 fontSize: '14px',
-                backgroundColor: '#4f93e4',
-                color: 'white',
-                borderRadius: '0',
-                marginLeft: '10px'
+                backgroundColor: '#f8f9fa',
+                color: '#333',
+                borderRadius: '4px',
+                marginLeft: '10px',
+                fontFamily: 'Arial, sans-serif',
+                lineHeight: '1.42857',
+                textAlign: 'center',
+                verticalAlign: 'middle',
+                touchAction: 'manipulation'
             });
         });
 
-        saveBtn.style.backgroundColor = '#4f93e4';
-        cancelBtn.style.backgroundColor = '#6c757d';
+        // Style save button with primary appearance
+        saveBtn.style.backgroundColor = '#337ab7';
+        saveBtn.style.borderColor = '#2e6da4';
+        saveBtn.style.color = '#fff';
 
-        saveBtn.onmouseover = () => saveBtn.style.backgroundColor = '#3a7bc8';
-        saveBtn.onmouseout = () => saveBtn.style.backgroundColor = '#4f93e4';
-        cancelBtn.onmouseover = () => cancelBtn.style.backgroundColor = '#5a6268';
-        cancelBtn.onmouseout = () => cancelBtn.style.backgroundColor = '#6c757d';
+        saveBtn.onmouseover = () => {
+            saveBtn.style.backgroundColor = '#286090';
+            saveBtn.style.borderColor = '#204d74';
+        };
+        saveBtn.onmouseout = () => {
+            saveBtn.style.backgroundColor = '#337ab7';
+            saveBtn.style.borderColor = '#2e6da4';
+        };
+
+        cancelBtn.onmouseover = () => {
+            cancelBtn.style.backgroundColor = '#e6e6e6';
+            cancelBtn.style.borderColor = '#adadad';
+        };
+        cancelBtn.onmouseout = () => {
+            cancelBtn.style.backgroundColor = '#f8f9fa';
+            cancelBtn.style.borderColor = '#ccc';
+        };
 
         // Style close button
         Object.assign(closeBtn.style, {

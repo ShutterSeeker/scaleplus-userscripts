@@ -37,6 +37,10 @@ The **Default Filter** feature provides intelligent automation:
 - **Remove Default**: Click the filled star (★) to clear the default state
 - **Per-Form Storage**: Each form remembers its own default filter independently
 
+### Middle-Click Favorites
+- **Quick Access**: Middle-click any favorite filter to open it in a new tab
+- **Automatic Application**: The selected favorite automatically applies when the new tab loads
+
 ---
 
 #### Environment Labels
@@ -53,6 +57,18 @@ The **Default Filter** feature provides intelligent automation:
 - **Configuration**:
   - Set custom names for QA and Production environments
   - Names persist across browser sessions
+
+---
+
+## Advanced Criteria Enhance
+
+![Advanced Criteria](images/advanced.png)
+
+The **Advanced Criteria Enhance** feature provides enhances the advanced criteria accordian:
+
+### Enhanced Search Interface
+- **Improved Layout**: Added the condition column
+- **Visual Enhancements**: Shows the number of advanced criteria currently applied
 
 ---
 
