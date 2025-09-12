@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      2.8
+// @version      2.9
 // @description  Custom enhancements for Scale application with toggleable features
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
@@ -20,7 +20,7 @@
     const SETTINGS = {
         SHOW_SEARCH_PANE: 'scaleplus_show_search_pane',
         CUSTOM_ENTER: 'scaleplus_custom_enter',
-        MIDDLE_CLICK_COPY: 'scaleplus_middle_click_copy',
+        MIDDLE_CLICK: 'scaleplus_middle_click',
         RIGHT_CLICK_MENU: 'scaleplus_right_click_menu',
         ENV_LABELS: 'scaleplus_env_labels',
         TAB_DUPLICATOR: 'scaleplus_tab_duplicator',
@@ -34,9 +34,9 @@
     const DEFAULTS = {
         [SETTINGS.SHOW_SEARCH_PANE]: 'true',
         [SETTINGS.CUSTOM_ENTER]: 'true',
-        [SETTINGS.MIDDLE_CLICK_COPY]: 'true',
+        [SETTINGS.MIDDLE_CLICK]: 'true',
         [SETTINGS.RIGHT_CLICK_MENU]: 'true',
-        [SETTINGS.ENV_LABELS]: 'false',
+        // ENV_LABELS is set dynamically below
         [SETTINGS.TAB_DUPLICATOR]: 'false',
         [SETTINGS.DEFAULT_FILTER]: 'true',
         [SETTINGS.ADV_CRITERIA_ENHANCEMENT]: 'true',
@@ -44,6 +44,23 @@
         [SETTINGS.ENV_QA_NAME]: 'QA ENVIRONMENT',
         [SETTINGS.ENV_PROD_NAME]: 'PRODUCTION ENVIRONMENT'
     };
+
+    // Dynamically set ENV_LABELS default based on hostname if not already set
+    if (localStorage.getItem(SETTINGS.ENV_LABELS) === null) {
+        if (window.location.hostname.includes('scaleqa')) {
+            localStorage.setItem(SETTINGS.ENV_LABELS, 'true');
+        } else if (window.location.hostname.includes('scale20')) {
+            localStorage.setItem(SETTINGS.ENV_LABELS, 'false');
+        }
+    }
+
+    // Ensure advanced settings are false by default if not set
+    if (localStorage.getItem(SETTINGS.F5_BEHAVIOR) === null) {
+        localStorage.setItem(SETTINGS.F5_BEHAVIOR, 'false');
+    }
+    if (localStorage.getItem(SETTINGS.TAB_DUPLICATOR) === null) {
+        localStorage.setItem(SETTINGS.TAB_DUPLICATOR, 'false');
+    }
 
     // Helper: normalize spaces (convert &nbsp; → space, collapse whitespace)
     const normalizeSpaces = (text) => text.replace(/\u00A0/g, ' ').replace(/\s+/g, ' ').trim();
@@ -562,7 +579,7 @@
         }
 
         const middleClickToggle = modal.querySelector('#middle-click-toggle');
-        const currentMiddle = localStorage.getItem(SETTINGS.MIDDLE_CLICK_COPY);
+        const currentMiddle = localStorage.getItem(SETTINGS.MIDDLE_CLICK);
         if (currentMiddle !== 'false') {
             middleClickToggle.checked = true;
         }
@@ -600,8 +617,8 @@
         const qaNameInput = modal.querySelector('#qa-name');
         const prodNameInput = modal.querySelector('#prod-name');
 
-        qaNameInput.value = localStorage.getItem('scaleplus_env_qa_name') || 'QA ENVIRONMENT';
-        prodNameInput.value = localStorage.getItem('scaleplus_env_prod_name') || 'PRODUCTION ENVIRONMENT';
+    qaNameInput.value = localStorage.getItem(SETTINGS.ENV_QA_NAME) || DEFAULTS[SETTINGS.ENV_QA_NAME];
+    prodNameInput.value = localStorage.getItem(SETTINGS.ENV_PROD_NAME) || DEFAULTS[SETTINGS.ENV_PROD_NAME];
 
         // Handle toggle changes
         $('#search-toggle').on('change', function(event) {
@@ -618,7 +635,7 @@
 
         $('#middle-click-toggle').on('change', function(event) {
             const state = this.checked;
-            localStorage.setItem(SETTINGS.MIDDLE_CLICK_COPY, state.toString());
+            localStorage.setItem(SETTINGS.MIDDLE_CLICK, state.toString());
             console.log(`[ScalePlus] Middle click copy set to: ${state}`);
         });
 
@@ -712,11 +729,11 @@
         });
 
         qaNameInput.addEventListener('input', () => {
-            localStorage.setItem('scaleplus_env_qa_name', qaNameInput.value);
+            localStorage.setItem(SETTINGS.ENV_QA_NAME, qaNameInput.value);
         });
 
         prodNameInput.addEventListener('input', () => {
-            localStorage.setItem('scaleplus_env_prod_name', prodNameInput.value);
+            localStorage.setItem(SETTINGS.ENV_PROD_NAME, prodNameInput.value);
         });
 
         // Initialize bootstrap toggles
@@ -758,14 +775,7 @@
                 console.log('[ScalePlus] F5 normal behavior - allowing page refresh');
             }
         } else if (e.key === 'Enter' || e.keyCode === 13) {
-            // Check if settings modal is open
-            const settingsModal = document.getElementById('scaleplus-settings-modal');
-            if (settingsModal) {
-                e.preventDefault();
-                settingsModal.querySelector('.scaleplus-cancel-btn').click();
-                return;
-            }
-            // Check for any visible modal dialogs (display: block)
+            // Only handle Enter if no modal is visible
             const modals = document.querySelectorAll('.modal');
             let modalVisible = false;
             modals.forEach(modal => {
@@ -789,7 +799,7 @@
                     console.log('[ScalePlus] Enter key triggered');
                 }
             }
-        } else if (e.key.toLowerCase() === 'd' && e.ctrlKey && !e.shiftKey) {
+        } else if (e.key && e.key.toLowerCase() === 'd' && e.ctrlKey && !e.shiftKey) {
             const enabled = localStorage.getItem(SETTINGS.TAB_DUPLICATOR) !== 'false';
             if (enabled) {
                 e.preventDefault();
@@ -840,7 +850,7 @@
     document.addEventListener('mousedown', function (e) {
         if (e.button === 1) {
             console.log('[ScalePlus] Middle-click detected at:', { pageX: e.pageX, pageY: e.pageY, target: e.target });
-            const enabled = localStorage.getItem(SETTINGS.MIDDLE_CLICK_COPY) !== 'false';
+            const enabled = localStorage.getItem(SETTINGS.MIDDLE_CLICK) !== 'false';
             if (enabled) {
                 // Prevent default immediately to stop browser's middle-click behavior
                 e.preventDefault();
@@ -888,7 +898,7 @@
     document.addEventListener('auxclick', function (e) {
         if (e.button === 1) {
             console.log('[ScalePlus] Aux-click (middle) detected at:', { pageX: e.pageX, pageY: e.pageY, target: e.target });
-            const enabled = localStorage.getItem(SETTINGS.MIDDLE_CLICK_COPY) !== 'false';
+            const enabled = localStorage.getItem(SETTINGS.MIDDLE_CLICK) !== 'false';
             if (enabled) {
                 e.preventDefault();
                 console.log('[ScalePlus] Aux-click default prevented, checking for targets...');
@@ -907,9 +917,9 @@
         // Create a label element
         const label = document.createElement('div');
         const isProd = window.location.hostname === 'scale20.byjasco.com';
-        const qaName = localStorage.getItem(SETTINGS.ENV_QA_NAME) || DEFAULTS[SETTINGS.ENV_QA_NAME];
-        const prodName = localStorage.getItem(SETTINGS.ENV_PROD_NAME) || DEFAULTS[SETTINGS.ENV_PROD_NAME];
-        const labelText = isProd ? prodName : qaName;
+    const qaName = localStorage.getItem(SETTINGS.ENV_QA_NAME) || DEFAULTS[SETTINGS.ENV_QA_NAME];
+    const prodName = localStorage.getItem(SETTINGS.ENV_PROD_NAME) || DEFAULTS[SETTINGS.ENV_PROD_NAME];
+    const labelText = isProd ? prodName : qaName;
         const bgColor = isProd ? '#c0392b' : '#d0b132';
         const borderColor = bgColor;
         label.textContent = labelText;
@@ -1796,7 +1806,7 @@
         if (grid.data('igGrid')) {
             // Clear existing rows
             try {
-                console.log('[ScalePlus] Clearing existing advanced criteria rows');
+                // Clearing existing advanced criteria rows (log removed)
                 const rows = grid.igGrid('rows');
                 rows.each(function () {
                     const rowId = $(this).attr('data-id');
@@ -1819,13 +1829,13 @@
                 if (_webUi &&
                     _webUi.insightSearchPaneActions &&
                     typeof _webUi.insightSearchPaneActions.applyInputAdvanceFilterCriteria === 'function') {
-                    console.log('[ScalePlus] Applying advanced criteria using Scale helper:', records);
+                    // Applying advanced criteria using Scale helper (log removed)
                     _webUi.insightSearchPaneActions.applyInputAdvanceFilterCriteria(
                         records,
                         formId || extractFormIdFromUrl(location.href)
                     );
                 } else {
-                    console.log('[ScalePlus] Scale helper not available, applying manually');
+                    // Scale helper not available, applying manually (log removed)
                     records.forEach(rec => {
                         grid.igGridUpdating('addRow', {
                             ConditionIdentifier: rec.ConditionIdentifier,
@@ -1843,13 +1853,13 @@
                 }
             }, 50);
         } else {
-            console.log('[ScalePlus] No advanced criteria records to apply');
+            // No advanced criteria records to apply (log removed)
         }
     }
 
     // Apply both basic and advanced criteria using Scale's internal helpers
     function applySavedFilters(savedFilters) {
-        console.log('[ScalePlus] Applying saved filters using Scale\'s internal functions:', savedFilters);
+        // Applying saved filters using Scale's internal functions (log removed)
 
         // Make sure the search pane is visible
         clickSearchButtonIfNeeded();
@@ -1859,19 +1869,19 @@
             _webUi &&
             _webUi.insightSearchPaneActions &&
             typeof _webUi.insightSearchPaneActions.applyInputFilterCriteria === 'function') {
-            console.log('[ScalePlus] Applying basic filters:', savedFilters.inSearch);
+            // Applying basic filters (log removed)
             _webUi.insightSearchPaneActions.applyInputFilterCriteria(savedFilters.inSearch);
         } else {
-            console.log('[ScalePlus] Cannot apply basic filters - missing function or data');
+            // Cannot apply basic filters - missing function or data (log removed)
         }
 
         // Apply toggle filters manually
         if (Array.isArray(savedFilters.togSearch)) {
-            console.log('[ScalePlus] Applying toggle filters:', savedFilters.togSearch);
+            // Applying toggle filters (log removed)
             savedFilters.togSearch.forEach(tog => {
                 const el = document.getElementById(tog.name);
                 if (el && typeof $(el).bootstrapToggle === 'function') {
-                    console.log('[ScalePlus] Setting toggle ' + tog.name + ' to ' + (tog.value ? 'on' : 'off'));
+                    // Setting toggle (log removed)
                     $(el).bootstrapToggle(tog.value ? 'on' : 'off');
                 }
             });
@@ -1892,14 +1902,14 @@
         const clearBtn = document.querySelector('#InsightMenuActionClearFilters');
         if (clearBtn && !clearBtn.hasAttribute('data-enhanced')) {
             clearBtn.setAttribute('data-enhanced', 'true');
-            console.log('[ScalePlus] Enhanced clear filters button');
+            // Enhanced clear filters button (log removed)
 
             // Store original click handler
             const originalOnclick = clearBtn.onclick;
 
             // Add our enhanced click handler
             clearBtn.addEventListener('click', function(e) {
-                console.log('[ScalePlus] Clear filters clicked - will apply default filter after clearing');
+                // Clear filters clicked - will apply default filter after clearing (log removed)
 
                 // Apply default filter after a delay to let the clear operation complete
                 setTimeout(() => {
@@ -1910,19 +1920,19 @@
                         // or if a pending filter was just processed
                         const hasPendingFilter = location.hash.includes('pendingFilter=');
                         if (defaultFilter && !hasPendingFilter && !hasProcessedPendingFilter) {
-                            console.log('[ScalePlus] Applying default filter after clear:', defaultFilter);
+                            // Applying default filter after clear (log removed)
                             fetchSavedFilter(defaultFilter)
                                 .then(savedFilters => {
-                                    console.log(`[ScalePlus] Applying default filter: ${defaultFilter} after clear`);
+                                    // Applying default filter after clear (log removed)
                                     applySavedFilters(savedFilters);
                                 })
                                 .catch(err => {
                                     console.warn('[ScalePlus] Failed to fetch or apply saved filter after clear:', err);
                                 });
                         } else if (hasPendingFilter) {
-                            console.log('[ScalePlus] Skipping default filter application after clear - pending filter exists');
+                            // Skipping default filter application after clear - pending filter exists (log removed)
                         } else if (hasProcessedPendingFilter) {
-                            console.log('[ScalePlus] Skipping default filter application after clear - pending filter was just processed');
+                            // Skipping default filter application after clear - pending filter was just processed (log removed)
                         }
                     }
                 }, 10); // Wait 10ms for clear to complete
