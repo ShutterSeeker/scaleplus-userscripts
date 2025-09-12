@@ -43,6 +43,63 @@ The **Default Filter** feature provides intelligent automation:
 
 ---
 
+## Right-Click Copy
+
+![Right-Click Copy](images/right-click-copy.png)
+
+The **Right-Click Copy** feature provides quick access to copy functionality for grid items:
+
+### Copy Grid Content
+- **Right-click** on any grid cell to open a context menu
+- **Copy** option extracts and copies the cell's text content
+- **Smart Text Extraction**: Automatically handles links and nested content
+- **Visual Feedback**: Shows a tooltip confirming what was copied
+
+### Enhanced Workflow
+- **Keyboard Alternative**: Middle-click also copies grid content
+- **Clipboard Integration**: Seamlessly integrates with system clipboard
+- **No Page Disruption**: Copy operations don't interfere with normal page behavior
+
+---
+
+## Right-Click Favorites Menu
+
+![Right-Click Favorites](images/right-click-fav.png)
+
+The **Right-Click Favorites Menu** provides advanced options for managing saved searches:
+
+### Favorites Management
+- **Right-click** on any favorite filter to access additional options
+- **Open in New Tab**: Quickly open favorites in new tabs
+- **Set as Default**: Mark favorites as default filters with star icons
+- **Delete**: Remove unwanted saved searches directly from the menu
+
+### Context Menu Options
+- **Smart Positioning**: Menu appears at cursor location
+- **Visual Indicators**: Clear icons for each action type
+- **State Awareness**: Shows current default filter status
+- **Immediate Updates**: Changes reflect instantly in the interface
+
+---
+
+## Tooltips Enhancement
+
+![Tooltips](images/tooltips.png)
+
+The **Tooltips Enhancement** feature provides helpful tooltips throughout the Scale interface:
+
+### Enhanced Navigation
+- **Menu Buttons**: Tooltips for all main menu actions (Apply, Stop, Clear Filters, etc.)
+- **Navigation Elements**: Helpful hints for navigation bar items
+- **Context-Aware**: Tooltips appear only when relevant
+
+### User Experience
+- **Non-Intrusive**: Tooltips appear on hover without disrupting workflow
+- **Informative**: Clear descriptions of button functions
+- **Consistent**: Standardized tooltip text across the application
+
+---
+
 #### Environment Labels
 
 ![Environment Labels](images/enviroment.png)

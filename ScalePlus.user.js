@@ -1,10 +1,12 @@
+
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      2.7
+// @version      2.8
 // @description  Custom enhancements for Scale application with toggleable features
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
+// @icon         https://scale20.byjasco.com/favicon.ico
 // @author       Blake, Nash
 // @match        https://scaleqa.byjasco.com/scale/*
 // @match        https://scale20.byjasco.com/scale/*
@@ -19,6 +21,7 @@
         SHOW_SEARCH_PANE: 'scaleplus_show_search_pane',
         CUSTOM_ENTER: 'scaleplus_custom_enter',
         MIDDLE_CLICK_COPY: 'scaleplus_middle_click_copy',
+        RIGHT_CLICK_MENU: 'scaleplus_right_click_menu',
         ENV_LABELS: 'scaleplus_env_labels',
         TAB_DUPLICATOR: 'scaleplus_tab_duplicator',
         DEFAULT_FILTER: 'scaleplus_default_filter',
@@ -32,6 +35,7 @@
         [SETTINGS.SHOW_SEARCH_PANE]: 'true',
         [SETTINGS.CUSTOM_ENTER]: 'true',
         [SETTINGS.MIDDLE_CLICK_COPY]: 'true',
+        [SETTINGS.RIGHT_CLICK_MENU]: 'true',
         [SETTINGS.ENV_LABELS]: 'false',
         [SETTINGS.TAB_DUPLICATOR]: 'false',
         [SETTINGS.DEFAULT_FILTER]: 'true',
@@ -217,45 +221,50 @@
                                 <span class="scaleplus-setting-desc">Automatically show the search pane when the page loads</span>
                             </div>
                             <div class="scaleplus-setting">
-                                <label for="enter-toggle">Custom Enter behavior:</label>
+                                <label for="enter-toggle">Custom enter behavior:</label>
                                 <input type="checkbox" id="enter-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                                 <span class="scaleplus-setting-desc">When enabled, Enter triggers Play/Stop</span>
                             </div>
                             <div class="scaleplus-setting">
-                                <label for="middle-click-toggle">Middle click to copy:</label>
+                                <label for="middle-click-toggle">Enhance middle click:</label>
                                 <input type="checkbox" id="middle-click-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                                 <span class="scaleplus-setting-desc">Middle click on grid items to copy text, or on favorites to open in new tab</span>
                             </div>
                             <div class="scaleplus-setting">
-                                <label for="adv-criteria-indicator-toggle">Enhance Advanced criteria:</label>
+                                <label for="right-click-toggle">Right-click menu:</label>
+                                <input type="checkbox" id="right-click-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
+                                <span class="scaleplus-setting-desc">Right-click on grid items and favorites for additional options</span>
+                            </div>
+                            <div class="scaleplus-setting">
+                                <label for="adv-criteria-indicator-toggle">Enhance advanced criteria:</label>
                                 <input type="checkbox" id="adv-criteria-indicator-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                                 <span class="scaleplus-setting-desc">Show count in header and condition column in advanced criteria grid</span>
                             </div>
                             <div class="scaleplus-setting">
-                                <label for="default-filter-toggle">Enhance Favorites:</label>
+                                <label for="default-filter-toggle">Enhance favorites:</label>
                                 <input type="checkbox" id="default-filter-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                                 <span class="scaleplus-setting-desc">Add star icons to favorites for default filter selection</span>
                             </div>
                         </div>
 
                         <div class="scaleplus-divider">
-                            <div class="scaleplus-advanced-label">Advanced Settings</div>
+                            <div class="scaleplus-advanced-label">Advanced settings</div>
                             <div class="scaleplus-divider-line"></div>
                         </div>
 
                         <div class="scaleplus-advanced-settings">
                             <div class="scaleplus-setting">
-                                <label for="f5-toggle">Custom F5 Behavior:</label>
+                                <label for="f5-toggle">Custom F5 behavior:</label>
                                 <input type="checkbox" id="f5-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                                 <span class="scaleplus-setting-desc">When enabled, F5 triggers Play/Stop instead of page refresh</span>
                             </div>
                             <div class="scaleplus-setting">
-                                <label for="tab-duplicator-toggle">Tab Duplicator:</label>
+                                <label for="tab-duplicator-toggle">Tab duplicator:</label>
                                 <input type="checkbox" id="tab-duplicator-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                                 <span class="scaleplus-setting-desc">Ctrl+D to duplicate current tab</span>
                             </div>
                             <div class="scaleplus-setting">
-                                <label for="env-labels-toggle">Environment Labels:</label>
+                                <label for="env-labels-toggle">Environment labels:</label>
                                 <input type="checkbox" id="env-labels-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                                 <span class="scaleplus-setting-desc">Show environment label in navbar</span>
                             </div>
@@ -558,6 +567,12 @@
             middleClickToggle.checked = true;
         }
 
+        const rightClickToggle = modal.querySelector('#right-click-toggle');
+        const currentRightClick = localStorage.getItem(SETTINGS.RIGHT_CLICK_MENU);
+        if (currentRightClick !== 'false') {
+            rightClickToggle.checked = true;
+        }
+
         const envLabelsToggle = modal.querySelector('#env-labels-toggle');
         const currentEnv = localStorage.getItem(SETTINGS.ENV_LABELS);
         if (currentEnv === 'true') {
@@ -605,6 +620,12 @@
             const state = this.checked;
             localStorage.setItem(SETTINGS.MIDDLE_CLICK_COPY, state.toString());
             console.log(`[ScalePlus] Middle click copy set to: ${state}`);
+        });
+
+        $('#right-click-toggle').on('change', function(event) {
+            const state = this.checked;
+            localStorage.setItem(SETTINGS.RIGHT_CLICK_MENU, state.toString());
+            console.log(`[ScalePlus] Right-click menu set to: ${state}`);
         });
 
         $('#f5-toggle').on('change', function(event) {
@@ -699,12 +720,13 @@
         });
 
         // Initialize bootstrap toggles
-        $('#search-toggle, #enter-toggle, #middle-click-toggle, #f5-toggle, #tab-duplicator-toggle, #default-filter-toggle, #env-labels-toggle, #adv-criteria-indicator-toggle').bootstrapToggle();
+        $('#search-toggle, #enter-toggle, #middle-click-toggle, #right-click-toggle, #f5-toggle, #tab-duplicator-toggle, #default-filter-toggle, #env-labels-toggle, #adv-criteria-indicator-toggle').bootstrapToggle();
 
         // Set initial states explicitly
         $(searchToggle).bootstrapToggle(searchToggle.checked ? 'on' : 'off');
         $(enterToggle).bootstrapToggle(enterToggle.checked ? 'on' : 'off');
         $(middleClickToggle).bootstrapToggle(middleClickToggle.checked ? 'on' : 'off');
+        $(rightClickToggle).bootstrapToggle(rightClickToggle.checked ? 'on' : 'off');
         $(f5Toggle).bootstrapToggle(f5Toggle.checked ? 'on' : 'off');
         $(envLabelsToggle).bootstrapToggle(envLabelsToggle.checked ? 'on' : 'off');
         $(tabDuplicatorToggle).bootstrapToggle(tabDuplicatorToggle.checked ? 'on' : 'off');
@@ -817,8 +839,12 @@
 
     document.addEventListener('mousedown', function (e) {
         if (e.button === 1) {
+            console.log('[ScalePlus] Middle-click detected at:', { pageX: e.pageX, pageY: e.pageY, target: e.target });
             const enabled = localStorage.getItem(SETTINGS.MIDDLE_CLICK_COPY) !== 'false';
             if (enabled) {
+                // Prevent default immediately to stop browser's middle-click behavior
+                e.preventDefault();
+                console.log('[ScalePlus] Middle-click default prevented, checking for targets...');
                 // Check if this is a favorite filter link
                 let target = e.target;
                 while (target && target !== document.body) {
@@ -849,6 +875,8 @@
                     target = target.parentElement;
                 }
 
+                console.log('[ScalePlus] No favorite link found for middle-click');
+
                 // Not a favorite link - use copy functionality
                 e.preventDefault();
                 copyInnerText(e);
@@ -856,7 +884,19 @@
         }
     });
 
-    // Add environment label to the top of the page
+    // Add auxclick handler as backup for middle-click
+    document.addEventListener('auxclick', function (e) {
+        if (e.button === 1) {
+            console.log('[ScalePlus] Aux-click (middle) detected at:', { pageX: e.pageX, pageY: e.pageY, target: e.target });
+            const enabled = localStorage.getItem(SETTINGS.MIDDLE_CLICK_COPY) !== 'false';
+            if (enabled) {
+                e.preventDefault();
+                console.log('[ScalePlus] Aux-click default prevented, checking for targets...');
+
+                console.log('[ScalePlus] No favorite link found for aux-click');
+            }
+        }
+    });
     function addEnvironmentLabel() {
         const enabled = localStorage.getItem(SETTINGS.ENV_LABELS) === 'true';
         if (!enabled) return;
@@ -2089,5 +2129,440 @@
     } else {
         setupAdvancedCriteriaObserver();
     }
+
+    // ===== RIGHT-CLICK CONTEXT MENU SYSTEM =====
+
+    // Create context menu styles
+    const contextMenuStyles = `
+        .scaleplus-context-menu {
+            position: fixed;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            z-index: 100000;
+            min-width: 150px;
+            padding: 4px 0;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            pointer-events: auto;
+        }
+        .scaleplus-context-menu-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            cursor: pointer;
+            color: #333;
+            text-decoration: none;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-size: 14px;
+        }
+        .scaleplus-context-menu-item:hover {
+            background-color: #f5f5f5;
+        }
+        .scaleplus-context-menu-item:active {
+            background-color: #e8e8e8;
+        }
+        .scaleplus-context-menu-item.disabled {
+            color: #999;
+            cursor: not-allowed;
+        }
+        .scaleplus-context-menu-item.disabled:hover {
+            background-color: transparent;
+        }
+        .scaleplus-context-menu-icon {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .scaleplus-context-menu-separator {
+            height: 1px;
+            background-color: #e0e0e0;
+            margin: 4px 0;
+        }
+    `;
+
+    // Add styles to document
+    if (!document.getElementById('scaleplus-context-menu-styles')) {
+        const style = document.createElement('style');
+        style.id = 'scaleplus-context-menu-styles';
+        style.textContent = contextMenuStyles;
+        document.head.appendChild(style);
+    }
+
+    // Context menu class
+    class ScalePlusContextMenu {
+        constructor() {
+            this.menu = null;
+            this.currentTarget = null;
+            this.createMenu();
+            this.attachGlobalHandlers();
+        }
+
+        createMenu() {
+            this.menu = document.createElement('div');
+            this.menu.className = 'scaleplus-context-menu';
+            this.menu.style.display = 'none';
+            document.body.appendChild(this.menu);
+        }
+
+        attachGlobalHandlers() {
+            // Hide menu on click outside
+            document.addEventListener('click', (e) => {
+                if (!this.menu.contains(e.target)) {
+                    this.hide();
+                }
+            });
+
+            // Hide menu on escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    this.hide();
+                }
+            });
+
+            // Prevent context menu on our custom menu
+            this.menu.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+            });
+        }
+
+        show(x, y, items, target = null) {
+            this.currentTarget = target;
+            this.menu.innerHTML = '';
+
+            items.forEach(item => {
+                if (item.separator) {
+                    const separator = document.createElement('div');
+                    separator.className = 'scaleplus-context-menu-separator';
+                    this.menu.appendChild(separator);
+                    return;
+                }
+
+                const menuItem = document.createElement('button');
+                menuItem.className = 'scaleplus-context-menu-item';
+                if (item.disabled) {
+                    menuItem.classList.add('disabled');
+                }
+
+                // Add icon if provided
+                if (item.icon) {
+                    const iconSpan = document.createElement('span');
+                    iconSpan.className = 'scaleplus-context-menu-icon';
+                    if (item.icon.includes(' ')) {
+                        // Handle icons with prefixes like "fas fa-star"
+                        iconSpan.innerHTML = `<i class="${item.icon}"></i>`;
+                    } else if (item.icon.startsWith('fa-')) {
+                        iconSpan.innerHTML = `<i class="fa ${item.icon}"></i>`;
+                    } else if (item.icon.startsWith('glyphicon-')) {
+                        iconSpan.innerHTML = `<span class="glyphicon ${item.icon}"></span>`;
+                    } else {
+                        iconSpan.textContent = item.icon;
+                    }
+                    menuItem.appendChild(iconSpan);
+                }
+
+                // Add text
+                const textSpan = document.createElement('span');
+                textSpan.textContent = item.label;
+                menuItem.appendChild(textSpan);
+
+                // Add click handler
+                if (!item.disabled && item.action) {
+                    menuItem.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        item.action(this.currentTarget);
+                        this.hide();
+                    });
+                }
+
+                this.menu.appendChild(menuItem);
+            });
+
+        // Position menu at cursor with better viewport handling
+        const menuX = Math.max(10, Math.min(x, window.innerWidth - 200));
+        const menuY = Math.max(10, Math.min(y, window.innerHeight - 100));
+
+        this.menu.style.left = `${menuX}px`;
+        this.menu.style.top = `${menuY}px`;
+        this.menu.style.display = 'block';
+
+        // Force a reflow to ensure positioning is applied
+        this.menu.offsetHeight;
+
+        // Adjust position if menu goes off screen after display
+        const rect = this.menu.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+
+        if (rect.right > viewportWidth) {
+            this.menu.style.left = `${Math.max(10, viewportWidth - rect.width - 10)}px`;
+        }
+        if (rect.bottom > viewportHeight) {
+            this.menu.style.top = `${Math.max(10, viewportHeight - rect.height - 10)}px`;
+        }
+        }
+
+        hide() {
+            if (this.menu) {
+                this.menu.style.display = 'none';
+            }
+            this.currentTarget = null;
+        }
+    }
+
+    // Create global context menu instance
+    const contextMenu = new ScalePlusContextMenu();
+
+    // ===== RIGHT-CLICK HANDLERS =====
+
+    // Right-click handler for results grid
+    function handleGridRightClick(e) {
+        if (e.button !== 2) return; // Only right-click
+
+        // Check if right-click menu is enabled
+        const enabled = localStorage.getItem(SETTINGS.RIGHT_CLICK_MENU) !== 'false';
+        if (!enabled) return;
+
+        // Check if this is a grid item (similar to middle click logic)
+        let el = e.target;
+        while (el && (!el.getAttribute || !el.getAttribute('aria-describedby') || !el.getAttribute('aria-describedby').startsWith('ListPaneDataGrid'))) {
+            el = el.parentElement;
+        }
+
+        if (!el) return; // Not a grid item
+
+        e.preventDefault();
+
+        // Capture the original event coordinates for the copy function
+        const originalX = e.pageX;
+        const originalY = e.pageY;
+
+        const menuItems = [
+            {
+                label: 'Copy',
+                icon: 'fas fa-copy',
+                action: (target) => {
+                    // Create a synthetic event object for copyInnerText
+                    const syntheticEvent = {
+                        target: target,
+                        pageX: originalX,
+                        pageY: originalY,
+                        preventDefault: () => {}
+                    };
+                    copyInnerText(syntheticEvent);
+                }
+            }
+        ];
+
+        contextMenu.show(e.pageX, e.pageY, menuItems, el);
+    }
+
+
+
+    // Right-click handler for favorites
+    function handleFavoritesRightClick(e) {
+        if (e.button !== 2) return; // Only right-click
+
+        // Check if right-click menu is enabled
+        const enabled = localStorage.getItem(SETTINGS.RIGHT_CLICK_MENU) !== 'false';
+        if (!enabled) return;
+
+        // Check if this is a favorite item
+        let target = e.target;
+        let favoriteLink = null;
+
+        while (target && target !== document.body) {
+            if (target.id === 'SearchPaneMenuFavoritesChooseSearch' || target.closest('a[id="SearchPaneMenuFavoritesChooseSearch"]')) {
+                favoriteLink = target.id === 'SearchPaneMenuFavoritesChooseSearch' ? target : target.closest('a[id="SearchPaneMenuFavoritesChooseSearch"]');
+                break;
+            }
+            target = target.parentElement;
+        }
+
+        if (!favoriteLink) return; // Not a favorite item
+
+        e.preventDefault();
+
+        const filterText = favoriteLink.querySelector('.deletesavedsearchtext')?.textContent?.trim();
+        if (!filterText) return;
+
+        const formId = getFormIdFromUrl();
+        const currentDefault = getDefaultFilter(formId);
+        const isDefault = currentDefault === filterText;
+        const isDefaultFilterEnabled = localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+
+        const menuItems = [
+            {
+                label: 'Open in New Tab',
+                icon: 'fas fa-external-link',
+                action: (target) => {
+                    // Same logic as middle click for favorites
+                    const baseUrl = `${location.origin}${location.pathname}`;
+                    const url = `${baseUrl}#pendingFilter=${encodeURIComponent(filterText)}`;
+                    const newTab = window.open(url, '_blank');
+                    if (newTab) {
+                        newTab.blur();
+                        window.focus();
+                    }
+                }
+            }
+        ];
+
+        // Only add default filter options if the feature is enabled
+        if (isDefaultFilterEnabled) {
+            menuItems.push({ separator: true });
+            menuItems.push({
+                label: isDefault ? 'Remove Default' : 'Set as Default',
+                icon: isDefault ? 'far fa-star' : 'fas fa-star',
+                action: (target) => {
+                    if (isDefault) {
+                        clearDefaultFilter(formId);
+                    } else {
+                        setDefaultFilter(formId, filterText);
+                    }
+                    // Update star icons immediately
+                    setTimeout(() => {
+                        updateFavoritesStarIcon();
+                        // Force refresh of individual star icons
+                        const savedSearchItems = document.querySelectorAll('a[id="SearchPaneMenuFavoritesChooseSearch"]');
+                        savedSearchItems.forEach(item => {
+                            const itemFilterText = item.querySelector('.deletesavedsearchtext')?.textContent?.trim();
+                            if (itemFilterText) {
+                                const existingIcon = item.querySelector('.scaleplus-default-icon');
+                                if (existingIcon) {
+                                    const newDefault = getDefaultFilter(formId);
+                                    const isNowDefault = newDefault === itemFilterText;
+                                    existingIcon.className = `scaleplus-default-icon navbar-right glyphicon ${isNowDefault ? 'glyphicon-star' : 'glyphicon-star-empty'}`;
+                                    existingIcon.style.color = isNowDefault ? '#f1c40f' : '#ccc';
+                                }
+                            }
+                        });
+                    }, 100);
+                }
+            });
+        }
+
+        menuItems.push({
+            label: 'Delete',
+            icon: 'fas fa-trash',
+            action: (target) => {
+                // Click the delete button
+                const deleteBtn = favoriteLink.querySelector('.deletesavedsearchbutton');
+                if (deleteBtn) {
+                    deleteBtn.click();
+                }
+            }
+        });
+
+        contextMenu.show(e.pageX, e.pageY, menuItems, favoriteLink);
+    }
+
+    // Attach right-click handlers
+    document.addEventListener('contextmenu', (e) => {
+        // Try favorites
+        if (!e.defaultPrevented) {
+            handleFavoritesRightClick(e);
+        }
+
+        // If not handled by favorites, try grid
+        if (!e.defaultPrevented) {
+            handleGridRightClick(e);
+        }
+    });
+
+    // Add tooltips to menu buttons
+    function addMenuTooltips() {
+        const tooltips = {
+            'InsightMenuApply': 'Apply search',
+            'InsightMenuActionStopSearch': 'Stop search',
+            'InsightMenuActionClearFilters': 'Clear filters',
+            'InsightMenuActionSaveSearch': 'Save search',
+            'InsightMenuActionToggleSummary': 'Toggle summary',
+            'InsightMenuActionToggleGroupBy': 'Toggle group by',
+            'InsightMenuActionCollapse': 'Collapse groups',
+            'MenuExportToExcel': 'Export to Excel',
+            'InsightMenuFavoritesDropdown': 'Favorites'
+        };
+
+        // Set tooltips for buttons
+        Object.entries(tooltips).forEach(([id, tooltip]) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.title = tooltip;
+                // Also set tooltip on the link inside if it exists
+                const link = element.querySelector('a');
+                if (link) {
+                    link.title = tooltip;
+                }
+            }
+        });
+    }
+
+    // Add tooltips to navigation bar elements
+    function addNavigationTooltips() {
+        // Only target main navigation trigger elements, not dropdown items
+        const navElements = [
+            { selector: '#menutoggle', tooltip: 'Main menu' },
+            { selector: '#portraitmenu-toggle', tooltip: 'Main menu' },
+            { selector: '#goToHomePage a', tooltip: 'Go to home page' },
+            { selector: '#navHistory a.dropdown-toggle', tooltip: 'Navigation history' },
+            { selector: '#navHelp a.dropdown-toggle', tooltip: 'Help and documentation' },
+            { selector: '#navUser a.dropdown-toggle', tooltip: 'User menu' },
+            { selector: 'a[data-toggle="search"]', tooltip: 'Toggle search pane' },
+            { selector: 'a[data-toggle="detailpane"]', tooltip: 'Toggle detail pane' },
+            { selector: '.navbarWhs a.dropdown-toggle', tooltip: 'Select warehouse' }
+        ];
+
+        // Set tooltips for main navigation elements only
+        navElements.forEach(({ selector, tooltip }) => {
+            const element = document.querySelector(selector);
+            if (element && !element.closest('.dropdown-menu')) {
+                element.title = tooltip;
+            }
+        });
+    }
+
+    // Add tooltips when page loads
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            addMenuTooltips();
+            addNavigationTooltips();
+        });
+    } else {
+        addMenuTooltips();
+        addNavigationTooltips();
+    }
+
+    // Also add tooltips when menu is dynamically loaded
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                        if (node.id === 'InsightMenu') {
+                            setTimeout(addMenuTooltips, 100);
+                        }
+                        if (node.id === 'topNavigationBar') {
+                            setTimeout(addNavigationTooltips, 100);
+                        }
+                    }
+                });
+            }
+        });
+    });
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
 
 })();
