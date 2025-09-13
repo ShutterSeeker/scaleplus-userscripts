@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      2.9
+// @version      2.10
 // @description  Custom enhancements for Scale application with toggleable features
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
@@ -16,6 +16,7 @@
 (function () {
     'use strict';
 
+    // ===== SETTINGS =====
     // Constants for localStorage keys and default values
     const SETTINGS = {
         SHOW_SEARCH_PANE: 'scaleplus_show_search_pane',
@@ -105,10 +106,351 @@
               getComputedStyle(target).pointerEvents !== 'none' &&
               getComputedStyle(target).visibility !== 'hidden' &&
               getComputedStyle(target).display !== 'none';
-        // Removed console.log to prevent spam - uncomment for debugging if needed
-        // console.log(`[ScalePlus] isVisible(${el.id}):`, visible);
         return visible;
     };
+
+    // Feature gate for favorites enhancements (default star + relative date behavior + pending filter support)
+    function enhanceFavoritesEnabled() {
+        return localStorage.getItem(SETTINGS.DEFAULT_FILTER) !== 'false';
+    }
+
+    // ===== RELATIVE DATE / TIME FEATURE =====
+    function getFilterDateCacheKey(formId, filterName) {
+        const username = (typeof getUsernameFromCookie === 'function') ? getUsernameFromCookie() : '';
+        const safeFilterName = (filterName || '').replace(/[^a-zA-Z0-9]/g, '_');
+        return `${formId}Filter${safeFilterName}${username}`;
+    }
+    function setFilterDateCache(formId, filterName, dateMode, dateOffsets) {
+        try {
+            const key = getFilterDateCacheKey(formId, filterName);
+            const cacheData = { dateMode, dateOffsets, savedAt: new Date().toISOString() };
+            localStorage.setItem(key, JSON.stringify(cacheData));
+            console.log(`[ScalePlus] Saved relative date settings for "${filterName}"`, cacheData);
+        } catch (e) { console.warn('[ScalePlus] Failed to save date cache', e); }
+    }
+    function getFilterDateCache(formId, filterName) {
+        try {
+            const key = getFilterDateCacheKey(formId, filterName);
+            const cache = localStorage.getItem(key);
+            return cache ? JSON.parse(cache) : null;
+        } catch (e) { return null; }
+    }
+    function calculateDateOffsets(savedFilters, savedAt) {
+        const offsets = {};
+        const savedTime = new Date(savedAt);
+        if (!savedFilters || !savedFilters.inSearch) return offsets;
+        savedFilters.inSearch.forEach(crit => {
+            if (crit._isDate && crit.value) {
+                try {
+                    const critDate = new Date(crit.value);
+                    if (!isNaN(critDate.getTime())) offsets[crit.name] = critDate.getTime() - savedTime.getTime();
+                } catch (_) {}
+            }
+        });
+        return offsets;
+    }
+    function checkForDateCriteria(filterData) {
+        if (!filterData || !filterData.inSearch) return false;
+        return filterData.inSearch.some(c => c._isDate);
+    }
+    function extractCurrentFilterCriteria() {
+        const criteria = [];
+        // Text editors
+        try {
+            const textEditors = $('[data-controltype="igTextEditor"], .ui-igtexteditor');
+            textEditors.each(function() {
+                const el = $(this); const id = el.attr('id');
+                if (id && el.data('igTextEditor')) {
+                    const value = el.igTextEditor('value');
+                    if (value) criteria.push({ name: id, value });
+                }
+            });
+        } catch(_){ }
+        // Date pickers via API
+        try {
+            const datePickers = $('[data-controltype="igDatePicker"], .ui-igdatepicker');
+            datePickers.each(function() {
+                const el = $(this); const id = el.attr('id');
+                if (!id) return;
+                if (id.toLowerCase().includes('date') || id.toLowerCase().includes('time')) {
+                    let value = null;
+                    try { value = el.igDatePicker('value'); } catch(_){ }
+                    if (value) criteria.push({ name: id, value: value.toISOString(), _isDate: true });
+                }
+            });
+        } catch(_){ }
+        // Fallback: plain inputs whose id hints at date/time and have a value parsable as date
+        try {
+            document.querySelectorAll('input[id*="Date" i], input[id*="Time" i]').forEach(inp=>{
+                if (!inp.id) return;
+                // Skip if already captured
+                if (criteria.some(c=>c.name===inp.id)) return;
+                const raw = inp.value && inp.value.trim();
+                if (!raw) return;
+                const parsed = new Date(raw);
+                if (!isNaN(parsed.getTime())) {
+                    criteria.push({ name: inp.id, value: parsed.toISOString(), _isDate: true });
+                }
+            });
+        } catch(_){ }
+        return criteria;
+    }
+    function showDateModeModal(formId, filterName, savedFilters, onSaveCallback) {
+        const old = document.getElementById('scaleplus-date-mode-modal');
+        if (old) { try { old.remove(); } catch(_){} }
+        const modal = document.createElement('div');
+        modal.id='scaleplus-date-mode-modal';
+        modal.className='modal fade';
+        modal.setAttribute('tabindex','-1');
+        modal.setAttribute('role','dialog');
+        modal.innerHTML = `
+            <div class="modal-dialog"><div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">Date/Time Filter Options</h4>
+                </div>
+                <div class="modal-body">
+                    <p>The filter "<strong>${filterName}</strong>" contains date/time criteria.</p>
+                    <p>How would you like to handle these dates when applying the filter?</p>
+                    <div class="radio"><label><input type="radio" name="dateMode" value="relative_date" checked> <strong>Relative Date</strong></label></div>
+                    <div class="radio"><label><input type="radio" name="dateMode" value="relative_date_time"> <strong>Relative Date & Time</strong></label></div>
+                    <div class="radio"><label><input type="radio" name="dateMode" value="normal"> <strong>Absolute</strong></label></div>
+                </div>
+                <div class="modal-footer">
+                    <button id="scaleplus-date-save-btn" class="btn btn-primary" style="background-color:#4f93e4 !important;border-color:#2e6da4 !important;color:#fff !important;">Save</button>
+                    <button id="scaleplus-date-cancel-btn" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </div></div>`;
+        document.body.appendChild(modal);
+        if (typeof $ !== 'undefined' && $(modal).modal) { $(modal).modal('show'); } else { modal.style.display='block'; }
+        // Always clear Save button processing attribute on close
+        const clearProcessing = () => {
+            const saveBtn = document.getElementById('SaveSearchSaveButton');
+            if (saveBtn && saveBtn.hasAttribute('data-scaleplus-processing')) {
+                saveBtn.removeAttribute('data-scaleplus-processing');
+            }
+        };
+        const closeModal = () => {
+            clearProcessing();
+            if (typeof $ !== 'undefined' && $(modal).modal) { $(modal).modal('hide'); setTimeout(()=>modal.remove(),300);} else { modal.remove(); }
+        };
+        modal.querySelector('.close').onclick = closeModal;
+        modal.querySelector('#scaleplus-date-cancel-btn').onclick = () => { closeModal(); };
+        const saveBtn = modal.querySelector('#scaleplus-date-save-btn');
+        saveBtn.onclick = () => {
+            const selectedMode = modal.querySelector('input[name="dateMode"]:checked').value;
+            const savedAt = new Date().toISOString();
+            const dateOffsets = calculateDateOffsets(savedFilters, savedAt);
+            setFilterDateCache(formId, filterName, selectedMode, dateOffsets);
+            if (onSaveCallback) onSaveCallback();
+            closeModal();
+        };
+        modal.addEventListener('keydown', e=>{ if(e.key==='Enter' || e.keyCode===13){ e.preventDefault(); saveBtn.click(); }});
+        setTimeout(()=>{ modal.focus && modal.focus(); },100);
+    }
+    function adjustRelativeDates(savedFilters, formId, filterName) {
+        if (!savedFilters) return savedFilters;
+        if (savedFilters._relativeApplied) {
+            console.log('[ScalePlus] adjustRelativeDates skipped: already applied for', filterName);
+            return savedFilters;
+        }
+        // If favorites enhancement (which governs relative mode) is disabled, skip adjustments entirely
+        if (!enhanceFavoritesEnabled()) {
+            return savedFilters;
+        }
+        if (!savedFilters.inSearch) {
+            console.log('[ScalePlus] adjustRelativeDates: no inSearch array present');
+            return savedFilters;
+        }
+        const dateCache = (formId && filterName) ? getFilterDateCache(formId, filterName) : null;
+        if (!dateCache) {
+            console.log('[ScalePlus] adjustRelativeDates: no cache found for', formId, filterName);
+            return savedFilters;
+        }
+        if (!dateCache.dateMode || !dateCache.dateOffsets) {
+            console.log('[ScalePlus] adjustRelativeDates: cache incomplete', dateCache);
+            return savedFilters;
+        }
+        if (dateCache.dateMode === 'normal') {
+            console.log('[ScalePlus] adjustRelativeDates: mode normal – no change');
+            return savedFilters;
+        }
+        const mode = dateCache.dateMode;
+        const now = new Date();
+        console.log('[ScalePlus] adjustRelativeDates start', {filterName, formId, mode, now: now.toISOString(), offsets: dateCache.dateOffsets});
+        savedFilters.inSearch = savedFilters.inSearch.map(crit => {
+            if (crit && crit.name && dateCache.dateOffsets[crit.name] !== undefined && crit.value) {
+                const original = crit.value;
+                const newDate = new Date(now.getTime() + dateCache.dateOffsets[crit.name]);
+                if (mode === 'relative_date') newDate.setHours(0,0,0,0);
+                crit.value = newDate.toISOString();
+                console.log('[ScalePlus] adjustRelativeDates crit updated', {name: crit.name, before: original, after: crit.value, offset: dateCache.dateOffsets[crit.name]});
+            }
+            return crit;
+        });
+        savedFilters._relativeApplied = true;
+        console.log('[ScalePlus] adjustRelativeDates complete for', filterName);
+        return savedFilters;
+    }
+    // Helper to safely trigger native save without re-opening modal
+    function triggerNativeSave(saveBtn){
+        if(!saveBtn) return;
+        saveBtn.setAttribute('data-scaleplus-processing','true');
+        saveBtn.click(); // programmatic click; listener will ignore due to attribute
+        setTimeout(()=> saveBtn.removeAttribute('data-scaleplus-processing'), 250);
+    }
+    // Intercept favorite save (Save button)
+    document.addEventListener('click', function(e){
+        const saveBtn = e.target.closest('#SaveSearchSaveButton');
+        if(!saveBtn) {
+            console.log('[ScalePlus] Save button click: not a save button');
+            return;
+        }
+        if (saveBtn.hasAttribute('data-scaleplus-processing')) {
+            console.log('[ScalePlus] Save button click ignored due to data-scaleplus-processing');
+            return; // bypass recursion
+        }
+        // If favorites enhancements are disabled, do not intercept for custom date modal
+        if (!enhanceFavoritesEnabled()) {
+            return; // allow native behavior (absolute save)
+        }
+            // Always defer reading the filter name to after the event loop so value is up-to-date
+            setTimeout(() => {
+                let filterNameInput = document.querySelector('#SaveSearchNameEditor');
+                if(!filterNameInput){
+                    console.log('[ScalePlus] Save button: #SaveSearchNameEditor not found (deferred)');
+                    return;
+                }
+                let filterName = filterNameInput.value;
+                console.log('[ScalePlus] Save button: filterNameInput.value (deferred):', filterName);
+                if(!filterName || !filterName.replace(/\s/g,'')) {
+                    console.log('[ScalePlus] Blank filter name on Save (deferred)');
+                    return;
+                }
+                // Continue with save logic
+                const formIdMatch = window.location.pathname.match(/insights\/(\d+)/);
+                const formId = (typeof getFormIdFromUrl==='function'?getFormIdFromUrl():null) || (formIdMatch?formIdMatch[1]:null);
+                if(!formId) {
+                    console.log('[ScalePlus] No formId found on Save');
+                    return;
+                }
+                const currentFilters = { inSearch: extractCurrentFilterCriteria() };
+                if(!checkForDateCriteria(currentFilters)) {
+                    console.log('[ScalePlus] No date fields found in criteria on Save');
+                    return; // no date fields
+                }
+                console.log('[ScalePlus] Intercepting Save button for custom date modal. filterName:', filterName, 'formId:', formId, 'criteria:', currentFilters);
+                e.preventDefault(); e.stopPropagation();
+                showDateModeModal(formId, filterName, currentFilters, ()=>{ triggerNativeSave(saveBtn); });
+            }, 10);
+        const formIdMatch = window.location.pathname.match(/insights\/(\d+)/);
+        const formId = (typeof getFormIdFromUrl==='function'?getFormIdFromUrl():null) || (formIdMatch?formIdMatch[1]:null);
+        if(!formId) {
+            console.log('[ScalePlus] No formId found on Save');
+            return;
+        }
+        const currentFilters = { inSearch: extractCurrentFilterCriteria() };
+        if(!checkForDateCriteria(currentFilters)) {
+            console.log('[ScalePlus] No date fields found in criteria on Save');
+            return; // no date fields
+        }
+        console.log('[ScalePlus] Intercepting Save button for custom date modal. filterName:', filterName, 'formId:', formId, 'criteria:', currentFilters);
+        e.preventDefault(); e.stopPropagation();
+        showDateModeModal(formId, filterName, currentFilters, ()=>{ triggerNativeSave(saveBtn); });
+    }, true);
+    // Removed earlier duplicate favorite click interception block (now consolidated below)
+    function getCurrentFavoriteNames(){
+        const names = [];
+        document.querySelectorAll('a#SearchPaneMenuFavoritesChooseSearch .deletesavedsearchtext').forEach(el=>{
+            const t = el.textContent && el.textContent.trim();
+            if(t) names.push(t);
+        });
+        return names;
+    }
+    // Cleanup orphaned relative date cache entries after a delete
+    function cleanupOrphanedRelativeCache(formId){
+        if(!formId) return;
+        const existing = new Set(getCurrentFavoriteNames());
+        const prefix = `${formId}Filter`;
+        const toDelete = [];
+        for(let i=0;i<localStorage.length;i++){
+            const k = localStorage.key(i);
+            if(k && k.startsWith(prefix)){
+                // Extract filterName portion between prefix and username (last segment after username may vary). We'll attempt splitting by current username first.
+                const username = (typeof getUsernameFromCookie==='function')?getUsernameFromCookie():'';
+                let filterSegment = k.substring(prefix.length);
+                if(username && filterSegment.endsWith(username)){
+                    filterSegment = filterSegment.substring(0, filterSegment.length-username.length);
+                }
+                filterSegment = filterSegment.replace(/_+$/,'');
+                if(filterSegment && !existing.has(filterSegment)){
+                    toDelete.push(k);
+                }
+            }
+        }
+        if(toDelete.length){
+            toDelete.forEach(k=>{ try { localStorage.removeItem(k); console.log('[ScalePlus] Removed orphaned relative date cache', k); } catch(_){} });
+        }
+    }
+    // Observe favorite list for deletions to trigger cleanup
+    const favoriteDeletionObserver = new MutationObserver(muts=>{
+        let deleted = false;
+        muts.forEach(m=>{
+            if(m.removedNodes && m.removedNodes.length){
+                m.removedNodes.forEach(n=>{
+                    if(n.nodeType===1 && n.querySelector && (n.id==='SearchPaneMenuFavoritesChooseSearch' || n.querySelector('a#SearchPaneMenuFavoritesChooseSearch'))){
+                        deleted = true;
+                    }
+                });
+            }
+        });
+        if(deleted){
+            const formId = (typeof getFormIdFromUrl==='function'?getFormIdFromUrl():null);
+            cleanupOrphanedRelativeCache(formId);
+        }
+    });
+    try { favoriteDeletionObserver.observe(document.body,{childList:true,subtree:true}); } catch(_){ }
+
+    // Intercept favorite clicks ONLY when the text span itself is clicked (avoid star/delete interference)
+    document.addEventListener('click', function(e){
+        const textSpan = e.target.closest('span.deletesavedsearchtext');
+        if(!textSpan) return; // must originate from the text span
+        const favLink = textSpan.closest('a#SearchPaneMenuFavoritesChooseSearch');
+        if(!favLink) return;
+        // Ignore star or delete icon clicks
+        if(e.target.closest('.scaleplus-default-icon')) return;
+        if(e.target.closest('.deletesavedsearchbutton') || e.target.classList.contains('deletesavedsearchicon')) return;
+        if(e.button !== 0) return; // primary only
+        if(!e.isTrusted) return; // ignore synthetic
+        if(!enhanceFavoritesEnabled()) return;
+        const filterName = textSpan.textContent ? textSpan.textContent.trim() : null;
+        if(!filterName) return;
+        const formId = (typeof getFormIdFromUrl==='function'?getFormIdFromUrl():null);
+        const cache = formId ? getFilterDateCache(formId, filterName) : null;
+        let forceRelative = window._scaleplusForceRelative;
+        if (forceRelative) {
+            console.log('[ScalePlus] Force-relative flag detected for favorite', filterName);
+            window._scaleplusForceRelative = false;
+        }
+        // If forced, or if cache is set to relative, apply relative logic
+        if(!(forceRelative || (cache && cache.dateMode && cache.dateMode !== 'normal'))) return; // nothing relative to apply
+        e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+        fetchSavedFilter(filterName).then(sf => {
+            if (forceRelative) {
+                try {
+                    setFilterDateCache(formId, filterName, 'relative_date', calculateDateOffsets(sf, new Date()));
+                    console.log('[ScalePlus] Forced relative cache seeded for', filterName);
+                } catch(err) { console.warn('[ScalePlus] Failed to seed forced relative cache', err); }
+            }
+            console.log('[ScalePlus] Applying favorite with potential relative adjustment', {filterName, formId});
+            adjustRelativeDates(sf, formId, filterName);
+            applySavedFilters(sf, filterName);
+            const applyBtn = document.getElementById('InsightMenuApply');
+            if (applyBtn && isVisible(applyBtn)) applyBtn.click();
+        }).catch(err => console.warn('[ScalePlus] Failed to fetch favorite for relative date', err));
+    }, true);
+    // ===== END RELATIVE DATE / TIME FEATURE =====
+
 
     let firstTrigger = true;
 
@@ -245,7 +587,7 @@
                             <div class="scaleplus-setting">
                                 <label for="middle-click-toggle">Enhance middle click:</label>
                                 <input type="checkbox" id="middle-click-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
-                                <span class="scaleplus-setting-desc">Middle click on grid items to copy text, or on favorites to open in new tab</span>
+                                <span class="scaleplus-setting-desc">Middle click on grid items to copy text, middle click or Ctrl+click on favorites to open in new tab</span>
                             </div>
                             <div class="scaleplus-setting">
                                 <label for="right-click-toggle">Right-click menu:</label>
@@ -260,7 +602,7 @@
                             <div class="scaleplus-setting">
                                 <label for="default-filter-toggle">Enhance favorites:</label>
                                 <input type="checkbox" id="default-filter-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
-                                <span class="scaleplus-setting-desc">Add star icons to favorites for default filter selection</span>
+                                <span class="scaleplus-setting-desc">Star defaults + relative date/time favorites & pending-filter tab restore</span>
                             </div>
                         </div>
 
@@ -852,15 +1194,15 @@
             console.log('[ScalePlus] Middle-click detected at:', { pageX: e.pageX, pageY: e.pageY, target: e.target });
             const enabled = localStorage.getItem(SETTINGS.MIDDLE_CLICK) !== 'false';
             if (enabled) {
-                // Prevent default immediately to stop browser's middle-click behavior
-                e.preventDefault();
-                console.log('[ScalePlus] Middle-click default prevented, checking for targets...');
+                console.log('[ScalePlus] Middle-click enhancement enabled, checking for targets...');
+                
                 // Check if this is a favorite filter link
                 let target = e.target;
                 while (target && target !== document.body) {
                     if (target.id === 'SearchPaneMenuFavoritesChooseSearch' || target.closest('a[id="SearchPaneMenuFavoritesChooseSearch"]')) {
                         // This is a favorite filter link - open in new tab with base URL
                         e.preventDefault();
+                        e.stopPropagation();
                         const link = target.id === 'SearchPaneMenuFavoritesChooseSearch' ? target : target.closest('a[id="SearchPaneMenuFavoritesChooseSearch"]');
                         if (link) {
                             // Extract filter name from the link
@@ -885,11 +1227,31 @@
                     target = target.parentElement;
                 }
 
-                console.log('[ScalePlus] No favorite link found for middle-click');
+                // Check if this is a regular link (anchor tag with href)
+                target = e.target;
+                while (target && target !== document.body) {
+                    if (target.tagName === 'A' && target.href) {
+                        // This is a regular link - let the browser handle it normally
+                        console.log('[ScalePlus] Regular link detected, allowing normal middle-click behavior:', target.href);
+                        return; // Don't prevent default, let browser open in new tab
+                    }
+                    target = target.parentElement;
+                }
 
-                // Not a favorite link - use copy functionality
-                e.preventDefault();
-                copyInnerText(e);
+                // Check if this is a grid item for copying
+                target = e.target;
+                while (target && (!target.getAttribute || !target.getAttribute('aria-describedby') || !target.getAttribute('aria-describedby').startsWith('ListPaneDataGrid'))) {
+                    target = target.parentElement;
+                }
+                
+                if (target) {
+                    // This is a grid item - use copy functionality
+                    console.log('[ScalePlus] Grid item detected for copying');
+                    e.preventDefault();
+                    copyInnerText(e);
+                } else {
+                    console.log('[ScalePlus] No special target found for middle-click');
+                }
             }
         }
     });
@@ -900,13 +1262,109 @@
             console.log('[ScalePlus] Aux-click (middle) detected at:', { pageX: e.pageX, pageY: e.pageY, target: e.target });
             const enabled = localStorage.getItem(SETTINGS.MIDDLE_CLICK) !== 'false';
             if (enabled) {
-                e.preventDefault();
-                console.log('[ScalePlus] Aux-click default prevented, checking for targets...');
+                console.log('[ScalePlus] Aux-click enhancement enabled, checking for targets...');
+                
+                // Check if this is a favorite filter link
+                let target = e.target;
+                while (target && target !== document.body) {
+                    if (target.id === 'SearchPaneMenuFavoritesChooseSearch' || target.closest('a[id="SearchPaneMenuFavoritesChooseSearch"]')) {
+                        // This is a favorite filter link - open in new tab with base URL
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const link = target.id === 'SearchPaneMenuFavoritesChooseSearch' ? target : target.closest('a[id="SearchPaneMenuFavoritesChooseSearch"]');
+                        if (link) {
+                            // Extract filter name from the link
+                            const filterText = link.querySelector('.deletesavedsearchtext')?.textContent?.trim();
+                            if (filterText) {
+                                console.log('[ScalePlus] Opening favorite filter in new tab via auxclick:', filterText);
 
-                console.log('[ScalePlus] No favorite link found for aux-click');
+                                // Put the filter name directly in the URL hash
+                                const baseUrl = `${location.origin}${location.pathname}`;
+                                const url = `${baseUrl}#pendingFilter=${encodeURIComponent(filterText)}`;
+                                const newTab = window.open(url, '_blank');
+                                if (newTab) {
+                                    newTab.blur();
+                                    window.focus();
+                                }
+                            } else {
+                                console.warn('[ScalePlus] Could not extract filter name from favorite link');
+                            }
+                        }
+                        return;
+                    }
+                    target = target.parentElement;
+                }
+
+                // Check if this is a regular link (anchor tag with href)
+                target = e.target;
+                while (target && target !== document.body) {
+                    if (target.tagName === 'A' && target.href) {
+                        // This is a regular link - let the browser handle it normally
+                        console.log('[ScalePlus] Regular link detected in auxclick, allowing normal behavior:', target.href);
+                        return; // Don't prevent default, let browser open in new tab
+                    }
+                    target = target.parentElement;
+                }
+
+                // Check if this is a grid item for copying
+                target = e.target;
+                while (target && (!target.getAttribute || !target.getAttribute('aria-describedby') || !target.getAttribute('aria-describedby').startsWith('ListPaneDataGrid'))) {
+                    target = target.parentElement;
+                }
+                
+                if (target) {
+                    // This is a grid item - use copy functionality
+                    console.log('[ScalePlus] Grid item detected for copying via auxclick');
+                    e.preventDefault();
+                    copyInnerText(e);
+                } else {
+                    console.log('[ScalePlus] No special target found for auxclick');
+                }
             }
         }
     });
+
+    // Add Ctrl+left click handler for favorites (using capture phase for priority)
+    document.addEventListener('click', function (e) {
+        if (e.ctrlKey && e.button === 0) { // Left click with Ctrl
+            console.log('[ScalePlus] Ctrl+left click detected at:', { pageX: e.pageX, pageY: e.pageY, target: e.target });
+            const enabled = localStorage.getItem(SETTINGS.MIDDLE_CLICK) !== 'false';
+            if (enabled) {
+                // Check if this is a favorite filter link
+                let target = e.target;
+                while (target && target !== document.body) {
+                    if (target.id === 'SearchPaneMenuFavoritesChooseSearch' || target.closest('a[id="SearchPaneMenuFavoritesChooseSearch"]')) {
+                        // This is a favorite filter link - open in new tab with base URL
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        const link = target.id === 'SearchPaneMenuFavoritesChooseSearch' ? target : target.closest('a[id="SearchPaneMenuFavoritesChooseSearch"]');
+                        if (link) {
+                            // Extract filter name from the link
+                            const filterText = link.querySelector('.deletesavedsearchtext')?.textContent?.trim();
+                            if (filterText) {
+                                console.log('[ScalePlus] Opening favorite filter in new tab via Ctrl+click:', filterText);
+
+                                // Put the filter name directly in the URL hash
+                                const baseUrl = `${location.origin}${location.pathname}`;
+                                const url = `${baseUrl}#pendingFilter=${encodeURIComponent(filterText)}`;
+                                const newTab = window.open(url, '_blank');
+                                if (newTab) {
+                                    newTab.blur();
+                                    window.focus();
+                                }
+                            } else {
+                                console.warn('[ScalePlus] Could not extract filter name from favorite link');
+                            }
+                        }
+                        return;
+                    }
+                    target = target.parentElement;
+                }
+                console.log('[ScalePlus] No favorite link found for Ctrl+click');
+            }
+        }
+    }, true); // Use capture phase
     function addEnvironmentLabel() {
         const enabled = localStorage.getItem(SETTINGS.ENV_LABELS) === 'true';
         if (!enabled) return;
@@ -1342,6 +1800,23 @@
                 if (textSpan) {
                     textSpan.style.removeProperty('width');
                     textSpan.style.removeProperty('max-width');
+                    // Add date mode tooltip to text span
+                    let dateTooltip = 'No date criteria in this favorite';
+                    try {
+                        const formId = getFormIdFromUrl();
+                        const cache = formId ? getFilterDateCache(formId, filterText) : null;
+                        if (cache && cache.dateMode && cache.dateMode !== 'normal') {
+                            let modeLabel = '';
+                            if (cache.dateMode === 'relative_date') modeLabel = 'Relative Date';
+                            else if (cache.dateMode === 'relative_date_time') modeLabel = 'Relative Date & Time';
+                            else if (cache.dateMode === 'normal') modeLabel = 'Absolute';
+                            else modeLabel = cache.dateMode;
+                            dateTooltip = `Date mode: ${modeLabel}`;
+                        } else if (cache && cache.dateMode === 'normal') {
+                            dateTooltip = 'Date mode: Absolute';
+                        }
+                    } catch(_){}
+                    textSpan.title = dateTooltip;
                 }
             }
         });
@@ -1469,6 +1944,9 @@
             const newHash = window.location.hash.replace(/[&#]pendingFilter=[^&]*/, '');
             window.history.replaceState({}, '', window.location.pathname + window.location.search + newHash);
 
+            let retryCount = 0;
+            const maxRetries = 10;
+
             // Wait for favorites to load and then click the matching one
             const clickPendingFilter = () => {
                 // First, make sure the favorites dropdown is visible
@@ -1495,27 +1973,79 @@
                     const linkText = link.querySelector('.deletesavedsearchtext')?.textContent?.trim();
                     console.log(`[ScalePlus] Checking favorite: "${linkText}"`);
                     if (linkText === filterName) {
-                        console.log('[ScalePlus] Found pending favorite, waiting 3 seconds for Scale to be ready before clicking:', filterName);
-
-                        // Wait longer for Scale to be fully ready before clicking the favorite
-                        // This prevents "no results" by ensuring the search functionality is initialized
+                        console.log('[ScalePlus] Found pending favorite, fetching directly (no synthetic click):', filterName);
+                        const formId = getFormIdFromUrl();
+                        if (!formId) {
+                            console.log('[ScalePlus] Pending favorite early path: no formId');
+                            return;
+                        }
                         setTimeout(() => {
-                            console.log('[ScalePlus] Clicking pending favorite after delay:', filterName);
-                            link.click();
-                            hasProcessedPendingFilter = true;
-                        }, 1000); // Wait 1 seconds for Scale to be ready
-
+                            fetchSavedFilter(filterName).then(sf => {
+                                console.log('[ScalePlus] Pending direct path fetched favorite', {filterName, formId, criteriaCount: sf?.inSearch?.length});
+                                const featuresOn = enhanceFavoritesEnabled();
+                                if (featuresOn) {
+                                    const hasDate = checkForDateCriteria(sf);
+                                    const dateCache = getFilterDateCache(formId, filterName);
+                                    console.log('[ScalePlus] Pending direct relative evaluation', {hasDate, cache: dateCache});
+                                    if (hasDate && (!dateCache || !dateCache.dateMode || dateCache.dateMode === 'relative_date' || dateCache.dateMode === 'relative_date_time')) {
+                                        setFilterDateCache(formId, filterName, 'relative_date', calculateDateOffsets(sf, new Date()));
+                                        console.log('[ScalePlus] Pending direct seeded relative cache for', filterName);
+                                    }
+                                    adjustRelativeDates(sf, formId, filterName);
+                                    console.log('[ScalePlus] Pending direct applying filters (post-adjust) for', filterName);
+                                } else {
+                                    console.log('[ScalePlus] Pending direct applying filters (enhance favorites disabled - absolute) for', filterName);
+                                }
+                                applySavedFilters(sf, filterName);
+                                const applyBtn = document.getElementById('InsightMenuApply');
+                                if (applyBtn && isVisible(applyBtn)) applyBtn.click();
+                                hasProcessedPendingFilter = true;
+                            }).catch(err => console.warn('[ScalePlus] Pending direct failed to fetch favorite', err));
+                        }, 800); // small delay to let Scale finish initial UI wiring
                         return;
                     }
                 }
 
-                // If not found yet, try again in a moment (favorites might still be loading)
-                if (favoriteLinks.length > 0) {
-                    console.log('[ScalePlus] Pending filter not found, will retry');
-                    setTimeout(clickPendingFilter, 500);
+                retryCount++;
+                if (retryCount < maxRetries) {
+                    // If not found yet, try again in a moment (favorites might still be loading)
+                    if (favoriteLinks.length > 0) {
+                        console.log('[ScalePlus] Pending filter not found, will retry');
+                        setTimeout(clickPendingFilter, 500);
+                    } else {
+                        console.log('[ScalePlus] No favorites found yet, will retry');
+                        setTimeout(clickPendingFilter, 1000);
+                    }
                 } else {
-                    console.log('[ScalePlus] No favorites found yet, will retry');
-                    setTimeout(clickPendingFilter, 1000);
+                    // Fallback: fetch and apply the filter directly with relative date logic
+                    console.log('[ScalePlus] Pending favorite not found after retries, applying filter directly:', filterName);
+                    const formId = getFormIdFromUrl();
+                    if (!formId) return;
+                    fetchSavedFilter(filterName).then(sf => {
+                        const featuresOn = enhanceFavoritesEnabled();
+                        console.log('[ScalePlus] Fallback fetched favorite for pending filter', {filterName, formId, criteriaCount: sf?.inSearch?.length, featuresOn});
+                        if (featuresOn) {
+                            // If filter has date fields and cache is missing or not 'normal', force relative mode
+                            const hasDate = checkForDateCriteria(sf);
+                            const dateCache = getFilterDateCache(formId, filterName);
+                            console.log('[ScalePlus] Fallback relative evaluation', {hasDate, cache: dateCache});
+                            if (hasDate && (!dateCache || !dateCache.dateMode || dateCache.dateMode === 'relative_date' || dateCache.dateMode === 'relative_date_time')) {
+                                // Default to relative_date if not set
+                                setFilterDateCache(formId, filterName, 'relative_date', calculateDateOffsets(sf, new Date()));
+                                console.log('[ScalePlus] Fallback seeded relative cache for', filterName);
+                            }
+                            adjustRelativeDates(sf, formId, filterName);
+                            console.log('[ScalePlus] Fallback applying filters (post-adjust) for', filterName);
+                        } else {
+                            console.log('[ScalePlus] Fallback applying filters (enhance favorites disabled - absolute) for', filterName);
+                        }
+                        applySavedFilters(sf, filterName);
+                        // Optionally trigger search
+                        const applyBtn = document.getElementById('InsightMenuApply');
+                        if (applyBtn && isVisible(applyBtn)) {
+                            applyBtn.click();
+                        }
+                    }).catch(err => console.warn('[ScalePlus] Failed to fetch pending filter', err));
                 }
             };
 
@@ -1858,11 +2388,28 @@
     }
 
     // Apply both basic and advanced criteria using Scale's internal helpers
-    function applySavedFilters(savedFilters) {
+    function applySavedFilters(savedFilters, explicitFilterName) {
         // Applying saved filters using Scale's internal functions (log removed)
 
         // Make sure the search pane is visible
         clickSearchButtonIfNeeded();
+
+        // Inject relative date adjustments if applicable
+        try {
+            const formId = (typeof getFormIdFromUrl === 'function' ? getFormIdFromUrl() : null) || (window.location.pathname.match(/insights\/(\d+)/) || [])[1];
+            let filterName = explicitFilterName;
+            if (!filterName) {
+                // Try pendingFilter hash
+                if (location.hash.includes('pendingFilter=')) {
+                    try { filterName = decodeURIComponent(location.hash.split('pendingFilter=')[1].split('&')[0]); } catch(_){}
+                }
+                // Fallback to default filter if none
+                if (!filterName && typeof getDefaultFilter === 'function' && formId) {
+                    filterName = getDefaultFilter(formId);
+                }
+            }
+            adjustRelativeDates(savedFilters, formId, filterName);
+        } catch(e){ console.warn('[ScalePlus] Relative date adjust failed', e); }
 
         // Apply basic filters (simple editors, date pickers, combos, etc.)
         if (savedFilters.inSearch &&

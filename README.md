@@ -129,6 +129,27 @@ The **Advanced Criteria Enhance** feature provides enhances the advanced criteri
 
 ---
 
+## Relative Date Favorites
+
+![Relative Date Modal](images/relative-date.png)
+
+The **Enhance favorites** toggle also enables smart relative date/time handling for saved searches.
+
+### How It Works
+- When saving a favorite that includes date fields, a small modal lets you choose:
+   - Relative Date (time unchanged, date changes)
+   - Relative Date & Time (date and time change)
+   - Absolute (exact timestamps as saved)
+- Your choice is remembered per favorite & form (stored locally).
+
+### Applying Favorites
+- Setting Off: If you disable **Enhance favorites**, all favorites apply as absolute and the modal is suppressed.
+
+### Notes
+- Advanced criteria date time filters are not supported
+
+---
+
 ## 🔧 Installation
 
 ### Prerequisites
