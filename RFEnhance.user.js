@@ -1,10 +1,10 @@
 // ==UserScript==
-// @name         RF Dark Mode
+// @name         RF Enhance
 // @namespace    http://tampermonkey.net/
-// @version      1.0
-// @description  Dark mode for all RF screens with sessionStorage persistence
-// @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/RFDarkMode.user.js
-// @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/RFDarkMode.user.js
+// @version      1.1
+// @description  Dark mode, focus preservation, and enhancements for all RF screens
+// @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/RFEnhance.user.js
+// @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/RFEnhance.user.js
 // @author       Blake
 // @match        https://scaleqa.byjasco.com/RF/*
 // @match        https://scale20.byjasco.com/RF/*
@@ -14,14 +14,14 @@
 (function () {
     'use strict';
 
-    console.log('[RF Dark Mode] Script loaded on:', window.location.href);
+    console.log('[RF Enhance] Script loaded on:', window.location.href);
 
     // Check if dark mode should be enabled
     function isDarkModeEnabled() {
         // Check URL parameter first
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('darkmode')) {
-            console.log('[RF Dark Mode] Dark mode enabled via URL parameter');
+            console.log('[RF Enhance] Dark mode enabled via URL parameter');
             // Save to sessionStorage for persistence
             sessionStorage.setItem('rfDarkMode', 'enabled');
             return true;
@@ -30,16 +30,36 @@
         // Check sessionStorage
         const stored = sessionStorage.getItem('rfDarkMode');
         if (stored === 'enabled') {
-            console.log('[RF Dark Mode] Dark mode enabled via sessionStorage');
+            console.log('[RF Enhance] Dark mode enabled via sessionStorage');
             return true;
         }
 
         return false;
     }
 
+    // Apply instant dark mode to prevent white flash during page loads/reloads
+    function applyInstantDarkMode() {
+        // Apply dark background IMMEDIATELY to html and body to prevent flash
+        const instantStyle = document.createElement('style');
+        instantStyle.id = 'rf-dark-mode-instant';
+        instantStyle.textContent = `
+            html, body {
+                background-color: #161616 !important;
+                transition: none !important;
+            }
+        `;
+        // Insert at the very beginning of head to apply before any other styles
+        if (document.head) {
+            document.head.insertBefore(instantStyle, document.head.firstChild);
+        }
+    }
+
     // Apply dark mode styles
     function applyDarkMode() {
-        console.log('[RF Dark Mode] Applying dark mode styles');
+        console.log('[RF Enhance] Applying dark mode styles');
+
+        // Apply instant dark mode first to prevent flash
+        applyInstantDarkMode();
 
         // Add dark mode class to body
         document.body.classList.add('rf-dark-mode');
@@ -118,13 +138,13 @@
                 }
             `;
             document.head.appendChild(style);
-            console.log('[RF Dark Mode] Styles injected');
+            console.log('[RF Enhance] Styles injected');
         }
     }
 
     // Remove dark mode
     function removeDarkMode() {
-        console.log('[RF Dark Mode] Removing dark mode');
+        console.log('[RF Enhance] Removing dark mode');
         document.body.classList.remove('rf-dark-mode');
         sessionStorage.removeItem('rfDarkMode');
     }
@@ -139,19 +159,87 @@
         }
     }
 
+    // Save currently focused element
+    function saveFocusedElement() {
+        const activeElement = document.activeElement;
+        if (activeElement && activeElement !== document.body) {
+            // Save the element's ID or name for restoration
+            if (activeElement.id) {
+                sessionStorage.setItem('rfLastFocusedId', activeElement.id);
+            } else if (activeElement.name) {
+                sessionStorage.setItem('rfLastFocusedName', activeElement.name);
+            }
+            // Also save cursor position if it's a text input
+            if (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') {
+                sessionStorage.setItem('rfLastCursorPos', activeElement.selectionStart || 0);
+            }
+        }
+    }
+
+    // Restore previously focused element
+    function restoreFocusedElement() {
+        try {
+            const focusedId = sessionStorage.getItem('rfLastFocusedId');
+            const focusedName = sessionStorage.getItem('rfLastFocusedName');
+            const cursorPos = sessionStorage.getItem('rfLastCursorPos');
+
+            let elementToFocus = null;
+
+            if (focusedId) {
+                elementToFocus = document.getElementById(focusedId);
+            } else if (focusedName) {
+                elementToFocus = document.querySelector(`[name="${focusedName}"]`);
+            }
+
+            if (elementToFocus) {
+                elementToFocus.focus();
+                console.log('[RF Enhance] Focus restored to:', elementToFocus.id || elementToFocus.name);
+
+                // Restore cursor position
+                if (cursorPos && (elementToFocus.tagName === 'INPUT' || elementToFocus.tagName === 'TEXTAREA')) {
+                    const pos = parseInt(cursorPos, 10);
+                    elementToFocus.setSelectionRange(pos, pos);
+                }
+            }
+        } catch (e) {
+            console.warn('[RF Enhance] Could not restore focus:', e);
+        }
+    }
+
+    // Set up beforeunload handler to save focus
+    function setupFocusPreservation() {
+        // Save focus before page unloads (e.g., during refresh)
+        window.addEventListener('beforeunload', saveFocusedElement);
+        
+        // Also save focus periodically in case of unexpected reloads
+        setInterval(saveFocusedElement, 1000);
+    }
+
     // Initialize
     function init() {
-        console.log('[RF Dark Mode] Initializing...');
+        console.log('[RF Enhance] Initializing...');
 
         // Wait for body to be available
         if (document.body) {
             if (isDarkModeEnabled()) {
                 applyDarkMode();
             }
+            
+            // Set up focus preservation for auto-refreshing pages
+            setupFocusPreservation();
+            
+            // Restore focus after a brief delay (to let page finish loading)
+            setTimeout(restoreFocusedElement, 100);
         } else {
-            console.log('[RF Dark Mode] Waiting for body...');
+            console.log('[RF Enhance] Waiting for body...');
             setTimeout(init, 100);
         }
+    }
+
+    // Apply instant dark mode IMMEDIATELY if dark mode is enabled
+    // This prevents white flash before the script fully initializes
+    if (isDarkModeEnabled()) {
+        applyInstantDarkMode();
     }
 
     // Start initialization
