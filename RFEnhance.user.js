@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RF Enhance
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.3
 // @description  Dark mode, focus preservation, and enhancements for all RF screens
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/RFEnhance.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/RFEnhance.user.js
@@ -103,6 +103,22 @@
                 body.rf-dark-mode span[style*="color:Green"],
                 body.rf-dark-mode span[style*="color: Green"] {
                     color: #51cf66 !important; /* Lighter green for readability */
+                }
+
+                /* Convert black text to white (hardcoded black labels/text) */
+                body.rf-dark-mode span[style*="color:black"],
+                body.rf-dark-mode span[style*="color: black"],
+                body.rf-dark-mode span[style*="color:Black"],
+                body.rf-dark-mode span[style*="color: Black"],
+                body.rf-dark-mode label[style*="color:black"],
+                body.rf-dark-mode label[style*="color: black"],
+                body.rf-dark-mode label[style*="color:Black"],
+                body.rf-dark-mode label[style*="color: Black"],
+                body.rf-dark-mode div[style*="color:black"],
+                body.rf-dark-mode div[style*="color: black"],
+                body.rf-dark-mode div[style*="color:Black"],
+                body.rf-dark-mode div[style*="color: Black"] {
+                    color: white !important; /* Convert hardcoded black to white */
                 }
 
                 /* Links should be visible */
