@@ -17,17 +17,35 @@
 (function () {
     'use strict';
 
+    // Check if we're on a matching URL
+    const currentUrl = window.location.href;
+    const validUrls = [
+        'https://scaleqa.byjasco.com/scale/trans/packing',
+        'https://scaleqa.byjasco.com/scale/trans/closecontainer',
+        'https://scale20.byjasco.com/scale/trans/packing',
+        'https://scale20.byjasco.com/scale/trans/closecontainer'
+    ];
+    
+    const isValidUrl = validUrls.some(url => currentUrl.startsWith(url));
+    if (!isValidUrl) {
+        console.log('[ScalePlus] Skipping - not on a matching URL:', currentUrl);
+        return;
+    }
+
     // Copy logic for both click and Enter, always show tooltip relative to the button
     function copyContainerIdAndShowTooltip(e) {
         var input = document.querySelector('input[type="hidden"][name="ContainerInfoContainerIdValue"]');
         var btn = document.getElementById('CloseContainerActionClose');
         if (input && input.value && btn) {
-            navigator.clipboard.writeText(input.value).then(() => {
+            const containerValue = input.value; // Capture value before async operation
+            navigator.clipboard.writeText(containerValue).then(() => {
                 var rect = btn.getBoundingClientRect();
                 var x = rect.left + window.scrollX - 200;
                 var y = rect.top + window.scrollY + 40;
-                showTooltip(x, y, `Copied: "${input.value}"`);
-                console.log('[ScalePlus] Copied container ID:', input.value);
+                showTooltip(x, y, `Copied: "${containerValue}"`);
+                console.log('[ScalePlus] Copied container ID:', containerValue);
+            }).catch(err => {
+                console.error('[ScalePlus] Failed to copy:', err);
             });
         } else {
             console.warn('[ScalePlus] Could not find hidden input, button, or value to copy.');
