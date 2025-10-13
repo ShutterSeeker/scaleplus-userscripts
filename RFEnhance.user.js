@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RF Enhance
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Dark mode, focus preservation, and enhancements for all RF screens
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/RFEnhance.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/RFEnhance.user.js
@@ -76,14 +76,33 @@
                     transition: background-color 0.3s, color 0.3s;
                 }
 
-                /* Text elements */
-                body.rf-dark-mode label,
-                body.rf-dark-mode td,
-                body.rf-dark-mode span,
-                body.rf-dark-mode a,
-                body.rf-dark-mode div,
+                /* Text elements - only override if no inline color is set */
+                body.rf-dark-mode label:not([style*="color"]),
+                body.rf-dark-mode td:not([style*="color"]),
+                body.rf-dark-mode div:not([style*="color"]),
                 body.rf-dark-mode .aspNetDisabled {
                     color: white !important;
+                }
+
+                /* Spans without inline color get white, but preserve inline colors */
+                body.rf-dark-mode span:not([style*="color"]) {
+                    color: white !important;
+                }
+
+                /* Make dark red more visible (standard red is too dark on black) */
+                body.rf-dark-mode span[style*="color:red"],
+                body.rf-dark-mode span[style*="color: red"],
+                body.rf-dark-mode span[style*="color:Red"],
+                body.rf-dark-mode span[style*="color: Red"] {
+                    color: #ff6b6b !important; /* Lighter red for readability */
+                }
+
+                /* Make dark green more visible (standard green is too dark on black) */
+                body.rf-dark-mode span[style*="color:green"],
+                body.rf-dark-mode span[style*="color: green"],
+                body.rf-dark-mode span[style*="color:Green"],
+                body.rf-dark-mode span[style*="color: Green"] {
+                    color: #51cf66 !important; /* Lighter green for readability */
                 }
 
                 /* Links should be visible */
