@@ -155,6 +155,35 @@
                     background-color: #4a4a4a !important;
                 }
 
+                /* Disabled controls - make them clearly inactive in dark mode */
+                body.rf-dark-mode input[disabled],
+                body.rf-dark-mode textarea[disabled],
+                body.rf-dark-mode select[disabled],
+                body.rf-dark-mode button[disabled],
+                body.rf-dark-mode .aspNetDisabled,
+                body.rf-dark-mode input.aspNetDisabled,
+                body.rf-dark-mode button.aspNetDisabled {
+                    background-color: #222 !important;      /* muted background */
+                    color: #8b949e !important;               /* muted text color */
+                    border-color: #333 !important;           /* muted border */
+                    opacity: 0.6 !important;                 /* slightly faded */
+                    cursor: not-allowed !important;         /* clearly not interactive */
+                    box-shadow: none !important;            /* remove focus/active shadows */
+                    text-shadow: none !important;
+                }
+
+                /* Prevent hover/active styles from making disabled controls look interactive */
+                body.rf-dark-mode input[disabled]:hover,
+                body.rf-dark-mode textarea[disabled]:hover,
+                body.rf-dark-mode select[disabled]:hover,
+                body.rf-dark-mode button[disabled]:hover,
+                body.rf-dark-mode .aspNetDisabled:hover,
+                body.rf-dark-mode input.aspNetDisabled:hover,
+                body.rf-dark-mode button.aspNetDisabled:hover {
+                    background-color: #222 !important;
+                    color: #8b949e !important;
+                }
+
                 /* Tables */
                 body.rf-dark-mode table {
                     background-color: #161616 !important;
