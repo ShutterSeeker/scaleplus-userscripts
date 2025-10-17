@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RF Enhance
 // @namespace    http://tampermonkey.net/
-// @version      1.3
+// @version      1.4
 // @description  Dark mode, focus preservation, and enhancements for all RF screens
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/RFEnhance.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/RFEnhance.user.js
