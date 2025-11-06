@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         RF Enhance
 // @namespace    http://tampermonkey.net/
-// @version      1.4
+// @version      1.5
 // @description  Dark mode, focus preservation, and enhancements for all RF screens
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/RFEnhance.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/RFEnhance.user.js
@@ -16,8 +16,21 @@
 
     console.log('[RF Enhance] Script loaded on:', window.location.href);
 
+    // Check if we're on a valid RF URL
+    function isValidRFUrl() {
+        const url = window.location.href;
+        return url.startsWith('https://scale20.byjasco.com/RF/') || 
+               url.startsWith('https://scaleqa.byjasco.com/RF/');
+    }
+
     // Check if dark mode should be enabled
     function isDarkModeEnabled() {
+        // Only apply dark mode on valid RF URLs
+        if (!isValidRFUrl()) {
+            console.log('[RF Enhance] Not on a valid RF URL, dark mode disabled');
+            return false;
+        }
+
         // Check URL parameter first
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('darkmode')) {
