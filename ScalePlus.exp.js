@@ -29,7 +29,8 @@
         ADV_CRITERIA_ENHANCEMENT: 'scaleplus_adv_criteria_enhancement',
         F5_BEHAVIOR: 'scaleplus_f5_behavior',
         ENV_QA_NAME: 'scaleplus_env_qa_name',
-        ENV_PROD_NAME: 'scaleplus_env_prod_name'
+        ENV_PROD_NAME: 'scaleplus_env_prod_name',
+        DARK_MODE: 'scaleplus_dark_mode'
     };
 
     const DEFAULTS = {
@@ -43,7 +44,8 @@
         [SETTINGS.ADV_CRITERIA_ENHANCEMENT]: 'true',
         [SETTINGS.F5_BEHAVIOR]: 'false',
         [SETTINGS.ENV_QA_NAME]: 'QA ENVIRONMENT',
-        [SETTINGS.ENV_PROD_NAME]: 'PRODUCTION ENVIRONMENT'
+        [SETTINGS.ENV_PROD_NAME]: 'PRODUCTION ENVIRONMENT',
+        [SETTINGS.DARK_MODE]: 'false'
     };
 
     // Dynamically set ENV_LABELS default based on hostname if not already set
@@ -604,6 +606,11 @@
                                 <input type="checkbox" id="default-filter-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                                 <span class="scaleplus-setting-desc">Star defaults + relative date/time favorites & pending-filter tab restore</span>
                             </div>
+                            <div class="scaleplus-setting">
+                                <label for="dark-mode-toggle">Dark mode:</label>
+                                <input type="checkbox" id="dark-mode-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
+                                <span class="scaleplus-setting-desc">Apply dark theme to the results grid area</span>
+                            </div>
                         </div>
 
                         <div class="scaleplus-divider">
@@ -956,6 +963,12 @@
             advCriteriaIndicatorToggle.checked = true;
         }
 
+        const darkModeToggle = modal.querySelector('#dark-mode-toggle');
+        const currentDarkMode = localStorage.getItem(SETTINGS.DARK_MODE);
+        if (currentDarkMode === 'true') {
+            darkModeToggle.checked = true;
+        }
+
         const qaNameInput = modal.querySelector('#qa-name');
         const prodNameInput = modal.querySelector('#prod-name');
 
@@ -1010,6 +1023,19 @@
             localStorage.setItem(SETTINGS.DEFAULT_FILTER, state.toString());
             console.log(`[ScalePlus] Default filter set to: ${state}`);
             updateFavoritesStarIcon(); // Update star icon when feature is toggled
+        });
+
+        $('#dark-mode-toggle').on('change', function(event) {
+            const state = this.checked;
+            localStorage.setItem(SETTINGS.DARK_MODE, state.toString());
+            console.log(`[ScalePlus] Dark mode set to: ${state}`);
+            
+            // Apply or remove dark mode class immediately
+            if (state) {
+                document.body.classList.add('scaleplus-dark-mode');
+            } else {
+                document.body.classList.remove('scaleplus-dark-mode');
+            }
         });
 
         $('#adv-criteria-indicator-toggle').on('change', function(event) {
@@ -1079,7 +1105,7 @@
         });
 
         // Initialize bootstrap toggles
-        $('#search-toggle, #enter-toggle, #middle-click-toggle, #right-click-toggle, #f5-toggle, #tab-duplicator-toggle, #default-filter-toggle, #env-labels-toggle, #adv-criteria-indicator-toggle').bootstrapToggle();
+        $('#search-toggle, #enter-toggle, #middle-click-toggle, #right-click-toggle, #f5-toggle, #tab-duplicator-toggle, #default-filter-toggle, #env-labels-toggle, #adv-criteria-indicator-toggle, #dark-mode-toggle').bootstrapToggle();
 
         // Set initial states explicitly
         $(searchToggle).bootstrapToggle(searchToggle.checked ? 'on' : 'off');
@@ -1091,6 +1117,7 @@
         $(tabDuplicatorToggle).bootstrapToggle(tabDuplicatorToggle.checked ? 'on' : 'off');
         $(defaultFilterToggle).bootstrapToggle(defaultFilterToggle.checked ? 'on' : 'off');
         $(advCriteriaIndicatorToggle).bootstrapToggle(advCriteriaIndicatorToggle.checked ? 'on' : 'off');
+        $(darkModeToggle).bootstrapToggle(darkModeToggle.checked ? 'on' : 'off');
 
         // Handle close
         // Bootstrap handles modal closing automatically with data-dismiss="modal"
@@ -1561,10 +1588,10 @@
             if (yesButton && !yesButton.hasAttribute('data-scaleplus-monitored')) {
                 yesButton.setAttribute('data-scaleplus-monitored', 'true');
                 yesButton.addEventListener('click', () => {
-                    // Wait a bit for the deletion to complete, then clean up orphaned cache
+                    // Wait longer for the deletion to complete and DOM to update, then clean up orphaned cache
                     setTimeout(() => {
                         cleanupOrphanedDefaultFilters();
-                    }, 1000); // Increased from 500ms to 1000ms to give DOM more time to update
+                    }, 1000); // Increased from 500ms to 1000ms to ensure DOM is updated
                 });
             }
         };
@@ -1614,18 +1641,20 @@
 
         // Get all current favorite names
         const savedSearchItems = document.querySelectorAll('a[id="SearchPaneMenuFavoritesChooseSearch"] .deletesavedsearchtext');
+        
+        // SAFETY CHECK: Only proceed if we actually found favorites in the DOM
+        // This prevents deleting cache when the favorites dropdown hasn't loaded yet
+        if (savedSearchItems.length === 0) {
+            console.log(`[ScalePlus] Skipping orphaned filter cleanup - no favorites found in DOM yet`);
+            return;
+        }
+        
         savedSearchItems.forEach(item => {
             const filterName = item.textContent?.trim();
             if (filterName) {
                 currentFavorites.add(filterName);
             }
         });
-
-        // Safety check: If no favorites found, abort - DOM might not be loaded yet
-        if (currentFavorites.size === 0) {
-            console.log('[ScalePlus] No favorites found in DOM, skipping cleanup to avoid false positives');
-            return;
-        }
 
         let cleanedCount = 0;
 
@@ -2760,6 +2789,181 @@
         document.head.appendChild(style);
     }
 
+    // ===== DARK MODE STYLES =====
+    const darkModeStyles = `
+        /* Dark mode for results grid area - Based on SCALE's existing dark colors */
+        
+        /* Main grid container and scroll area */
+        body.scaleplus-dark-mode #ListPaneDataGrid_scroll {
+            background-color: #494e5e !important;
+        }
+        
+        body.scaleplus-dark-mode #ScreenPartDivContainer964 {
+            background-color: #494e5e !important;
+            border-color: #494e5e !important;
+        }
+        
+        /* Scrollbars */
+        body.scaleplus-dark-mode #ListPaneDataGrid_scroll::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid_scroll::-webkit-scrollbar-track {
+            background: #2d2f3b !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid_scroll::-webkit-scrollbar-thumb {
+            background: #494e53 !important;
+            border-radius: 6px;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid_scroll::-webkit-scrollbar-thumb:hover {
+            background: #5a5f64 !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid_hscroller {
+            background-color: #2d2f3b !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid_hscroller::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid_hscroller::-webkit-scrollbar-track {
+            background: #2d2f3b !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid_hscroller::-webkit-scrollbar-thumb {
+            background: #494e53 !important;
+            border-radius: 6px;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid_hscroller::-webkit-scrollbar-thumb:hover {
+            background: #5a5f64 !important;
+        }
+        
+        /* Main grid table */
+        body.scaleplus-dark-mode #ListPaneDataGrid {
+            background-color: #494e5e !important;
+            color: #ffffff !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid tbody.ui-widget-content {
+            background-color: #494e5e !important;
+            color: #ffffff !important;
+        }
+        
+        /* All table cells - single consistent background */
+        body.scaleplus-dark-mode #ListPaneDataGrid td {
+            background-color: #494e5e !important;
+            color: #ffffff !important;
+            border-color: #5a5f6f !important;
+        }
+        
+        /* Remove alternating row colors */
+        body.scaleplus-dark-mode #ListPaneDataGrid tr:nth-child(even) td {
+            background-color: #494e5e !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid tr:nth-child(odd) td {
+            background-color: #494e5e !important;
+        }
+        
+        /* Header cells */
+        body.scaleplus-dark-mode #ListPaneDataGrid th {
+            background-color: #494e5e !important;
+            color: #e8e9eb !important;
+            border-color: #494e53 !important;
+        }
+        
+        /* Grid header area */
+        body.scaleplus-dark-mode #ListPaneDataGrid thead {
+            background-color: #494e5e !important;
+        }
+        
+        body.scaleplus-dark-mode .ui-iggrid-header {
+            background-color: #494e5e !important;
+            color: #e8e9eb !important;
+        }
+        
+        /* Row selector cells - match row background, not header */
+        body.scaleplus-dark-mode #ListPaneDataGrid th.ui-iggrid-rowselector-class {
+            background-color: #494e5e !important;
+            color: #ffffff !important;
+            border-color: #5a5f6f !important;
+        }
+        
+        /* Links in dark mode - no color change on visited */
+        body.scaleplus-dark-mode #ListPaneDataGrid a {
+            color: #5ba3e0 !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid a:hover {
+            color: #7bb8ea !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid a:visited {
+            color: #5ba3e0 !important;
+        }
+        
+        /* Hovered rows - subtle highlight */
+        body.scaleplus-dark-mode #ListPaneDataGrid tr:hover td {
+            background-color: #585d6e !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid tr:hover th.ui-iggrid-rowselector-class {
+            background-color: #585d6e !important;
+        }
+        
+        /* Selected rows */
+        body.scaleplus-dark-mode #ListPaneDataGrid .ui-iggrid-selectedcell {
+            background-color: #2d4a6b !important;
+            color: #ffffff !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid .ui-state-active {
+            background-color: #2d4a6b !important;
+            color: #ffffff !important;
+            border-color: #4a7aab !important;
+        }
+        
+        /* Selected row header */
+        body.scaleplus-dark-mode #ListPaneDataGrid th.ui-iggrid-selectedcell {
+            background-color: #2d4a6b !important;
+            color: #ffffff !important;
+        }
+        
+        /* Ensure selected rows override other styles */
+        body.scaleplus-dark-mode #ListPaneDataGrid tr[aria-selected="true"] td {
+            background-color: #2d4a6b !important;
+            color: #ffffff !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid tr[aria-selected="true"] th.ui-iggrid-rowselector-class {
+            background-color: #2d4a6b !important;
+            color: #ffffff !important;
+        }
+        
+        /* Row selector checkboxes */
+        body.scaleplus-dark-mode #ListPaneDataGrid .ui-igcheckbox-normal {
+            background-color: #5a5f6f !important;
+            border-color: #6a6f7f !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid .ui-igcheckbox-normal:hover {
+            background-color: #6a6f7f !important;
+        }
+    `;
+
+    if (!document.getElementById('scaleplus-dark-mode-styles')) {
+        const darkStyle = document.createElement('style');
+        darkStyle.id = 'scaleplus-dark-mode-styles';
+        darkStyle.textContent = darkModeStyles;
+        document.head.appendChild(darkStyle);
+    }
+
     // Context menu class
     class ScalePlusContextMenu {
         constructor() {
@@ -3104,6 +3308,18 @@
         addMenuTooltips();
         addNavigationTooltips();
     }
+
+    // Initialize dark mode on page load
+    function initializeDarkMode() {
+        const darkModeEnabled = localStorage.getItem(SETTINGS.DARK_MODE) === 'true';
+        if (darkModeEnabled) {
+            document.body.classList.add('scaleplus-dark-mode');
+            console.log('[ScalePlus] Dark mode applied on page load');
+        }
+    }
+
+    // Apply dark mode immediately
+    initializeDarkMode();
 
     // Also add tooltips when menu is dynamically loaded
     const observer = new MutationObserver((mutations) => {
