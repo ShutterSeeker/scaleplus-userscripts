@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      2.11
+// @version      2.12
 // @description  Custom enhancements for Scale application with toggleable features
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
@@ -29,7 +29,8 @@
         ADV_CRITERIA_ENHANCEMENT: 'scaleplus_adv_criteria_enhancement',
         F5_BEHAVIOR: 'scaleplus_f5_behavior',
         ENV_QA_NAME: 'scaleplus_env_qa_name',
-        ENV_PROD_NAME: 'scaleplus_env_prod_name'
+        ENV_PROD_NAME: 'scaleplus_env_prod_name',
+        DARK_MODE: 'scaleplus_dark_mode'
     };
 
     const DEFAULTS = {
@@ -43,7 +44,8 @@
         [SETTINGS.ADV_CRITERIA_ENHANCEMENT]: 'true',
         [SETTINGS.F5_BEHAVIOR]: 'false',
         [SETTINGS.ENV_QA_NAME]: 'QA ENVIRONMENT',
-        [SETTINGS.ENV_PROD_NAME]: 'PRODUCTION ENVIRONMENT'
+        [SETTINGS.ENV_PROD_NAME]: 'PRODUCTION ENVIRONMENT',
+        [SETTINGS.DARK_MODE]: 'false'
     };
 
     // Dynamically set ENV_LABELS default based on hostname if not already set
@@ -604,6 +606,11 @@
                                 <input type="checkbox" id="default-filter-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
                                 <span class="scaleplus-setting-desc">Star defaults + relative date/time favorites & pending-filter tab restore</span>
                             </div>
+                            <div class="scaleplus-setting">
+                                <label for="dark-mode-toggle">Dark mode:</label>
+                                <input type="checkbox" id="dark-mode-toggle" data-toggle="toggle" data-on="On" data-off="Off" data-width="100">
+                                <span class="scaleplus-setting-desc">Apply dark theme to the results grid area</span>
+                            </div>
                         </div>
 
                         <div class="scaleplus-divider">
@@ -956,6 +963,12 @@
             advCriteriaIndicatorToggle.checked = true;
         }
 
+        const darkModeToggle = modal.querySelector('#dark-mode-toggle');
+        const currentDarkMode = localStorage.getItem(SETTINGS.DARK_MODE);
+        if (currentDarkMode === 'true') {
+            darkModeToggle.checked = true;
+        }
+
         const qaNameInput = modal.querySelector('#qa-name');
         const prodNameInput = modal.querySelector('#prod-name');
 
@@ -1010,6 +1023,19 @@
             localStorage.setItem(SETTINGS.DEFAULT_FILTER, state.toString());
             console.log(`[ScalePlus] Default filter set to: ${state}`);
             updateFavoritesStarIcon(); // Update star icon when feature is toggled
+        });
+
+        $('#dark-mode-toggle').on('change', function(event) {
+            const state = this.checked;
+            localStorage.setItem(SETTINGS.DARK_MODE, state.toString());
+            console.log(`[ScalePlus] Dark mode set to: ${state}`);
+            
+            // Apply or remove dark mode class immediately
+            if (state) {
+                document.body.classList.add('scaleplus-dark-mode');
+            } else {
+                document.body.classList.remove('scaleplus-dark-mode');
+            }
         });
 
         $('#adv-criteria-indicator-toggle').on('change', function(event) {
@@ -1079,7 +1105,7 @@
         });
 
         // Initialize bootstrap toggles
-        $('#search-toggle, #enter-toggle, #middle-click-toggle, #right-click-toggle, #f5-toggle, #tab-duplicator-toggle, #default-filter-toggle, #env-labels-toggle, #adv-criteria-indicator-toggle').bootstrapToggle();
+        $('#search-toggle, #enter-toggle, #middle-click-toggle, #right-click-toggle, #f5-toggle, #tab-duplicator-toggle, #default-filter-toggle, #env-labels-toggle, #adv-criteria-indicator-toggle, #dark-mode-toggle').bootstrapToggle();
 
         // Set initial states explicitly
         $(searchToggle).bootstrapToggle(searchToggle.checked ? 'on' : 'off');
@@ -1091,6 +1117,7 @@
         $(tabDuplicatorToggle).bootstrapToggle(tabDuplicatorToggle.checked ? 'on' : 'off');
         $(defaultFilterToggle).bootstrapToggle(defaultFilterToggle.checked ? 'on' : 'off');
         $(advCriteriaIndicatorToggle).bootstrapToggle(advCriteriaIndicatorToggle.checked ? 'on' : 'off');
+        $(darkModeToggle).bootstrapToggle(darkModeToggle.checked ? 'on' : 'off');
 
         // Handle close
         // Bootstrap handles modal closing automatically with data-dismiss="modal"
@@ -1555,100 +1582,56 @@
             });
         }
 
-        // Monitor the confirmation dialog Yes button instead of periodic checks
-        const monitorConfirmationDialog = () => {
-            const yesButton = document.querySelector('#confirmPositive');
-            if (yesButton && !yesButton.hasAttribute('data-scaleplus-monitored')) {
-                yesButton.setAttribute('data-scaleplus-monitored', 'true');
-                yesButton.addEventListener('click', () => {
-                    // Wait a bit for the deletion to complete, then clean up orphaned cache
-                    setTimeout(() => {
-                        cleanupOrphanedDefaultFilters();
-                    }, 1000); // Increased from 500ms to 1000ms to give DOM more time to update
-                });
-            }
-        };
-
-        // Monitor for the confirmation dialog appearing
-        const dialogObserver = new MutationObserver(() => {
-            monitorConfirmationDialog();
-        });
-
-        dialogObserver.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-
-        // Initial check
-        monitorConfirmationDialog();
+        // NOTE: Removed automatic orphaned filter cleanup on delete confirmation
+        // Reason: Too risky - false positives can delete valid cache due to DOM timing issues
+        // Cache is cleaned up immediately when user explicitly deletes a favorite (via cleanupDeletedFavoriteCache)
+        // or when user un-stars a default (via clearDefaultFilter), so no need for this check
     }
 
     // Clean up cache when a favorite is deleted
     function cleanupDeletedFavoriteCache(deletedFilterName) {
         const username = getUsernameFromCookie();
-        let cleanedCount = 0;
-
-        // Find and remove any default filter cache entries for this favorite
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.includes('DefaultFilter') && key.includes(username)) {
-                const storedFilterName = localStorage.getItem(key);
-                if (storedFilterName === deletedFilterName) {
-                    localStorage.removeItem(key);
-                    cleanedCount++;
-                    console.log(`[ScalePlus] Cleaned up default filter cache for deleted favorite: ${deletedFilterName}`);
-                }
-            }
-        }
-
-        // Update the star icon since we may have removed a default filter
+        
+        // ENHANCED SAFETY: Wait a moment and verify the favorite is truly gone
+        // before deleting cache (protects against transient DOM changes)
         setTimeout(() => {
-            updateFavoritesStarIcon();
-        }, 100);
-    }
-
-    // Clean up orphaned default filters (filters that reference favorites that no longer exist)
-    function cleanupOrphanedDefaultFilters() {
-        const username = getUsernameFromCookie();
-        const currentFavorites = new Set();
-
-        // Get all current favorite names
-        const savedSearchItems = document.querySelectorAll('a[id="SearchPaneMenuFavoritesChooseSearch"] .deletesavedsearchtext');
-        savedSearchItems.forEach(item => {
-            const filterName = item.textContent?.trim();
-            if (filterName) {
-                currentFavorites.add(filterName);
+            // Double-check that the favorite is actually deleted, not just temporarily removed from DOM
+            const allFavorites = document.querySelectorAll('a[id="SearchPaneMenuFavoritesChooseSearch"] .deletesavedsearchtext');
+            const stillExists = Array.from(allFavorites).some(item => item.textContent?.trim() === deletedFilterName);
+            
+            if (stillExists) {
+                console.log(`[ScalePlus] False alarm - "${deletedFilterName}" still exists, NOT deleting cache`);
+                return;
             }
-        });
+            
+            // Confirmed deleted, now safe to clean up cache
+            let cleanedCount = 0;
 
-        // Safety check: If no favorites found, abort - DOM might not be loaded yet
-        if (currentFavorites.size === 0) {
-            console.log('[ScalePlus] No favorites found in DOM, skipping cleanup to avoid false positives');
-            return;
-        }
-
-        let cleanedCount = 0;
-
-        // Check all default filter cache entries
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.includes('DefaultFilter') && key.includes(username)) {
-                const storedFilterName = localStorage.getItem(key);
-                if (storedFilterName && !currentFavorites.has(storedFilterName)) {
-                    localStorage.removeItem(key);
-                    cleanedCount++;
-                    console.log(`[ScalePlus] Cleaned up orphaned default filter cache: ${storedFilterName}`);
+            // Find and remove any default filter cache entries for this favorite
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.includes('DefaultFilter') && key.includes(username)) {
+                    const storedFilterName = localStorage.getItem(key);
+                    if (storedFilterName === deletedFilterName) {
+                        localStorage.removeItem(key);
+                        cleanedCount++;
+                        console.log(`[ScalePlus] Cleaned up default filter cache for confirmed deleted favorite: ${deletedFilterName}`);
+                    }
                 }
             }
-        }
 
-        if (cleanedCount > 0) {
-            // Delay the star icon update to ensure DOM is updated
-            setTimeout(() => {
-                updateFavoritesStarIcon();
-            }, 100);
-        }
+            // Update the star icon since we may have removed a default filter
+            if (cleanedCount > 0) {
+                setTimeout(() => {
+                    updateFavoritesStarIcon();
+                }, 100);
+            }
+        }, 1000); // Wait 1 second to verify deletion is permanent
     }
+
+    // NOTE: Removed cleanupOrphanedDefaultFilters() function entirely
+    // Cache cleanup happens directly when user deletes a favorite (cleanupDeletedFavoriteCache)
+    // or un-stars a default (clearDefaultFilter). No need for automatic orphan detection.
 
     function fetchSavedFilter(defaultFilterName) {
         return new Promise((resolve, reject) => {
@@ -2760,6 +2743,149 @@
         document.head.appendChild(style);
     }
 
+    // ===== DARK MODE STYLES =====
+    const darkModeStyles = `
+        /* Dark mode for results grid area - Using custom dark theme colors */
+        
+        /* Main grid container and scroll area */
+        body.scaleplus-dark-mode #ListPaneDataGrid_scroll {
+            background-color: #181818 !important;
+        }
+        
+        body.scaleplus-dark-mode #ScreenPartDivContainer964 {
+            background-color: #181818 !important;
+            border-color: #181818 !important;
+        }
+        
+        /* Scrollbars */
+        body.scaleplus-dark-mode #ListPaneDataGrid_scroll::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid_scroll::-webkit-scrollbar-track {
+            background: #0f0f0f !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid_scroll::-webkit-scrollbar-thumb {
+            background: #2a2a2a !important;
+            border-radius: 6px;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid_scroll::-webkit-scrollbar-thumb:hover {
+            background: #3a3a3a !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid_hscroller {
+            background-color: #0f0f0f !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid_hscroller::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid_hscroller::-webkit-scrollbar-track {
+            background: #0f0f0f !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid_hscroller::-webkit-scrollbar-thumb {
+            background: #2a2a2a !important;
+            border-radius: 6px;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid_hscroller::-webkit-scrollbar-thumb:hover {
+            background: #3a3a3a !important;
+        }
+        
+        /* Main grid table */
+        body.scaleplus-dark-mode #ListPaneDataGrid {
+            background-color: #181818 !important;
+            color: #ffffff !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid tbody.ui-widget-content {
+            background-color: #181818 !important;
+            color: #ffffff !important;
+        }
+        
+        /* All table cells - single consistent background */
+        body.scaleplus-dark-mode #ListPaneDataGrid td {
+            background-color: #181818 !important;
+            color: #ffffff !important;
+            border-color: #2a2a2a !important;
+        }
+        
+        /* Remove alternating row colors */
+        body.scaleplus-dark-mode #ListPaneDataGrid tr:nth-child(even) td {
+            background-color: #181818 !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid tr:nth-child(odd) td {
+            background-color: #181818 !important;
+        }
+        
+        /* Header cells: leave default theme (no dark mode applied) */
+        
+        /* Links in dark mode - scope to body cells only (do not affect header feature chooser) */
+        body.scaleplus-dark-mode #ListPaneDataGrid tbody a {
+            color: #5ba3e0 !important;
+        }
+        body.scaleplus-dark-mode #ListPaneDataGrid tbody a:hover {
+            color: #7bb8ea !important;
+        }
+        body.scaleplus-dark-mode #ListPaneDataGrid tbody a:visited {
+            color: #5ba3e0 !important;
+        }
+        
+        /* Hovered rows - subtle highlight */
+        body.scaleplus-dark-mode #ListPaneDataGrid tr:hover td {
+            background-color: #252525 !important;
+        }
+        
+        
+        
+        /* Selected rows */
+        body.scaleplus-dark-mode #ListPaneDataGrid .ui-iggrid-selectedcell {
+            background-color: #2d4a6b !important;
+            color: #ffffff !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid .ui-state-active {
+            background-color: #2d4a6b !important;
+            color: #ffffff !important;
+            border-color: #4a7aab !important;
+        }
+        
+        
+        
+        /* Ensure selected rows override other styles */
+        body.scaleplus-dark-mode #ListPaneDataGrid tr[aria-selected="true"] td {
+            background-color: #2d4a6b !important;
+            color: #ffffff !important;
+        }
+        
+        
+        
+        /* Row selector checkboxes - scope to body only (do not affect header checkbox) */
+        body.scaleplus-dark-mode #ListPaneDataGrid tbody .ui-igcheckbox-normal {
+            background-color: #2a2a2a !important;
+            border-color: #3a3a3a !important;
+        }
+        body.scaleplus-dark-mode #ListPaneDataGrid tbody .ui-igcheckbox-normal:hover {
+            background-color: #3a3a3a !important;
+        }
+        
+        
+    `;
+
+    if (!document.getElementById('scaleplus-dark-mode-styles')) {
+        const darkStyle = document.createElement('style');
+        darkStyle.id = 'scaleplus-dark-mode-styles';
+        darkStyle.textContent = darkModeStyles;
+        document.head.appendChild(darkStyle);
+    }
+
     // Context menu class
     class ScalePlusContextMenu {
         constructor() {
@@ -3104,6 +3230,18 @@
         addMenuTooltips();
         addNavigationTooltips();
     }
+
+    // Initialize dark mode on page load
+    function initializeDarkMode() {
+        const darkModeEnabled = localStorage.getItem(SETTINGS.DARK_MODE) === 'true';
+        if (darkModeEnabled) {
+            document.body.classList.add('scaleplus-dark-mode');
+            console.log('[ScalePlus] Dark mode applied on page load');
+        }
+    }
+
+    // Apply dark mode immediately
+    initializeDarkMode();
 
     // Also add tooltips when menu is dynamically loaded
     const observer = new MutationObserver((mutations) => {
