@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         RF Enhance
 // @namespace    http://tampermonkey.net/
-// @version      1.5
-// @description  Dark mode, focus preservation, and enhancements for all RF screens
+// @version      1.6
+// @description  Dark mode, focus preservation, focus overlay, and enhancements for all RF screens
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/RFEnhance.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/RFEnhance.user.js
 // @author       Blake
@@ -13,8 +13,6 @@
 
 (function () {
     'use strict';
-
-    console.log('[RF Enhance] Script loaded on:', window.location.href);
 
     // Check if we're on a valid RF URL
     function isValidRFUrl() {
@@ -27,14 +25,12 @@
     function isDarkModeEnabled() {
         // Only apply dark mode on valid RF URLs
         if (!isValidRFUrl()) {
-            console.log('[RF Enhance] Not on a valid RF URL, dark mode disabled');
             return false;
         }
 
         // Check URL parameter first
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('darkmode')) {
-            console.log('[RF Enhance] Dark mode enabled via URL parameter');
             // Save to sessionStorage for persistence
             sessionStorage.setItem('rfDarkMode', 'enabled');
             return true;
@@ -43,7 +39,6 @@
         // Check sessionStorage
         const stored = sessionStorage.getItem('rfDarkMode');
         if (stored === 'enabled') {
-            console.log('[RF Enhance] Dark mode enabled via sessionStorage');
             return true;
         }
 
@@ -69,8 +64,6 @@
 
     // Apply dark mode styles
     function applyDarkMode() {
-        console.log('[RF Enhance] Applying dark mode styles');
-
         // Apply instant dark mode first to prevent flash
         applyInstantDarkMode();
 
@@ -213,15 +206,82 @@
                     background: #0094ff !important;
                     color: white !important;
                 }
+
+                /* Focus Overlay Styles */
+                #rf-focus-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.7);
+                    z-index: 999999;
+                    display: none;
+                    justify-content: center;
+                    align-items: center;
+                    cursor: pointer;
+                }
+
+                #rf-focus-overlay.active {
+                    display: flex;
+                }
+
+                #rf-focus-overlay-message {
+                    background-color: #2d2d2d;
+                    color: white;
+                    padding: 30px 50px;
+                    border-radius: 10px;
+                    font-size: 24px;
+                    font-weight: bold;
+                    text-align: center;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+                    border: 2px solid #555;
+                }
+
+                body.rf-dark-mode #rf-focus-overlay {
+                    background-color: rgba(0, 0, 0, 0.85);
+                }
+
+                body.rf-dark-mode #rf-focus-overlay-message {
+                    background-color: #3a3a3a;
+                    border-color: #666;
+                }
+
+                /* Pulsing animation for overlay message */
+                @keyframes rf-pulse-yellow {
+                    0%, 100% {
+                        background-color: #b8860b;
+                        color: #1a1a1a;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 215, 0, 0.5);
+                        border-color: #daa520;
+                    }
+                    50% {
+                        background-color: #ffd700;
+                        color: #000;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 25px rgba(255, 215, 0, 0.9);
+                        border-color: #ffed4e;
+                    }
+                }
+
+                #rf-focus-overlay-message {
+                    background-color: #b8860b !important;
+                    color: #1a1a1a !important;
+                    border-color: #daa520 !important;
+                    animation: rf-pulse-yellow 3s ease-in-out infinite;
+                }
+
+                body.rf-dark-mode #rf-focus-overlay-message {
+                    background-color: #b8860b !important;
+                    color: #1a1a1a !important;
+                    border-color: #daa520 !important;
+                }
             `;
             document.head.appendChild(style);
-            console.log('[RF Enhance] Styles injected');
         }
     }
 
     // Remove dark mode
     function removeDarkMode() {
-        console.log('[RF Enhance] Removing dark mode');
         document.body.classList.remove('rf-dark-mode');
         sessionStorage.removeItem('rfDarkMode');
     }
@@ -292,10 +352,136 @@
         setInterval(saveFocusedElement, 1000);
     }
 
+    // Track the currently focused input field
+    let lastFocusedField = null;
+    let windowHasFocus = true;
+
+    // Create focus overlay
+    function createFocusOverlay() {
+        if (document.getElementById('rf-focus-overlay')) {
+            return; // Already created
+        }
+
+        const overlay = document.createElement('div');
+        overlay.id = 'rf-focus-overlay';
+        overlay.style.cssText = `
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            background-color: rgba(0, 0, 0, 0.7) !important;
+            z-index: 999999 !important;
+            display: none !important;
+            justify-content: center !important;
+            align-items: center !important;
+            cursor: pointer !important;
+        `;
+        
+        const message = document.createElement('div');
+        message.id = 'rf-focus-overlay-message';
+        message.textContent = 'Click anywhere to restore focus';
+        
+        overlay.appendChild(message);
+        document.body.appendChild(overlay);
+
+        // When user clicks the overlay, restore focus and hide overlay
+        overlay.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            hideOverlay();
+            restoreFocusToLastField();
+        });
+    }
+
+    // Show overlay
+    function showOverlay() {
+        const overlay = document.getElementById('rf-focus-overlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+        }
+    }
+
+    // Hide overlay
+    function hideOverlay() {
+        const overlay = document.getElementById('rf-focus-overlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+    }
+
+    // Track focus changes
+    function setupFocusTracking() {
+        document.addEventListener('focusin', function(e) {
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) {
+                lastFocusedField = e.target;
+            }
+        });
+
+        // Also track clicks on input fields
+        document.addEventListener('click', function(e) {
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT')) {
+                lastFocusedField = e.target;
+            }
+        }, true);
+    }
+
+    // Restore focus to the last focused field
+    function restoreFocusToLastField() {
+        if (lastFocusedField && document.body.contains(lastFocusedField)) {
+            try {
+                // Use setTimeout to ensure the overlay is hidden first
+                setTimeout(function() {
+                    lastFocusedField.focus();
+                    
+                    // Restore cursor position if it's a text input
+                    if (lastFocusedField.tagName === 'INPUT' || lastFocusedField.tagName === 'TEXTAREA') {
+                        const length = lastFocusedField.value.length;
+                        lastFocusedField.setSelectionRange(length, length);
+                    }
+                }, 10);
+            } catch (e) {
+                // Silently handle focus restoration errors
+            }
+        }
+    }
+
+    // Setup window focus/blur handlers
+    function setupWindowFocusHandlers() {
+        // Handle window blur (window loses focus)
+        window.addEventListener('blur', function() {
+            windowHasFocus = false;
+            // Small delay to ensure we've captured the current focused field
+            setTimeout(function() {
+                if (!windowHasFocus) {
+                    showOverlay();
+                }
+            }, 100);
+        });
+
+        // Handle window focus (window gains focus)
+        window.addEventListener('focus', function() {
+            windowHasFocus = true;
+            // Don't hide overlay here - let user click to restore
+        });
+
+        // Also listen for visibility change (tab switching)
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                windowHasFocus = false;
+                setTimeout(function() {
+                    if (!windowHasFocus && document.hidden) {
+                        showOverlay();
+                    }
+                }, 100);
+            } else {
+                windowHasFocus = true;
+            }
+        });
+    }
+
     // Initialize
     function init() {
-        console.log('[RF Enhance] Initializing...');
-
         // Wait for body to be available
         if (document.body) {
             if (isDarkModeEnabled()) {
@@ -305,10 +491,18 @@
             // Set up focus preservation for auto-refreshing pages
             setupFocusPreservation();
             
+            // Create focus overlay
+            createFocusOverlay();
+            
+            // Set up focus tracking
+            setupFocusTracking();
+            
+            // Set up window focus handlers
+            setupWindowFocusHandlers();
+            
             // Restore focus after a brief delay (to let page finish loading)
             setTimeout(restoreFocusedElement, 100);
         } else {
-            console.log('[RF Enhance] Waiting for body...');
             setTimeout(init, 100);
         }
     }
