@@ -62,6 +62,71 @@
         }
     }
 
+    // Apply overlay styles (always needed, not just for dark mode)
+    function applyOverlayStyles() {
+        if (!document.getElementById('rf-overlay-styles')) {
+            const overlayStyle = document.createElement('style');
+            overlayStyle.id = 'rf-overlay-styles';
+            overlayStyle.textContent = `
+                /* Focus Overlay Styles */
+                #rf-focus-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.7);
+                    z-index: 999999;
+                    display: none;
+                    justify-content: center;
+                    align-items: center;
+                    cursor: pointer;
+                }
+
+                #rf-focus-overlay.active {
+                    display: flex;
+                }
+
+                #rf-focus-overlay-message {
+                    padding: 30px 50px;
+                    border-radius: 10px;
+                    font-size: 24px;
+                    font-weight: bold;
+                    text-align: center;
+                    border: 2px solid #daa520;
+                }
+
+                body.rf-dark-mode #rf-focus-overlay {
+                    background-color: rgba(0, 0, 0, 0.85);
+                }
+
+                /* Pulsing animation for overlay message */
+                @keyframes rf-pulse-yellow {
+                    0%, 100% {
+                        background-color: #b8860b;
+                        color: #1a1a1a;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 215, 0, 0.5);
+                        border-color: #daa520;
+                    }
+                    50% {
+                        background-color: #ffd700;
+                        color: #000;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 25px rgba(255, 215, 0, 0.9);
+                        border-color: #ffed4e;
+                    }
+                }
+
+                #rf-focus-overlay-message {
+                    background-color: #b8860b !important;
+                    color: #1a1a1a !important;
+                    border-color: #daa520 !important;
+                    animation: rf-pulse-yellow 3s ease-in-out infinite;
+                }
+            `;
+            document.head.appendChild(overlayStyle);
+        }
+    }
+
     // Apply dark mode styles
     function applyDarkMode() {
         // Apply instant dark mode first to prevent flash
@@ -205,75 +270,6 @@
                 body.rf-dark-mode [style*="background: #0094ff"] {
                     background: #0094ff !important;
                     color: white !important;
-                }
-
-                /* Focus Overlay Styles */
-                #rf-focus-overlay {
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-color: rgba(0, 0, 0, 0.7);
-                    z-index: 999999;
-                    display: none;
-                    justify-content: center;
-                    align-items: center;
-                    cursor: pointer;
-                }
-
-                #rf-focus-overlay.active {
-                    display: flex;
-                }
-
-                #rf-focus-overlay-message {
-                    background-color: #2d2d2d;
-                    color: white;
-                    padding: 30px 50px;
-                    border-radius: 10px;
-                    font-size: 24px;
-                    font-weight: bold;
-                    text-align: center;
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-                    border: 2px solid #555;
-                }
-
-                body.rf-dark-mode #rf-focus-overlay {
-                    background-color: rgba(0, 0, 0, 0.85);
-                }
-
-                body.rf-dark-mode #rf-focus-overlay-message {
-                    background-color: #3a3a3a;
-                    border-color: #666;
-                }
-
-                /* Pulsing animation for overlay message */
-                @keyframes rf-pulse-yellow {
-                    0%, 100% {
-                        background-color: #b8860b;
-                        color: #1a1a1a;
-                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 215, 0, 0.5);
-                        border-color: #daa520;
-                    }
-                    50% {
-                        background-color: #ffd700;
-                        color: #000;
-                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 25px rgba(255, 215, 0, 0.9);
-                        border-color: #ffed4e;
-                    }
-                }
-
-                #rf-focus-overlay-message {
-                    background-color: #b8860b !important;
-                    color: #1a1a1a !important;
-                    border-color: #daa520 !important;
-                    animation: rf-pulse-yellow 3s ease-in-out infinite;
-                }
-
-                body.rf-dark-mode #rf-focus-overlay-message {
-                    background-color: #b8860b !important;
-                    color: #1a1a1a !important;
-                    border-color: #daa520 !important;
                 }
             `;
             document.head.appendChild(style);
@@ -444,6 +440,39 @@
                 // Silently handle focus restoration errors
             }
         }
+        
+        // Trigger a click on the hidden submit button to restart the timer
+        setTimeout(function() {
+            const submitBtn = document.querySelector('input[id*="btnSubmit"]');
+            if (submitBtn && submitBtn.style.display === 'none') {
+                submitBtn.click();
+            }
+        }, 100);
+    }
+
+    // Prevent auto-refresh when window is unfocused
+    function preventAutoRefreshWhenUnfocused() {
+        // Intercept all form submissions and button clicks
+        document.addEventListener('submit', function(e) {
+            if (!windowHasFocus) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }, true);
+
+        document.addEventListener('click', function(e) {
+            // Check if clicking a button that would cause refresh
+            if (!windowHasFocus && e.target && (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT')) {
+                const id = e.target.id || '';
+                // Prevent auto-refresh button clicks when unfocused
+                if (id.includes('btnSubmit') || e.target.style.display === 'none') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            }
+        }, true);
     }
 
     // Setup window focus/blur handlers
@@ -484,6 +513,9 @@
     function init() {
         // Wait for body to be available
         if (document.body) {
+            // Always apply overlay styles (needed for both light and dark mode)
+            applyOverlayStyles();
+            
             if (isDarkModeEnabled()) {
                 applyDarkMode();
             }
@@ -499,6 +531,9 @@
             
             // Set up window focus handlers
             setupWindowFocusHandlers();
+            
+            // Prevent auto-refresh when unfocused
+            preventAutoRefreshWhenUnfocused();
             
             // Restore focus after a brief delay (to let page finish loading)
             setTimeout(restoreFocusedElement, 100);
