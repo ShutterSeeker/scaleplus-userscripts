@@ -2,7 +2,7 @@
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      2.12
+// @version      2.13
 // @description  Custom enhancements for Scale application with toggleable features
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
@@ -2750,6 +2750,13 @@
         /* Main grid container and scroll area */
         body.scaleplus-dark-mode #ListPaneDataGrid_scroll {
             background-color: #181818 !important;
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        
+        body.scaleplus-dark-mode #ListPaneDataGrid_scroll.ui-widget-content {
+            border: none !important;
         }
         
         body.scaleplus-dark-mode #ScreenPartDivContainer964 {
@@ -2874,6 +2881,36 @@
         }
         body.scaleplus-dark-mode #ListPaneDataGrid tbody .ui-igcheckbox-normal:hover {
             background-color: #3a3a3a !important;
+        }
+        
+        /* Custom loading spinner for dark mode */
+        body.scaleplus-dark-mode .ui-igloadingmsg {
+            background: transparent !important;
+            color: transparent !important;
+            text-indent: -9999px;
+            overflow: visible !important;
+        }
+        
+        body.scaleplus-dark-mode .ui-igloadingmsg::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #5ba3e0;
+            border-radius: 50%;
+            animation: scaleplus-spin 0.8s linear infinite;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            text-indent: 0;
+        }
+        
+        @keyframes scaleplus-spin {
+            to {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
         }
         
         
