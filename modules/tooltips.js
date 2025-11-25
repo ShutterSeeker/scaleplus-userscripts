@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus Tooltips Module
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Tooltip system for menu and navigation elements
 // @author       Blake, Nash
 // @grant        none
@@ -10,8 +10,18 @@
 (function() {
     'use strict';
 
+    // Check if we're on a Scale page (not RF page)
+    function isScalePage() {
+        const url = window.location.href;
+        return url.includes('/scale/') || url.includes('/Scale/');
+    }
+
     window.ScalePlusTooltips = {
         init() {
+            if (!isScalePage()) {
+                console.log('[ScalePlus Tooltips] Not on Scale page, skipping initialization');
+                return;
+            }
             console.log('[ScalePlus Tooltips] Module initialized');
             
             if (document.readyState === 'loading') {

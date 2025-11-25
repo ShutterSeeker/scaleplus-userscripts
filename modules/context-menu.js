@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus Context Menu Module
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.3
 // @description  Right-click context menu system
 // @author       Blake, Nash
 // @grant        none
@@ -10,6 +10,12 @@
 (function() {
     'use strict';
 
+    // Check if we're on a Scale page (not RF page)
+    function isScalePage() {
+        const url = window.location.href;
+        return url.includes('/scale/') || url.includes('/Scale/');
+    }
+
     class ScalePlusContextMenuClass {
         constructor() {
             this.menu = null;
@@ -17,6 +23,10 @@
         }
 
         init() {
+            if (!isScalePage()) {
+                console.log('[ScalePlus Context Menu] Not on Scale page, skipping initialization');
+                return;
+            }
             console.log('[ScalePlus Context Menu] Module initialized');
             this.injectStyles();
             this.createMenu();

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus Search Pane Module
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Auto-open search pane functionality
 // @author       Blake, Nash
 // @grant        none
@@ -10,8 +10,18 @@
 (function() {
     'use strict';
 
+    // Check if we're on a Scale page (not RF page)
+    function isScalePage() {
+        const url = window.location.href;
+        return url.includes('/scale/') || url.includes('/Scale/');
+    }
+
     window.ScalePlusSearchPane = {
         init() {
+            if (!isScalePage()) {
+                console.log('[ScalePlus Search Pane] Not on Scale page, skipping initialization');
+                return;
+            }
             console.log('[ScalePlus Search Pane] Module initialized');
             this.clickSearchButtonIfNeeded();
         },

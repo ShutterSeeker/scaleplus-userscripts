@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus Favorites Module
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Default filter favorites management
 // @author       Blake, Nash
 // @grant        none
@@ -10,12 +10,22 @@
 (function() {
     'use strict';
 
+    // Check if we're on a Scale page (not RF page)
+    function isScalePage() {
+        const url = window.location.href;
+        return url.includes('/scale/') || url.includes('/Scale/');
+    }
+
     window.ScalePlusFavorites = {
         hasAutoApplied: false,
         hasLoggedNoDefault: false,
         hasProcessedPendingFilter: false,
 
         init() {
+            if (!isScalePage()) {
+                console.log('[ScalePlus Favorites] Not on Scale page, skipping initialization');
+                return;
+            }
             console.log('[ScalePlus Favorites] Module initialized');
             this.injectStyles();
             this.setupObservers();

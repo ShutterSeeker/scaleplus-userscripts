@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus Advanced Criteria Module
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Advanced criteria counter and enhancements
 // @author       Blake, Nash
 // @grant        none
@@ -10,10 +10,20 @@
 (function() {
     'use strict';
 
+    // Check if we're on a Scale page (not RF page)
+    function isScalePage() {
+        const url = window.location.href;
+        return url.includes('/scale/') || url.includes('/Scale/');
+    }
+
     window.ScalePlusAdvancedCriteria = {
         gridColumnsModified: false,
 
         init() {
+            if (!isScalePage()) {
+                console.log('[ScalePlus Advanced Criteria] Not on Scale page, skipping initialization');
+                return;
+            }
             console.log('[ScalePlus Advanced Criteria] Module initialized');
             
             if (document.readyState === 'loading') {

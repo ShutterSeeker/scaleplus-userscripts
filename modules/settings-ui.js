@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus Settings UI Module
 // @namespace    https://github.com/ShutterSeeker/scaleplus-userscripts
-// @version      1.2
+// @version      1.3
 // @description  Settings modal interface for ScalePlus
 // @author       ShutterSeeker
 // @match        https://*/Scale/*
@@ -10,6 +10,24 @@
 
 (function() {
     'use strict';
+
+    // Check if we're on a Scale page (not RF page)
+    function isScalePage() {
+        const url = window.location.href;
+        return url.includes('/scale/') || url.includes('/Scale/');
+    }
+
+    // Only initialize on Scale pages
+    if (!isScalePage()) {
+        console.log('[ScalePlus Settings UI] Not on Scale page, skipping initialization');
+        // Export empty module so other modules don't break
+        window.ScalePlusSettingsUI = {
+            init: () => {},
+            createSettingsModal: () => {},
+            addConfigureButton: () => {}
+        };
+        return;
+    }
 
     const { SETTINGS, DEFAULTS } = window.ScalePlusSettings || {};
     

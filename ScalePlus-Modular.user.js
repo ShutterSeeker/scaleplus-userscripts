@@ -28,7 +28,7 @@
 (function () {
     'use strict';
 
-    console.log('[ScalePlus] Main script initializing - Modular version 3.0');
+    console.log('[ScalePlus] Main script initializing - Modular version 3.1');
 
     // Wait for all required modules to be loaded
     function waitForModules() {
