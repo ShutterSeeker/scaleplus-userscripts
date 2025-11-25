@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus Context Menu Module
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  Right-click context menu system
 // @author       Blake, Nash
 // @grant        none
@@ -115,12 +115,12 @@
                     position: relative !important;
                 }
                 
-                /* Right-click cell highlight - selected row (lighter, more subtle) */
+                /* Right-click cell highlight - selected row (keep light, just add border) */
                 #ListPaneDataGrid tr[aria-selected="true"] td.scaleplus-context-highlight,
                 #ListPaneDataGrid .ui-iggrid-selectedcell.scaleplus-context-highlight,
                 #ListPaneDataGrid .ui-state-active.scaleplus-context-highlight {
                     box-shadow: inset 0 0 0 2px #4f93e4 !important;
-                    background-color: rgba(79, 147, 228, 0.35) !important;
+                    background-color: rgba(173, 216, 230, 0.5) !important;
                     position: relative !important;
                 }
                 
