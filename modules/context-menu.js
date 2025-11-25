@@ -81,6 +81,31 @@
                     background-color: #e0e0e0;
                     margin: 4px 0;
                 }
+                
+                /* Dark mode styles for context menu */
+                body.scaleplus-dark-mode .scaleplus-context-menu {
+                    background: #2a2a2a;
+                    border: 1px solid #3a3a3a;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+                }
+                body.scaleplus-dark-mode .scaleplus-context-menu-item {
+                    color: #e0e0e0;
+                }
+                body.scaleplus-dark-mode .scaleplus-context-menu-item:hover {
+                    background-color: #3a3a3a;
+                }
+                body.scaleplus-dark-mode .scaleplus-context-menu-item:active {
+                    background-color: #4a4a4a;
+                }
+                body.scaleplus-dark-mode .scaleplus-context-menu-item.disabled {
+                    color: #666;
+                }
+                body.scaleplus-dark-mode .scaleplus-context-menu-item.disabled:hover {
+                    background-color: transparent;
+                }
+                body.scaleplus-dark-mode .scaleplus-context-menu-separator {
+                    background-color: #3a3a3a;
+                }
             `;
 
             const style = document.createElement('style');

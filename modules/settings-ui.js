@@ -458,6 +458,20 @@
             const state = this.checked;
             localStorage.setItem(SETTINGS.ENV_LABELS, state.toString());
             console.log(`[ScalePlus] Environment labels set to: ${state}`);
+            
+            // Apply or remove environment label immediately
+            if (state) {
+                // Add the label if it doesn't exist
+                if (window.ScalePlusEnvironmentLabels && window.ScalePlusEnvironmentLabels.addEnvironmentLabel) {
+                    window.ScalePlusEnvironmentLabels.addEnvironmentLabel();
+                }
+            } else {
+                // Remove the label if it exists
+                const existingLabel = document.getElementById('scaleplus-env-label');
+                if (existingLabel) {
+                    existingLabel.remove();
+                }
+            }
         });
 
         $('#tab-duplicator-toggle').on('change', function(event) {
@@ -574,23 +588,21 @@
     const addConfigureButton = () => {
         const targetButton = document.querySelector('button[data-resourcekey="BTN_CONFIGUREWORKSTATION"]');
         
-        if (targetButton && !document.getElementById('scaleplus-settings-btn')) {
-            const scalePlusButton = document.createElement('button');
-            scalePlusButton.id = 'scaleplus-settings-btn';
-            scalePlusButton.className = 'btn btn-default';
-            scalePlusButton.textContent = 'ScalePlus Settings';
-            scalePlusButton.style.marginLeft = '10px';
-            
-            scalePlusButton.addEventListener('click', (e) => {
+        if (targetButton && !targetButton.hasAttribute('data-scaleplus-intercepted')) {
+            // Intercept the native Configure Workstation button
+            targetButton.setAttribute('data-scaleplus-intercepted', 'true');
+            targetButton.addEventListener('click', (e) => {
                 e.preventDefault();
-                if (!document.getElementById('scaleplus-settings-modal')) {
-                    createSettingsModal();
+                const existingModal = document.getElementById('scaleplus-settings-modal');
+                if (existingModal) {
+                    existingModal.remove();
+                    const existingStyle = document.querySelector('style[data-scaleplus-modal]');
+                    if (existingStyle) existingStyle.remove();
                 }
+                createSettingsModal();
                 $('#scaleplus-settings-modal').modal('show');
             });
-            
-            targetButton.parentNode.insertBefore(scalePlusButton, targetButton.nextSibling);
-            console.log('[ScalePlus Settings UI] Settings button added');
+            console.log('[ScalePlus Settings UI] Configure Workstation button intercepted');
         }
     };
 

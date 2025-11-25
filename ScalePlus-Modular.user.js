@@ -3,8 +3,8 @@
 // @namespace    http://tampermonkey.net/
 // @version      3.0
 // @description  Custom enhancements for Scale application with toggleable features (Modular Version)
-// @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
-// @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus.user.js
+// @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus-Modular.user.js
+// @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus-Modular.user.js
 // @icon         https://scale20.byjasco.com/favicon.ico
 // @author       Blake, Nash
 // @match        https://scaleqa.byjasco.com/scale/*
