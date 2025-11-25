@@ -618,8 +618,8 @@
         
         // Also watch for the button to appear dynamically
         const observer = new MutationObserver(() => {
-            if (document.querySelector('button[data-resourcekey="BTN_CONFIGUREWORKSTATION"]') && 
-                !document.getElementById('scaleplus-settings-btn')) {
+            const targetButton = document.querySelector('button[data-resourcekey="BTN_CONFIGUREWORKSTATION"]');
+            if (targetButton && !targetButton.hasAttribute('data-scaleplus-intercepted')) {
                 addConfigureButton();
             }
         });
