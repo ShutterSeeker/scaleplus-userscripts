@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         ScalePlus Dark Mode Module
 // @namespace    http://tampermonkey.net/
-// @version      1.1
-// @description  Dark mode styling for ScalePlus
+// @version      1.2
+// @description  Dark mode styling for ScalePlus and RF pages
 // @author       Blake, Nash
 // @grant        none
 // ==/UserScript==
@@ -15,6 +15,11 @@
             console.log('[ScalePlus Dark Mode] Module initialized');
             this.injectStyles();
             this.applyDarkMode();
+        },
+
+        isRFPage() {
+            const url = window.location.href;
+            return url.includes('/RF/');
         },
 
         injectStyles() {
@@ -192,11 +197,170 @@
         }
     `;
 
+            const rfDarkModeStyles = `
+        /* RF Dark Mode Styles */
+        body.scaleplus-dark-mode {
+            background-color: #161616 !important;
+            color: white !important;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Text elements - only override if no inline color is set */
+        body.scaleplus-dark-mode label:not([style*="color"]),
+        body.scaleplus-dark-mode td:not([style*="color"]),
+        body.scaleplus-dark-mode div:not([style*="color"]),
+        body.scaleplus-dark-mode .aspNetDisabled {
+            color: white !important;
+        }
+
+        /* Spans without inline color get white, but preserve inline colors */
+        body.scaleplus-dark-mode span:not([style*="color"]) {
+            color: white !important;
+        }
+
+        /* Make dark red more visible (standard red is too dark on black) */
+        body.scaleplus-dark-mode span[style*="color:red"],
+        body.scaleplus-dark-mode span[style*="color: red"],
+        body.scaleplus-dark-mode span[style*="color:Red"],
+        body.scaleplus-dark-mode span[style*="color: Red"] {
+            color: #ff6b6b !important; /* Lighter red for readability */
+        }
+
+        /* Make dark green more visible (standard green is too dark on black) */
+        body.scaleplus-dark-mode span[style*="color:green"],
+        body.scaleplus-dark-mode span[style*="color: green"],
+        body.scaleplus-dark-mode span[style*="color:Green"],
+        body.scaleplus-dark-mode span[style*="color: Green"] {
+            color: #51cf66 !important; /* Lighter green for readability */
+        }
+
+        /* Convert black text to white (hardcoded black labels/text) */
+        body.scaleplus-dark-mode span[style*="color:black"],
+        body.scaleplus-dark-mode span[style*="color: black"],
+        body.scaleplus-dark-mode span[style*="color:Black"],
+        body.scaleplus-dark-mode span[style*="color: Black"],
+        body.scaleplus-dark-mode label[style*="color:black"],
+        body.scaleplus-dark-mode label[style*="color: black"],
+        body.scaleplus-dark-mode label[style*="color:Black"],
+        body.scaleplus-dark-mode label[style*="color: Black"],
+        body.scaleplus-dark-mode div[style*="color:black"],
+        body.scaleplus-dark-mode div[style*="color: black"],
+        body.scaleplus-dark-mode div[style*="color:Black"],
+        body.scaleplus-dark-mode div[style*="color: Black"] {
+            color: white !important; /* Convert hardcoded black to white */
+        }
+
+        /* Links should be visible */
+        body.scaleplus-dark-mode a {
+            color: #58a6ff !important;
+        }
+
+        body.scaleplus-dark-mode a:hover {
+            color: #79c0ff !important;
+        }
+
+        /* Input fields */
+        body.scaleplus-dark-mode input[type="text"],
+        body.scaleplus-dark-mode input[type="password"],
+        body.scaleplus-dark-mode textarea,
+        body.scaleplus-dark-mode select {
+            background-color: #2d2d2d !important;
+            color: white !important;
+            border: 1px solid #444 !important;
+        }
+
+        /* Buttons */
+        body.scaleplus-dark-mode input[type="button"],
+        body.scaleplus-dark-mode input[type="submit"],
+        body.scaleplus-dark-mode button {
+            background-color: #3a3a3a !important;
+            color: white !important;
+            border: 1px solid #555 !important;
+        }
+
+        body.scaleplus-dark-mode input[type="button"]:hover,
+        body.scaleplus-dark-mode input[type="submit"]:hover,
+        body.scaleplus-dark-mode button:hover {
+            background-color: #4a4a4a !important;
+        }
+
+        /* Disabled controls - make them clearly inactive in dark mode */
+        body.scaleplus-dark-mode input[disabled],
+        body.scaleplus-dark-mode textarea[disabled],
+        body.scaleplus-dark-mode select[disabled],
+        body.scaleplus-dark-mode button[disabled],
+        body.scaleplus-dark-mode .aspNetDisabled,
+        body.scaleplus-dark-mode input.aspNetDisabled,
+        body.scaleplus-dark-mode button.aspNetDisabled {
+            background-color: #222 !important;      /* muted background */
+            color: #8b949e !important;               /* muted text color */
+            border-color: #333 !important;           /* muted border */
+            opacity: 0.6 !important;                 /* slightly faded */
+            cursor: not-allowed !important;         /* clearly not interactive */
+            box-shadow: none !important;            /* remove focus/active shadows */
+            text-shadow: none !important;
+        }
+
+        /* Prevent hover/active styles from making disabled controls look interactive */
+        body.scaleplus-dark-mode input[disabled]:hover,
+        body.scaleplus-dark-mode textarea[disabled]:hover,
+        body.scaleplus-dark-mode select[disabled]:hover,
+        body.scaleplus-dark-mode button[disabled]:hover,
+        body.scaleplus-dark-mode .aspNetDisabled:hover,
+        body.scaleplus-dark-mode input.aspNetDisabled:hover,
+        body.scaleplus-dark-mode button.aspNetDisabled:hover {
+            background-color: #222 !important;
+            color: #8b949e !important;
+        }
+
+        /* Tables */
+        body.scaleplus-dark-mode table {
+            background-color: #161616 !important;
+        }
+
+        body.scaleplus-dark-mode td,
+        body.scaleplus-dark-mode th {
+            border-color: #444 !important;
+        }
+
+        /* Special labels (like the blue LP label) */
+        body.scaleplus-dark-mode [style*="background:#0094ff"],
+        body.scaleplus-dark-mode [style*="background: #0094ff"] {
+            background: #0094ff !important;
+            color: white !important;
+        }
+    `;
+
             if (!document.getElementById('scaleplus-dark-mode-styles')) {
                 const darkStyle = document.createElement('style');
                 darkStyle.id = 'scaleplus-dark-mode-styles';
-                darkStyle.textContent = darkModeStyles;
+                
+                // Apply appropriate styles based on page type
+                if (this.isRFPage()) {
+                    darkStyle.textContent = rfDarkModeStyles;
+                } else {
+                    darkStyle.textContent = darkModeStyles;
+                }
+                
                 document.head.appendChild(darkStyle);
+            }
+        },
+
+        applyInstantDarkMode() {
+            // Apply dark background IMMEDIATELY to html and body to prevent flash on RF pages
+            if (this.isRFPage()) {
+                const instantStyle = document.createElement('style');
+                instantStyle.id = 'scaleplus-dark-mode-instant';
+                instantStyle.textContent = `
+                    html, body {
+                        background-color: #161616 !important;
+                        transition: none !important;
+                    }
+                `;
+                // Insert at the very beginning of head to apply before any other styles
+                if (document.head) {
+                    document.head.insertBefore(instantStyle, document.head.firstChild);
+                }
             }
         },
 
@@ -208,13 +372,42 @@
 
             const isDarkMode = window.ScalePlusSettings.isEnabled(window.ScalePlusSettings.SETTINGS.DARK_MODE);
             if (isDarkMode) {
+                // Apply instant dark mode first if on RF page
+                if (this.isRFPage()) {
+                    this.applyInstantDarkMode();
+                }
+                
                 document.body.classList.add('scaleplus-dark-mode');
-                console.log('[ScalePlus Dark Mode] Applied dark mode');
+                console.log(`[ScalePlus Dark Mode] Applied dark mode (${this.isRFPage() ? 'RF' : 'Scale'} page)`);
             } else {
                 document.body.classList.remove('scaleplus-dark-mode');
+                
+                // Remove instant dark mode style if it exists
+                const instantStyle = document.getElementById('scaleplus-dark-mode-instant');
+                if (instantStyle) {
+                    instantStyle.remove();
+                }
+            }
+        },
+
+        removeDarkMode() {
+            document.body.classList.remove('scaleplus-dark-mode');
+            
+            // Remove instant dark mode style if it exists
+            const instantStyle = document.getElementById('scaleplus-dark-mode-instant');
+            if (instantStyle) {
+                instantStyle.remove();
             }
         }
     };
+
+    // Apply instant dark mode IMMEDIATELY if dark mode is enabled and on RF page
+    // This prevents white flash before the script fully initializes
+    if (window.ScalePlusDarkMode.isRFPage() && 
+        window.ScalePlusSettings && 
+        window.ScalePlusSettings.isEnabled(window.ScalePlusSettings.SETTINGS.DARK_MODE)) {
+        window.ScalePlusDarkMode.applyInstantDarkMode();
+    }
 
     // Initialize dark mode module
     window.ScalePlusDarkMode.init();

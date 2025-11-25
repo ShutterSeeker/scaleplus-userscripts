@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus
 // @namespace    http://tampermonkey.net/
-// @version      3.0
+// @version      3.1
 // @description  Custom enhancements for Scale application with toggleable features (Modular Version)
 // @updateURL    https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus-Modular.user.js
 // @downloadURL  https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/ScalePlus-Modular.user.js
@@ -9,6 +9,8 @@
 // @author       Blake, Nash
 // @match        https://scaleqa.byjasco.com/scale/*
 // @match        https://scale20.byjasco.com/scale/*
+// @match        https://scaleqa.byjasco.com/RF/*
+// @match        https://scale20.byjasco.com/RF/*
 // @require      https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/modules/settings.js
 // @require      https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/modules/dark-mode.js
 // @require      https://raw.githubusercontent.com/ShutterSeeker/scaleplus-userscripts/main/modules/utilities.js

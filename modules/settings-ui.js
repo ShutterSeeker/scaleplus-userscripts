@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus Settings UI Module
 // @namespace    https://github.com/ShutterSeeker/scaleplus-userscripts
-// @version      1.1
+// @version      1.2
 // @description  Settings modal interface for ScalePlus
 // @author       ShutterSeeker
 // @match        https://*/Scale/*
@@ -494,11 +494,19 @@
             localStorage.setItem(SETTINGS.DARK_MODE, state.toString());
             console.log(`[ScalePlus] Dark mode set to: ${state}`);
             
-            // Apply or remove dark mode class immediately
+            // Apply or remove dark mode immediately
             if (state) {
-                document.body.classList.add('scaleplus-dark-mode');
+                if (window.ScalePlusDarkMode && window.ScalePlusDarkMode.applyDarkMode) {
+                    window.ScalePlusDarkMode.applyDarkMode();
+                } else {
+                    document.body.classList.add('scaleplus-dark-mode');
+                }
             } else {
-                document.body.classList.remove('scaleplus-dark-mode');
+                if (window.ScalePlusDarkMode && window.ScalePlusDarkMode.removeDarkMode) {
+                    window.ScalePlusDarkMode.removeDarkMode();
+                } else {
+                    document.body.classList.remove('scaleplus-dark-mode');
+                }
             }
         });
 
