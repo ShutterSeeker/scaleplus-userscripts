@@ -107,24 +107,36 @@
                     background-color: #3a3a3a !important;
                 }
                 
-                /* Right-click cell highlight - high specificity to override all states */
+                /* Right-click cell highlight - normal and hover states */
                 #ListPaneDataGrid td.scaleplus-context-highlight,
-                #ListPaneDataGrid tr:hover td.scaleplus-context-highlight,
-                #ListPaneDataGrid tr[aria-selected="true"] td.scaleplus-context-highlight,
-                #ListPaneDataGrid .ui-iggrid-selectedcell.scaleplus-context-highlight,
-                #ListPaneDataGrid .ui-state-active.scaleplus-context-highlight {
+                #ListPaneDataGrid tr:hover td.scaleplus-context-highlight {
                     box-shadow: inset 0 0 0 2px #4f93e4 !important;
                     background-color: rgba(79, 147, 228, 0.2) !important;
                     position: relative !important;
                 }
                 
+                /* Right-click cell highlight - selected row (lighter, more subtle) */
+                #ListPaneDataGrid tr[aria-selected="true"] td.scaleplus-context-highlight,
+                #ListPaneDataGrid .ui-iggrid-selectedcell.scaleplus-context-highlight,
+                #ListPaneDataGrid .ui-state-active.scaleplus-context-highlight {
+                    box-shadow: inset 0 0 0 2px #4f93e4 !important;
+                    background-color: rgba(79, 147, 228, 0.35) !important;
+                    position: relative !important;
+                }
+                
+                /* Dark mode - normal and hover states */
                 body.scaleplus-dark-mode #ListPaneDataGrid td.scaleplus-context-highlight,
-                body.scaleplus-dark-mode #ListPaneDataGrid tr:hover td.scaleplus-context-highlight,
+                body.scaleplus-dark-mode #ListPaneDataGrid tr:hover td.scaleplus-context-highlight {
+                    box-shadow: inset 0 0 0 2px #5ba3e0 !important;
+                    background-color: rgba(91, 163, 224, 0.25) !important;
+                }
+                
+                /* Dark mode - selected row */
                 body.scaleplus-dark-mode #ListPaneDataGrid tr[aria-selected="true"] td.scaleplus-context-highlight,
                 body.scaleplus-dark-mode #ListPaneDataGrid .ui-iggrid-selectedcell.scaleplus-context-highlight,
                 body.scaleplus-dark-mode #ListPaneDataGrid .ui-state-active.scaleplus-context-highlight {
                     box-shadow: inset 0 0 0 2px #5ba3e0 !important;
-                    background-color: rgba(91, 163, 224, 0.25) !important;
+                    background-color: rgba(91, 163, 224, 0.4) !important;
                 }
             `;
 

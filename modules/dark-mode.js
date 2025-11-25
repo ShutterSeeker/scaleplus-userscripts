@@ -124,6 +124,11 @@
             background-color: #252525 !important;
         }
         
+        /* Row selector column (th with role=rowheader) should also get hover effect */
+        body.scaleplus-dark-mode #ListPaneDataGrid tr:hover th.ui-iggrid-rowselector-class {
+            background-color: #252525 !important;
+        }
+        
         /* Selected rows */
         body.scaleplus-dark-mode #ListPaneDataGrid .ui-iggrid-selectedcell {
             background-color: #2d4a6b !important;
@@ -140,6 +145,11 @@
         body.scaleplus-dark-mode #ListPaneDataGrid tr[aria-selected="true"] td {
             background-color: #2d4a6b !important;
             color: #ffffff !important;
+        }
+        
+        /* Row selector column should also get selected row styling */
+        body.scaleplus-dark-mode #ListPaneDataGrid tr[aria-selected="true"] th.ui-iggrid-rowselector-class {
+            background-color: #2d4a6b !important;
         }
         
         /* Row selector checkboxes - scope to body only (do not affect header checkbox) */
