@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus Context Menu Module
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Right-click context menu system
 // @author       Blake, Nash
 // @grant        none
