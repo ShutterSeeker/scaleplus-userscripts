@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus Settings UI Module
 // @namespace    https://github.com/ShutterSeeker/scaleplus-userscripts
-// @version      1.3
+// @version      1.4
 // @description  Settings modal interface for ScalePlus
 // @author       ShutterSeeker
 // @match        https://*/Scale/*
@@ -616,8 +616,13 @@
         if (targetButton && !targetButton.hasAttribute('data-scaleplus-intercepted')) {
             // Intercept the native Configure Workstation button
             targetButton.setAttribute('data-scaleplus-intercepted', 'true');
+            
+            // Use capture phase to intercept before Scale's handlers
             targetButton.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
                 const existingModal = document.getElementById('scaleplus-settings-modal');
                 if (existingModal) {
                     existingModal.remove();
@@ -626,7 +631,10 @@
                 }
                 createSettingsModal();
                 $('#scaleplus-settings-modal').modal('show');
-            });
+                
+                return false;
+            }, true); // Use capture phase
+            
             console.log('[ScalePlus Settings UI] Configure Workstation button intercepted');
         }
     };
