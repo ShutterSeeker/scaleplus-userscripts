@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus Environment Labels Module
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  QA/Production environment labels
 // @author       Blake, Nash
 // @grant        none
@@ -25,10 +25,17 @@
             const enabled = window.ScalePlusSettings.getSetting(window.ScalePlusSettings.SETTINGS.ENV_LABELS) === 'true';
             if (!enabled) return;
 
+            // Remove existing label if it exists
+            const existingLabel = document.getElementById('scaleplus-env-label');
+            if (existingLabel) {
+                existingLabel.remove();
+            }
+
             const navBar = document.getElementById('topNavigationBar');
             if (!navBar) return;
 
             const label = document.createElement('div');
+            label.id = 'scaleplus-env-label';
             const isProd = window.location.hostname === 'scale20.byjasco.com';
             
             const qaName = window.ScalePlusSettings.getSetting(window.ScalePlusSettings.SETTINGS.ENV_QA_NAME) || 
@@ -61,6 +68,20 @@
             navBar.style.borderBottom = `6px solid ${borderColor}`;
 
             console.log(`[ScalePlus Environment Labels] Added ${isProd ? 'Production' : 'QA'} label`);
+        },
+
+        removeEnvironmentLabel() {
+            const label = document.getElementById('scaleplus-env-label');
+            if (label) {
+                label.remove();
+            }
+
+            const navBar = document.getElementById('topNavigationBar');
+            if (navBar) {
+                navBar.style.borderBottom = '';
+            }
+
+            console.log('[ScalePlus Environment Labels] Removed environment label');
         }
     };
 

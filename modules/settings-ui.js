@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus Settings UI Module
 // @namespace    https://github.com/ShutterSeeker/scaleplus-userscripts
-// @version      1.0.0
+// @version      1.1
 // @description  Settings modal interface for ScalePlus
 // @author       ShutterSeeker
 // @match        https://*/Scale/*
@@ -467,9 +467,8 @@
                 }
             } else {
                 // Remove the label if it exists
-                const existingLabel = document.getElementById('scaleplus-env-label');
-                if (existingLabel) {
-                    existingLabel.remove();
+                if (window.ScalePlusEnvironmentLabels && window.ScalePlusEnvironmentLabels.removeEnvironmentLabel) {
+                    window.ScalePlusEnvironmentLabels.removeEnvironmentLabel();
                 }
             }
         });
