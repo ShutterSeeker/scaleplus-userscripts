@@ -586,7 +586,7 @@
     };
 
     const addConfigureButton = () => {
-        const targetButton = document.querySelector('button[data-resourcekey="BTN_CONFIGUREWORKSTATION"]');
+        const targetButton = document.getElementById('ConfigureWorkStation');
         
         if (targetButton && !targetButton.hasAttribute('data-scaleplus-intercepted')) {
             // Intercept the native Configure Workstation button
@@ -618,7 +618,7 @@
         
         // Also watch for the button to appear dynamically
         const observer = new MutationObserver(() => {
-            const targetButton = document.querySelector('button[data-resourcekey="BTN_CONFIGUREWORKSTATION"]');
+            const targetButton = document.getElementById('ConfigureWorkStation');
             if (targetButton && !targetButton.hasAttribute('data-scaleplus-intercepted')) {
                 addConfigureButton();
             }
