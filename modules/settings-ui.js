@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus Settings UI Module
 // @namespace    https://github.com/ShutterSeeker/scaleplus-userscripts
-// @version      1.5
+// @version      1.6
 // @description  Settings modal interface for ScalePlus
 // @author       ShutterSeeker
 // @match        https://*/Scale/*
@@ -693,4 +693,7 @@
     };
 
     console.log('[ScalePlus Settings UI] Module loaded');
+    
+    // Initialize the module
+    window.ScalePlusSettingsUI.init();
 })();
