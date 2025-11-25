@@ -84,27 +84,27 @@
                 
                 /* Dark mode styles for context menu */
                 body.scaleplus-dark-mode .scaleplus-context-menu {
-                    background: #2a2a2a;
-                    border: 1px solid #3a3a3a;
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+                    background: #2a2a2a !important;
+                    border: 1px solid #3a3a3a !important;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
                 }
                 body.scaleplus-dark-mode .scaleplus-context-menu-item {
-                    color: #e0e0e0;
+                    color: #e0e0e0 !important;
                 }
                 body.scaleplus-dark-mode .scaleplus-context-menu-item:hover {
-                    background-color: #3a3a3a;
+                    background-color: #3a3a3a !important;
                 }
                 body.scaleplus-dark-mode .scaleplus-context-menu-item:active {
-                    background-color: #4a4a4a;
+                    background-color: #4a4a4a !important;
                 }
                 body.scaleplus-dark-mode .scaleplus-context-menu-item.disabled {
-                    color: #666;
+                    color: #666 !important;
                 }
                 body.scaleplus-dark-mode .scaleplus-context-menu-item.disabled:hover {
-                    background-color: transparent;
+                    background-color: transparent !important;
                 }
                 body.scaleplus-dark-mode .scaleplus-context-menu-separator {
-                    background-color: #3a3a3a;
+                    background-color: #3a3a3a !important;
                 }
             `;
 

@@ -10,6 +10,8 @@
 (function() {
     'use strict';
 
+    let firstTrigger = true;
+
     window.ScalePlusKeyboard = {
         init() {
             console.log('[ScalePlus Keyboard] Module initialized');
@@ -18,12 +20,33 @@
         },
 
         triggerAction() {
+            const stopBtn = document.getElementById('InsightMenuActionStopSearch');
             const applyBtn = document.getElementById('InsightMenuApply');
-            if (applyBtn && window.ScalePlusUtilities?.isVisible(applyBtn)) {
-                applyBtn.click();
-                return true;
+
+            if (firstTrigger) {
+                firstTrigger = false;
+                if (applyBtn && window.ScalePlusUtilities?.isVisible(applyBtn)) {
+                    console.log('[ScalePlus Keyboard] First trigger - Clicking Apply');
+                    applyBtn.click();
+                } else {
+                    console.log('[ScalePlus Keyboard] First trigger - Apply button not visible, allowing normal Enter behavior');
+                    // Reset firstTrigger so next Enter press will try again
+                    firstTrigger = true;
+                    return false; // Indicate that we didn't handle the action
+                }
+            } else {
+                if (stopBtn && window.ScalePlusUtilities?.isVisible(stopBtn)) {
+                    console.log('[ScalePlus Keyboard] Clicking Stop Search');
+                    stopBtn.click();
+                } else if (applyBtn && window.ScalePlusUtilities?.isVisible(applyBtn)) {
+                    console.log('[ScalePlus Keyboard] Clicking Apply');
+                    applyBtn.click();
+                } else {
+                    console.log('[ScalePlus Keyboard] No visible button to click');
+                    return false; // Indicate that we didn't handle the action
+                }
             }
-            return false;
+            return true; // Indicate that we handled the action
         },
 
         getF5Behavior() {
