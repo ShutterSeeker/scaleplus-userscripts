@@ -106,6 +106,26 @@
                 body.scaleplus-dark-mode .scaleplus-context-menu-separator {
                     background-color: #3a3a3a !important;
                 }
+                
+                /* Right-click cell highlight - high specificity to override all states */
+                #ListPaneDataGrid td.scaleplus-context-highlight,
+                #ListPaneDataGrid tr:hover td.scaleplus-context-highlight,
+                #ListPaneDataGrid tr[aria-selected="true"] td.scaleplus-context-highlight,
+                #ListPaneDataGrid .ui-iggrid-selectedcell.scaleplus-context-highlight,
+                #ListPaneDataGrid .ui-state-active.scaleplus-context-highlight {
+                    box-shadow: inset 0 0 0 2px #4f93e4 !important;
+                    background-color: rgba(79, 147, 228, 0.2) !important;
+                    position: relative !important;
+                }
+                
+                body.scaleplus-dark-mode #ListPaneDataGrid td.scaleplus-context-highlight,
+                body.scaleplus-dark-mode #ListPaneDataGrid tr:hover td.scaleplus-context-highlight,
+                body.scaleplus-dark-mode #ListPaneDataGrid tr[aria-selected="true"] td.scaleplus-context-highlight,
+                body.scaleplus-dark-mode #ListPaneDataGrid .ui-iggrid-selectedcell.scaleplus-context-highlight,
+                body.scaleplus-dark-mode #ListPaneDataGrid .ui-state-active.scaleplus-context-highlight {
+                    box-shadow: inset 0 0 0 2px #5ba3e0 !important;
+                    background-color: rgba(91, 163, 224, 0.25) !important;
+                }
             `;
 
             const style = document.createElement('style');
@@ -213,7 +233,23 @@
             if (this.menu) {
                 this.menu.style.display = 'none';
             }
+            // Remove highlight from previously highlighted cell
+            this.removeHighlight();
             this.currentTarget = null;
+        }
+
+        removeHighlight() {
+            const highlighted = document.querySelectorAll('.scaleplus-context-highlight');
+            highlighted.forEach(el => el.classList.remove('scaleplus-context-highlight'));
+        }
+
+        highlightCell(cell) {
+            // Remove any existing highlights first
+            this.removeHighlight();
+            // Add highlight to the clicked cell
+            if (cell) {
+                cell.classList.add('scaleplus-context-highlight');
+            }
         }
 
         handleGridRightClick(e) {
@@ -231,6 +267,9 @@
             if (!el) return;
 
             e.preventDefault();
+
+            // Highlight the cell that was right-clicked
+            this.highlightCell(el);
 
             const originalX = e.pageX;
             const originalY = e.pageY;
