@@ -117,11 +117,15 @@
                 
                 /* Right-click cell highlight - selected row (keep light, just add border) */
                 #ListPaneDataGrid tr[aria-selected="true"] td.scaleplus-context-highlight,
+                #ListPaneDataGrid td.ui-iggrid-selectedcell.scaleplus-context-highlight,
+                #ListPaneDataGrid td.ui-state-active.scaleplus-context-highlight,
                 #ListPaneDataGrid .ui-iggrid-selectedcell.scaleplus-context-highlight,
-                #ListPaneDataGrid .ui-state-active.scaleplus-context-highlight {
+                #ListPaneDataGrid .ui-state-active.scaleplus-context-highlight,
+                #ListPaneDataGrid tbody tr[aria-selected="true"] td.scaleplus-context-highlight {
                     box-shadow: inset 0 0 0 2px #4f93e4 !important;
                     background-color: rgba(173, 216, 230, 0.5) !important;
                     position: relative !important;
+                    background-image: none !important;
                 }
                 
                 /* Dark mode - normal and hover states */
@@ -133,10 +137,14 @@
                 
                 /* Dark mode - selected row */
                 body.scaleplus-dark-mode #ListPaneDataGrid tr[aria-selected="true"] td.scaleplus-context-highlight,
+                body.scaleplus-dark-mode #ListPaneDataGrid td.ui-iggrid-selectedcell.scaleplus-context-highlight,
+                body.scaleplus-dark-mode #ListPaneDataGrid td.ui-state-active.scaleplus-context-highlight,
                 body.scaleplus-dark-mode #ListPaneDataGrid .ui-iggrid-selectedcell.scaleplus-context-highlight,
-                body.scaleplus-dark-mode #ListPaneDataGrid .ui-state-active.scaleplus-context-highlight {
+                body.scaleplus-dark-mode #ListPaneDataGrid .ui-state-active.scaleplus-context-highlight,
+                body.scaleplus-dark-mode #ListPaneDataGrid tbody tr[aria-selected="true"] td.scaleplus-context-highlight {
                     box-shadow: inset 0 0 0 2px #5ba3e0 !important;
                     background-color: rgba(91, 163, 224, 0.4) !important;
+                    background-image: none !important;
                 }
             `;
 
