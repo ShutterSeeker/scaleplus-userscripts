@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ScalePlus Settings UI Module
 // @namespace    https://github.com/ShutterSeeker/scaleplus-userscripts
-// @version      1.4
+// @version      1.5
 // @description  Settings modal interface for ScalePlus
 // @author       ShutterSeeker
 // @match        https://*/Scale/*
@@ -613,15 +613,27 @@
     const addConfigureButton = () => {
         const targetButton = document.getElementById('ConfigureWorkStation');
         
-        if (targetButton && !targetButton.hasAttribute('data-scaleplus-intercepted')) {
+        console.log('[ScalePlus Settings UI] Looking for ConfigureWorkStation button...', targetButton ? 'FOUND' : 'NOT FOUND');
+        
+        if (targetButton) {
+            if (targetButton.hasAttribute('data-scaleplus-intercepted')) {
+                console.log('[ScalePlus Settings UI] Button already intercepted, skipping');
+                return;
+            }
+            
+            console.log('[ScalePlus Settings UI] Intercepting ConfigureWorkStation button');
+            
             // Intercept the native Configure Workstation button
             targetButton.setAttribute('data-scaleplus-intercepted', 'true');
             
             // Use capture phase to intercept before Scale's handlers
             targetButton.addEventListener('click', (e) => {
+                console.log('[ScalePlus Settings UI] Button clicked! Intercepting...');
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
+                
+                console.log('[ScalePlus Settings UI] Opening ScalePlus settings modal');
                 
                 const existingModal = document.getElementById('scaleplus-settings-modal');
                 if (existingModal) {
@@ -635,24 +647,34 @@
                 return false;
             }, true); // Use capture phase
             
-            console.log('[ScalePlus Settings UI] Configure Workstation button intercepted');
+            console.log('[ScalePlus Settings UI] Configure Workstation button intercepted successfully');
+        } else {
+            console.log('[ScalePlus Settings UI] ConfigureWorkStation button not found yet, will retry');
         }
     };
 
     const init = () => {
         console.log('[ScalePlus Settings UI] Initializing...');
+        console.log('[ScalePlus Settings UI] Document ready state:', document.readyState);
         
         // Wait for the page to be ready
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', addConfigureButton);
+            console.log('[ScalePlus Settings UI] Waiting for DOMContentLoaded...');
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('[ScalePlus Settings UI] DOMContentLoaded fired');
+                addConfigureButton();
+            });
         } else {
+            console.log('[ScalePlus Settings UI] Document already ready, trying immediately');
             addConfigureButton();
         }
         
         // Also watch for the button to appear dynamically
-        const observer = new MutationObserver(() => {
+        console.log('[ScalePlus Settings UI] Setting up MutationObserver to watch for button');
+        const observer = new MutationObserver((mutations) => {
             const targetButton = document.getElementById('ConfigureWorkStation');
             if (targetButton && !targetButton.hasAttribute('data-scaleplus-intercepted')) {
+                console.log('[ScalePlus Settings UI] Button appeared via mutation, intercepting now');
                 addConfigureButton();
             }
         });
