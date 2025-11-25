@@ -143,27 +143,6 @@ The **Advanced Criteria Enhance** feature provides enhances the advanced criteri
 
 ---
 
-## Relative Date Favorites
-
-![Relative Date Modal](images/relative-date.png)
-
-The **Enhance favorites** toggle also enables smart relative date/time handling for saved searches.
-
-### How It Works
-- When saving a favorite that includes date fields, a small modal lets you choose:
-   - Relative Date (time unchanged, date changes)
-   - Relative Date & Time (date and time change)
-   - Absolute (exact timestamps as saved)
-- Your choice is remembered per favorite & form (stored locally).
-
-### Applying Favorites
-- Setting Off: If you disable **Enhance favorites**, all favorites apply as absolute and the modal is suppressed.
-
-### Notes
-- Advanced criteria date time filters are not supported
-
----
-
 ## 🔧 Installation
 
 ### Prerequisites
@@ -172,7 +151,7 @@ The **Enhance favorites** toggle also enables smart relative date/time handling 
 
 ### Install Steps
 1. **Install Tampermonkey Extension**
-   - [Chrome Web Store](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
+   - Click here: [Chrome Web Store](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
    - Or search for "Tampermonkey" in your browser's extension store
 
 2. **Enable Developer Mode (Important!)**
@@ -185,8 +164,7 @@ The **Enhance favorites** toggle also enables smart relative date/time handling 
    - Close and reopen your browser to ensure all settings are applied
 
 4. **Install ScalePlus Script**
-   - Click on `ScalePlus.user.js` in this repository
-   - Click the **Raw** button to view the source
+   - Click here: [ScalePlus-Modular.user.js](https://github.com/ShutterSeeker/scaleplus-userscripts/raw/refs/heads/main/ScalePlus-Modular.user.js)
    - Tampermonkey will automatically prompt you to install
    - Click **Install**
 
