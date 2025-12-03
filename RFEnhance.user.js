@@ -23,8 +23,7 @@
 
     // Check if we're on the PalletCompleteRF page
     function isPalletCompleteRFPage() {
-        const url = window.location.href;
-        return url.includes('/PalletCompleteRF.aspx');
+        return window.location.pathname.includes('/PalletCompleteRF.aspx');
     }
 
     // Check if dark mode should be enabled
@@ -522,7 +521,7 @@
             // Check if we should skip focus overlay features on this page
             const skipFocusOverlay = isPalletCompleteRFPage();
             
-            // Always apply overlay styles (needed for both light and dark mode) - unless on PalletCompleteRF
+            // Apply overlay styles if not on PalletCompleteRF page (needed for both light and dark mode on other pages)
             if (!skipFocusOverlay) {
                 applyOverlayStyles();
             }
