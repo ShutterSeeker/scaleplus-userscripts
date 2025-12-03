@@ -21,6 +21,11 @@
                url.startsWith('https://scaleqa.byjasco.com/RF/');
     }
 
+    // Check if we're on the PalletCompleteRF page
+    function isPalletCompleteRFPage() {
+        return window.location.pathname.includes('/PalletCompleteRF.aspx');
+    }
+
     // Check if dark mode should be enabled
     function isDarkModeEnabled() {
         // Only apply dark mode on valid RF URLs
@@ -513,8 +518,13 @@
     function init() {
         // Wait for body to be available
         if (document.body) {
-            // Always apply overlay styles (needed for both light and dark mode)
-            applyOverlayStyles();
+            // Check if we should skip focus overlay features on this page
+            const skipFocusOverlay = isPalletCompleteRFPage();
+            
+            // Apply focus overlay styles if not on PalletCompleteRF page
+            if (!skipFocusOverlay) {
+                applyOverlayStyles();
+            }
             
             if (isDarkModeEnabled()) {
                 applyDarkMode();
@@ -523,17 +533,20 @@
             // Set up focus preservation for auto-refreshing pages
             setupFocusPreservation();
             
-            // Create focus overlay
-            createFocusOverlay();
-            
-            // Set up focus tracking
-            setupFocusTracking();
-            
-            // Set up window focus handlers
-            setupWindowFocusHandlers();
-            
-            // Prevent auto-refresh when unfocused
-            preventAutoRefreshWhenUnfocused();
+            // Only set up focus overlay features if not on PalletCompleteRF page
+            if (!skipFocusOverlay) {
+                // Create focus overlay
+                createFocusOverlay();
+                
+                // Set up focus tracking
+                setupFocusTracking();
+                
+                // Set up window focus handlers
+                setupWindowFocusHandlers();
+                
+                // Prevent auto-refresh when unfocused
+                preventAutoRefreshWhenUnfocused();
+            }
             
             // Restore focus after a brief delay (to let page finish loading)
             setTimeout(restoreFocusedElement, 100);
