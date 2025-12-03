@@ -24,7 +24,7 @@
     // Check if we're on the PalletCompleteRF page
     function isPalletCompleteRFPage() {
         const url = window.location.href;
-        return url.includes('PalletCompleteRF.aspx');
+        return url.includes('/PalletCompleteRF.aspx');
     }
 
     // Check if dark mode should be enabled
