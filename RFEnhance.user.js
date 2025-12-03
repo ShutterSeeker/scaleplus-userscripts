@@ -521,7 +521,7 @@
             // Check if we should skip focus overlay features on this page
             const skipFocusOverlay = isPalletCompleteRFPage();
             
-            // Apply overlay styles if not on PalletCompleteRF page (needed for both light and dark mode on other pages)
+            // Apply focus overlay styles if not on PalletCompleteRF page
             if (!skipFocusOverlay) {
                 applyOverlayStyles();
             }
